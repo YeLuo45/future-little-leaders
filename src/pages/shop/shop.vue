@@ -8,6 +8,17 @@
 				</view>
 				<view class="points">{{ totalScore }}积分</view>
 			</view>
+			
+			<!-- 宝宝选择器区域 -->
+			<view class="baby-selector" v-if="babies.length > 0">
+				<picker :range="babies" range-key="name" @change="onBabyChange">
+					<view class="baby-select-view">
+						<text>当前宝宝：</text>
+						<text class="baby-name">{{ currentBabyName }}</text>
+						<text class="baby-arrow">▼</text>
+					</view>
+				</picker>
+			</view>
 		</view>
 
 		<view class="search-box" :class="{ 'dark-mode': isDarkMode }">
@@ -61,9 +72,9 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useThemeStore } from '@/stores/theme';
-import { getTotalPoints, deductPoints, updateTotalPoints } from '@/utils/pointsManager';
+import { getTotalPoints, deductPoints, updateTotalPoints, getBabyPoints, deductBabyPoints } from '@/utils/pointsManager';
 import { isDarkTheme } from '@/utils/themeUtils.js';
 
 export default {
@@ -73,6 +84,14 @@ export default {
 		const totalScore = ref(0);
 		const products = ref([]);
 		const searchKeyword = ref('');
+		
+		// 宝宝相关
+		const babies = ref([]);
+		const currentBabyId = ref('');
+		const currentBabyName = computed(() => {
+			const baby = babies.value.find(b => b.id === currentBabyId.value);
+			return baby ? baby.name : '';
+		});
 
 		// 清除搜索内容
 		const clearSearch = () => {
@@ -176,13 +195,15 @@ export default {
 
 			try {
 				// 扣除积分
-				if (await deductPoints(product.points)) {
+				const success = await deductPoints(product.points);
+				if (success) {
 					// 创建兑换记录
 					const exchangeRecord = {
 						productName: product.name,
 						points: product.points,
 						exchangeTime: new Date().toISOString(),
-						status: '兑换成功'
+						status: '兑换成功',
+						babyId: currentBabyId.value // 添加宝宝ID到兑换记录
 					};
 
 					// 保存兑换记录
@@ -197,6 +218,11 @@ export default {
 						title: '兑换成功',
 						icon: 'success'
 					});
+				} else {
+					uni.showToast({
+						title: '积分不足',
+						icon: 'none'
+					});
 				}
 			} catch (e) {
 				console.error('兑换失败:', e);
@@ -207,9 +233,41 @@ export default {
 			}
 		};
 
+		// 加载宝宝信息
+		const loadBabies = () => {
+			babies.value = uni.getStorageSync('babies') || [];
+			const storedBabyId = uni.getStorageSync('currentBabyId');
+			currentBabyId.value = storedBabyId || (babies.value.length > 0 ? babies.value[0].id : '');
+			
+			// 如果存在宝宝且未设置当前宝宝ID，设置第一个宝宝为当前宝宝
+			if (babies.value.length > 0 && !storedBabyId) {
+				uni.setStorageSync('currentBabyId', currentBabyId.value);
+			}
+			
+			// 更新当前宝宝积分
+			updatePoints();
+		};
+		
+		// 切换宝宝
+		const onBabyChange = (e) => {
+			const idx = e.detail.value;
+			currentBabyId.value = babies.value[idx].id;
+			uni.setStorageSync('currentBabyId', currentBabyId.value);
+			
+			// 更新积分显示
+			updatePoints();
+			
+			// 广播宝宝切换事件
+			uni.$emit('babyChanged', currentBabyId.value);
+		};
+
 		// 更新积分显示
 		const updatePoints = () => {
-			totalScore.value = getTotalPoints();
+			if (currentBabyId.value) {
+				totalScore.value = getBabyPoints(currentBabyId.value);
+			} else {
+				totalScore.value = getTotalPoints();
+			}
 		};
 
 		onMounted(() => {
@@ -217,23 +275,43 @@ export default {
 			if (themeStore.initTheme) {
 				themeStore.initTheme();
 			}
+			
+			// 加载宝宝信息
+			loadBabies();
+			
+			// 加载商品列表
+			loadProducts();
 
 			// 添加积分更新事件监听
 			uni.$on('pointsUpdated', updatePoints);
+			
+			// 添加宝宝积分更新事件监听
+			uni.$on('babyPointsUpdated', (data) => {
+				if (data && data.babyId === currentBabyId.value) {
+					totalScore.value = data.points;
+				}
+			});
+			
+			// 添加宝宝切换事件监听
+			uni.$on('babyChanged', (babyId) => {
+				currentBabyId.value = babyId;
+				updatePoints();
+			});
+			
 			// 添加商品列表更新事件监听
 			uni.$on('refreshProductList', loadProducts);
-
-			// 初始化积分
-			updatePoints();
-
-			// 加载商品列表
-			loadProducts();
+			
+			// 添加宝宝列表更新事件监听
+			uni.$on('refreshBabyList', loadBabies);
 		});
 
 		onUnmounted(() => {
 			// 移除事件监听
 			uni.$off('pointsUpdated');
+			uni.$off('babyPointsUpdated');
+			uni.$off('babyChanged');
 			uni.$off('refreshProductList');
+			uni.$off('refreshBabyList');
 		});
 
 		return {
@@ -247,7 +325,10 @@ export default {
 			clearSearch,
 			searchProducts,
 			goToAddProduct,
-			goToProductDetail
+			goToProductDetail,
+			babies,
+			currentBabyName,
+			onBabyChange
 		};
 	}
 }
@@ -687,5 +768,29 @@ export default {
 	color: #333;
 	width: 100%;
 	box-sizing: border-box;
+}
+
+/* 添加宝宝选择器样式 */
+.baby-selector {
+	padding: 20rpx 30rpx;
+	background-color: rgba(255, 255, 255, 0.15);
+	border-radius: 20rpx;
+	margin: 20rpx 30rpx 0;
+}
+
+.baby-select-view {
+	display: flex;
+	align-items: center;
+	color: white;
+}
+
+.baby-name {
+	font-weight: bold;
+	flex: 1;
+	margin: 0 10rpx;
+}
+
+.baby-arrow {
+	font-size: 24rpx;
 }
 </style>

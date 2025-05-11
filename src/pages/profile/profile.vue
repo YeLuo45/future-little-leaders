@@ -15,6 +15,18 @@
 			</view>
 		</view>
 
+		<!-- 宝宝选择器区域 -->
+		<view class="baby-selector">
+			<picker :range="babies" range-key="name" @change="onBabyChange">
+				<view class="baby-select-view">
+					<text>当前宝宝：</text>
+					<text class="baby-name">{{ currentBabyName }}</text>
+					<text class="baby-arrow">▼</text>
+				</view>
+			</picker>
+			<button class="add-baby-btn" @tap="navigateToAddBaby">添加宝宝</button>
+		</view>
+
 		<!-- 功能列表 -->
 		<view class="function-list">
 			<view class="function-item" @tap="navigateTo('task/task-records')">
@@ -42,10 +54,10 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { isDarkTheme } from '@/utils/themeUtils.js';
 import { useThemeStore } from '@/stores/theme';
-import { getTotalPoints } from '@/utils/pointsManager';
+import { getTotalPoints, getBabyPoints, updateBabyPoints } from '@/utils/pointsManager';
 
 export default {
 	name: 'Profile',
@@ -61,6 +73,21 @@ export default {
 		const taskRecords = ref([]);
 		const exchangeRecords = ref([]);
 
+		// 宝宝相关
+		const babies = ref([]);
+		const currentBabyId = ref('');
+		const currentBabyName = computed(() => {
+			const baby = babies.value.find(b => b.id === currentBabyId.value);
+			return baby ? baby.name : '';
+		});
+
+		// 跳转到添加宝宝页面
+		const navigateToAddBaby = () => {
+			uni.navigateTo({
+				url: '/pages/profile/add-baby'
+			});
+		};
+
 		// 加载用户信息
 		const loadUserInfo = () => {
 			try {
@@ -74,8 +101,13 @@ export default {
 		};
 
 		// 更新积分显示
-		const updatePoints = () => {
-			totalScore.value = getTotalPoints();
+		const updatePoints = (babyId) => {
+			const id = babyId || currentBabyId.value;
+			if (id) {
+				totalScore.value = getBabyPoints(id);
+			} else {
+				totalScore.value = getTotalPoints();
+			}
 		};
 
 		// 加载任务记录
@@ -83,7 +115,7 @@ export default {
 			try {
 				const records = uni.getStorageSync('taskList') || '[]';
 				taskRecords.value = JSON.parse(records)
-					.filter(task => task.status === 'completed')
+					.filter(task => task.status === 'completed' && (!task.babyId || task.babyId === currentBabyId.value))
 					.slice(0, 3)
 					.map(task => ({
 						title: task.title,
@@ -101,6 +133,7 @@ export default {
 			try {
 				const records = uni.getStorageSync('exchangeHistory') || '[]';
 				exchangeRecords.value = JSON.parse(records)
+					.filter(record => !record.babyId || record.babyId === currentBabyId.value)
 					.slice(0, 3)
 					.map(record => ({
 						title: record.productName,
@@ -113,6 +146,38 @@ export default {
 			}
 		};
 
+		// 加载宝宝信息
+		const loadBabies = () => {
+			babies.value = uni.getStorageSync('babies') || [];
+			const storedBabyId = uni.getStorageSync('currentBabyId');
+			currentBabyId.value = storedBabyId || (babies.value.length > 0 ? babies.value[0].id : '');
+			
+			// 如果存在宝宝且未设置当前宝宝ID，设置第一个宝宝为当前宝宝
+			if (babies.value.length > 0 && !storedBabyId) {
+				uni.setStorageSync('currentBabyId', currentBabyId.value);
+			}
+			
+			// 更新当前宝宝积分
+			updatePoints(currentBabyId.value);
+		};
+
+		// 切换宝宝
+		const onBabyChange = (e) => {
+			const idx = e.detail.value;
+			currentBabyId.value = babies.value[idx].id;
+			uni.setStorageSync('currentBabyId', currentBabyId.value);
+			
+			// 更新积分显示
+			updatePoints(currentBabyId.value);
+			
+			// 广播宝宝切换事件
+			uni.$emit('babyChanged', currentBabyId.value);
+			
+			// 重新加载任务和兑换记录
+			loadTaskRecords();
+			loadExchangeRecords();
+		};
+
 		// 页面跳转
 		const navigateTo = (page) => {
 			uni.navigateTo({
@@ -122,9 +187,9 @@ export default {
 
 		onMounted(() => {
 			loadUserInfo();
+			loadBabies();
 			loadTaskRecords();
 			loadExchangeRecords();
-			updatePoints();
 			isDark.value = isDarkTheme();
 
 			// 初始化主题
@@ -134,11 +199,27 @@ export default {
 
 			// 添加积分更新事件监听
 			uni.$on('pointsUpdated', updatePoints);
+			
+			// 添加宝宝积分更新事件监听
+			uni.$on('babyPointsUpdated', (data) => {
+				if (data && data.babyId === currentBabyId.value) {
+					totalScore.value = data.points;
+				}
+			});
+			
+			// 添加宝宝列表更新事件监听
+			uni.$on('refreshBabyList', () => {
+				loadBabies();
+				loadTaskRecords();
+				loadExchangeRecords();
+			});
 		});
 
 		onUnmounted(() => {
 			// 移除事件监听
 			uni.$off('pointsUpdated');
+			uni.$off('babyPointsUpdated');
+			uni.$off('refreshBabyList');
 		});
 
 		return {
@@ -147,7 +228,12 @@ export default {
 			isDark,
 			navigateTo,
 			taskRecords,
-			exchangeRecords
+			exchangeRecords,
+			babies,
+			currentBabyId,
+			currentBabyName,
+			onBabyChange,
+			navigateToAddBaby
 		};
 	}
 };
@@ -248,5 +334,38 @@ export default {
 .arrow {
 	color: #999;
 	font-size: 28rpx;
+}
+
+.baby-selector {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 20rpx 30rpx;
+	background: #fff;
+	border-radius: 16rpx;
+	margin: 20rpx 30rpx 0 30rpx;
+	box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
+}
+.baby-select-view {
+	display: flex;
+	align-items: center;
+}
+.baby-name {
+	font-weight: bold;
+	color: #7C3AED;
+	margin: 0 10rpx;
+}
+.baby-arrow {
+	font-size: 24rpx;
+	color: #888;
+}
+.add-baby-btn {
+	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+	color: #fff;
+	border: none;
+	border-radius: 20rpx;
+	padding: 10rpx 30rpx;
+	font-size: 28rpx;
+	box-shadow: 0 2rpx 8rpx rgba(124, 58, 237, 0.15);
 }
 </style>

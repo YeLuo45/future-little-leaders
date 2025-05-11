@@ -10,6 +10,18 @@
         </view>
         <view class="points">{{ totalScore }}积分</view>
       </view>
+      
+      <!-- 宝宝选择器 -->
+      <view class="baby-selector">
+        <picker :range="babies" range-key="name" @change="onBabyChange" :value="currentBabyIndex">
+          <view class="baby-select-view">
+            <text class="baby-icon">��</text>
+            <text class="baby-name">{{ currentBabyName || '选择宝宝' }}</text>
+            <text class="selector-arrow">▼</text>
+          </view>
+        </picker>
+        <text class="refresh-btn" @tap="manualRefreshTasks">🔄</text>
+      </view>
     </view>
 
     <!-- 搜索框 -->
@@ -168,13 +180,13 @@
       </view>
     </view>
   </view>
-</template>
+</template> 
 
 <script>
   import { ref, computed, onMounted, onUnmounted } from 'vue';
   import { useThemeStore } from '@/stores/theme';
   import { onPageShow } from '@dcloudio/uni-app';
-  import { getTotalPoints, updateTotalPoints, addPoints } from '@/utils/pointsManager';
+  import { getTotalPoints, updateTotalPoints, addPoints, getBabyPoints, addBabyPoints } from '@/utils/pointsManager';
 
   export default {
     setup() {
@@ -231,6 +243,58 @@
 
       // 定时器ID
       let intervalId;
+
+      // 宝宝相关
+      const babies = ref([]);
+      const currentBabyId = ref('');
+      const currentBabyName = computed(() => {
+        const baby = babies.value.find(b => b.id === currentBabyId.value);
+        return baby ? baby.name : (babies.value.length > 0 ? '选择宝宝' : '暂无宝宝');
+      });
+      const currentBabyIndex = computed(() => {
+        return babies.value.findIndex(b => b.id === currentBabyId.value);
+      });
+
+      // 加载宝宝信息
+      const loadBabies = () => {
+        try {
+          // 加载宝宝列表
+          const storedBabies = uni.getStorageSync('babies') || '[]';
+          babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
+          
+          // 加载当前选中宝宝
+          const storedCurrentBabyId = uni.getStorageSync('currentBabyId');
+          currentBabyId.value = storedCurrentBabyId || (babies.value[0]?.id || '');
+          
+          console.log('加载宝宝信息:', babies.value, currentBabyId.value);
+        } catch (e) {
+          console.error('加载宝宝信息失败:', e);
+        }
+      };
+
+      // 切换宝宝
+      const onBabyChange = (e) => {
+        const idx = e.detail.value;
+        if (babies.value[idx]) {
+          currentBabyId.value = babies.value[idx].id;
+          uni.setStorageSync('currentBabyId', currentBabyId.value);
+          
+          // 显式调用任务重新加载，确保UI更新
+          loadTasksAndPointsFromStorage();
+          
+          // 添加调试日志
+          console.log('切换宝宝:', babies.value[idx].name, '宝宝ID:', currentBabyId.value);
+          console.log('已重新加载任务列表');
+          
+          // 强制刷新一下UI
+          setTimeout(() => {
+            // 模拟状态变化，触发视图更新
+            const temp = [...taskList.value];
+            taskList.value = [];
+            taskList.value = temp;
+          }, 10);
+        }
+      };
 
       // 刷新周期性任务
       const refreshTasks = () => {
@@ -291,17 +355,32 @@
 
       // 计算进行中的任务
       const ongoingTasks = computed(() => {
+        // 添加依赖currentBabyId，确保它变化时重新计算
+        const babyId = currentBabyId.value;
+        console.log('计算ongoingTasks，当前宝宝:', babyId);
+        
         return taskList.value
           .filter(task => {
+
+            // 如果task.babyId是undefined，则认为过滤
+            if (task.babyId === undefined) {
+              return false;
+            }
+            // 如果当前没有宝宝，则过滤
+            if (!babyId) {
+              return false;
+            }
+
             // 普通任务
             const isNormal = task.type === 'normal';
             // 进行中任务
             const isOngoing = task.status === 'ongoing';
             // 搜索关键字 
             const matchesSearch = !searchKeyword.value || task.title.includes(searchKeyword.value);
-            // console.log('普通任务过滤:', task.title, isNormal, isOngoing, matchesSearch);
+            // 当前宝宝的任务 (如果任务有babyId且与当前选中的不同，则过滤掉)
+            const isBabyTask = task.babyId === babyId;
             // 返回符合条件的任务
-            return isNormal && isOngoing && matchesSearch;
+            return isNormal && isOngoing && matchesSearch && isBabyTask;
           })
           // 按创建时间排序
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -309,22 +388,36 @@
 
       // 计算周期性任务
       const recurringTasks = computed(() => {
+        // 添加依赖currentBabyId，确保它变化时重新计算
+        const babyId = currentBabyId.value;
+        console.log('计算recurringTasks，当前宝宝:', babyId);
+        
         const tasks = taskList.value
           .filter(task => {
+            // 如果task.babyId是undefined，则认为过滤
+            if (task.babyId === undefined) {
+              return false;
+            }
+            // 如果当前没有宝宝，则过滤
+            if (!babyId) {
+              return false;
+            }
+
             // 周期性任务 
             const isRecurring = task.type === 'recurring';
             // 进行中任务
             const isOngoing = task.status === 'ongoing';
             // 搜索关键字
             const matchesSearch = !searchKeyword.value || task.title.includes(searchKeyword.value);
-            // console.log('周期性任务过滤:', task.title, isRecurring, isOngoing, matchesSearch);
+            // 当前宝宝的任务
+            const isBabyTask = task.babyId === babyId;
+
             // 返回符合条件的任务
-            return isRecurring && isOngoing && matchesSearch;
+            return isRecurring && isOngoing && matchesSearch && isBabyTask;
           })
           // 按创建时间排序
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-        // console.log('周期性任务列表:', tasks);
         return tasks;
       });
 
@@ -374,7 +467,11 @@
 
       // 更新积分显示
       const updateShowPoints = () => {
-        totalScore.value = getTotalPoints();
+        if (currentBabyId.value) {
+          totalScore.value = getBabyPoints(currentBabyId.value);
+        } else {
+          totalScore.value = getTotalPoints();
+        }
       };
 
       // 完成任务
@@ -385,6 +482,11 @@
           taskList.value[index].status = 'completed';
           taskList.value[index].completed = task.total;
           taskList.value[index].completedAt = new Date().toISOString();
+          
+          // 确保任务关联到当前宝宝
+          if (!taskList.value[index].babyId && currentBabyId.value) {
+            taskList.value[index].babyId = currentBabyId.value;
+          }
 
           // 添加到已完成任务列表 
           completedTasks.value.push(task);
@@ -395,7 +497,14 @@
 
           // 更新积分
           const taskPoints = task.points || 10;
-          addPoints(taskPoints);
+          // 使用宝宝ID增加积分
+          if (currentBabyId.value) {
+            addBabyPoints(taskPoints, currentBabyId.value);
+          } else {
+            addPoints(taskPoints);
+          }
+          
+          // 更新积分显示
           updateShowPoints();
 
           // 更新本地存储
@@ -433,6 +542,17 @@
 
       // 显示添加任务模态框
       const showAddTaskModal = () => {
+        // 跳转前确保有宝宝，否则提示先添加宝宝
+        if (!currentBabyId.value && babies.value.length === 0) {
+          uni.showModal({
+            title: '提示',
+            content: '请先在"我的"页面添加宝宝',
+            showCancel: false
+          });
+          return;
+        }
+        
+        // 正常跳转添加任务页面
         uni.navigateTo({
           url: '../task/add-task'
         });
@@ -459,20 +579,25 @@
           if (storedTasks) {
             const parsedTasks = JSON.parse(storedTasks);
             console.log('加载的任务列表:', parsedTasks);
-
+            // 过滤非当前宝宝的任务
+            // 注意：这里不过滤taskList本身，只在computed中过滤显示
+            taskList.value = parsedTasks;
+            
             // 转换日期字符串为Date对象
-            parsedTasks.forEach(task => {
+            taskList.value.forEach(task => {
               if (typeof task.createdAt === 'string') {
                 task.createdAt = new Date(task.createdAt);
               }
               // 确保任务类型和状态正确
               if (!task.type) task.type = 'normal';
               if (!task.status) task.status = 'ongoing';
-              // console.log('加载的任务:', task.title, task.type, task.status);
             });
-            taskList.value = parsedTasks;
+            
+            // 添加调试日志，检查当前宝宝的任务数量
+            const babyTasks = parsedTasks.filter(t => !t.babyId || t.babyId === currentBabyId.value);
+            console.log(`当前宝宝(${currentBabyId.value})的任务:`, babyTasks.length);
           }
-
+          
           // 加载已完成任务列表
           const storedCompletedTasks = uni.getStorageSync('completedTaskList');
           if (storedCompletedTasks) {
@@ -481,11 +606,8 @@
             completedTasks.value = parsedCompletedTasks;
           }
 
-          // 加载总积分
-          const storedScore = uni.getStorageSync('totalScore');
-          if (storedScore) {
-            totalScore.value = storedScore;
-          }
+          // 更新积分显示
+          updateShowPoints();
         } catch (e) {
           console.error('读取任务列表失败', e);
         }
@@ -517,12 +639,45 @@
         }
       };
 
+      // 手动刷新任务
+      const manualRefreshTasks = () => {
+        // 使用振动API反馈
+        if (uni.vibrateShort) {
+          uni.vibrateShort({
+            success: function () {
+              console.log('振动成功');
+            }
+          });
+        }
+        
+        // 重新加载宝宝信息
+        loadBabies();
+        
+        // 重新加载任务
+        loadTasksAndPointsFromStorage();
+        
+        // 刷新周期性任务
+        refreshTasks();
+        
+        // 显示提示
+        uni.showToast({
+          title: '刷新成功',
+          icon: 'success',
+          duration: 1000
+        });
+        
+        console.log('手动刷新任务完成');
+      };
+
       onMounted(() => {
         // 初始化主题
         if (themeStore.initTheme) {
           themeStore.initTheme();
         }
 
+        // 加载宝宝信息
+        loadBabies();
+        
         // 加载任务列表
         loadTasksAndPointsFromStorage();
         // 立即检查任务
@@ -542,9 +697,19 @@
 
         // 添加积分更新事件监听
         uni.$on('pointsUpdated', updateShowPoints);
-
-        // 初始化积分
-        updateShowPoints();
+        
+        // 添加宝宝积分更新事件监听
+        uni.$on('babyPointsUpdated', (data) => {
+          if (data && data.babyId === currentBabyId.value) {
+            totalScore.value = data.points;
+          }
+        });
+        
+        // 添加宝宝变更事件监听
+        uni.$on('babyChanged', (babyId) => {
+          currentBabyId.value = babyId;
+          loadTasksAndPointsFromStorage();
+        });
 
         // 默认展开所有列表
         isOngoingCollapsed.value = false;
@@ -567,6 +732,8 @@
         // 移除事件监听
         uni.$off('refreshTaskList');
         uni.$off('pointsUpdated');
+        uni.$off('babyPointsUpdated');
+        uni.$off('babyChanged');
         isScrollReady.value = false;
         // 停止定时器
         clearInterval(intervalId);
@@ -585,6 +752,12 @@
         showDeleteModal,
         taskToDelete,
         deleteIndex,
+        babies,
+        currentBabyId,
+        currentBabyName,
+        currentBabyIndex,
+        onBabyChange,
+        manualRefreshTasks,
         clearSearch,
         searchTasks,
         toggleOngoingCollapse,
@@ -1065,5 +1238,54 @@
     margin-bottom: 20rpx;
     font-size: 24rpx;
     color: #ff9800;
+  }
+
+  /* 宝宝选择器 */
+  .baby-selector {
+    margin-top: 20rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 40rpx;
+    padding: 10rpx 30rpx;
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.15);
+  }
+
+  .baby-select-view {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .baby-icon {
+    font-size: 32rpx;
+    margin-right: 10rpx;
+  }
+
+  .baby-name {
+    font-size: 32rpx;
+    font-weight: bold;
+    color: white;
+    margin-right: 10rpx;
+    text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
+  }
+
+  .selector-arrow {
+    font-size: 24rpx;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .refresh-btn {
+    margin-left: 20rpx;
+    font-size: 36rpx;
+    width: 60rpx;
+    height: 60rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>

@@ -17,6 +17,19 @@
         <input class="form-input" v-model="taskForm.title" placeholder="请输入任务标题" placeholder-class="placeholder" />
       </view>
 
+      <!-- 宝宝选择器 -->
+      <view class="form-item">
+        <text class="form-label">选择宝宝</text>
+        <view class="baby-selector">
+          <picker :range="babies" range-key="name" @change="onBabyChange" :value="currentBabyIndex">
+            <view class="baby-picker">
+              <text class="baby-name">{{ currentBabyName || '请选择宝宝' }}</text>
+              <text class="baby-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+
       <!-- 任务标签 -->
       <view class="form-item">
         <text class="form-label">任务标签</text>
@@ -124,7 +137,7 @@
 </template>
 
 <script>
-  import { ref, computed } from 'vue';
+  import { ref, computed, onMounted } from 'vue';
 
   export default {
     setup() {
@@ -145,6 +158,14 @@
         { label: '周日', value: 7 }
       ];
 
+      // 宝宝相关
+      const babies = ref([]);
+      const currentBabyIndex = ref(0);
+      const currentBabyName = computed(() => {
+        const selectedBaby = babies.value[currentBabyIndex.value];
+        return selectedBaby ? selectedBaby.name : '';
+      });
+
       // 表单数据
       const taskForm = ref({
         title: '',
@@ -159,15 +180,66 @@
         points: '',
         completed: 0,
         status: 'ongoing',
-        createdAt: null
+        createdAt: null,
+        babyId: '' // 关联的宝宝ID
       });
 
-      // 表单验证
+      // 组件挂载时获取宝宝列表和当前宝宝ID
+      onMounted(() => {
+        // 加载宝宝列表
+        try {
+          const storedBabies = uni.getStorageSync('babies') || '[]';
+          babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
+          
+          // 加载当前选中宝宝
+          const currentBabyId = uni.getStorageSync('currentBabyId');
+          taskForm.value.babyId = currentBabyId || (babies.value.length > 0 ? babies.value[0].id : '');
+          
+          // 设置初始选中的宝宝索引
+          if (taskForm.value.babyId) {
+            const index = babies.value.findIndex(baby => baby.id === taskForm.value.babyId);
+            if (index !== -1) {
+              currentBabyIndex.value = index;
+            }
+          }
+          
+          console.log('加载宝宝信息:', babies.value, taskForm.value.babyId);
+          
+          // 如果没有宝宝，提示用户先添加宝宝
+          if (babies.value.length === 0) {
+            uni.showModal({
+              title: '提示',
+              content: '请先在"我的"页面添加宝宝',
+              showCancel: false,
+              success: () => {
+                uni.switchTab({
+                  url: '/pages/profile/profile'
+                });
+              }
+            });
+          }
+        } catch (e) {
+          console.error('加载宝宝信息失败:', e);
+        }
+      });
+      
+      // 切换宝宝
+      const onBabyChange = (e) => {
+        const idx = e.detail.value;
+        currentBabyIndex.value = idx;
+        if (babies.value[idx]) {
+          taskForm.value.babyId = babies.value[idx].id;
+          console.log('切换宝宝:', babies.value[idx].name, '宝宝ID:', taskForm.value.babyId);
+        }
+      };
+
+      // 表单验证 - 添加宝宝ID检查
       const isFormValid = computed(() => {
         const baseValidation = taskForm.value.title &&
           taskForm.value.tags.length > 0 &&
           taskForm.value.total > 0 &&
-          taskForm.value.points > 0;
+          taskForm.value.points > 0 &&
+          taskForm.value.babyId; // 确保选择了宝宝
 
         if (taskForm.value.type === 'recurring') {
           switch (taskForm.value.recurringType) {
@@ -270,6 +342,12 @@
         taskForm.value.status = 'ongoing'; // 确保设置任务状态为进行中
         taskForm.value.completed = 0; // 初始化已完成时间为0
 
+        // 确保任务关联到当前宝宝
+        const currentBabyId = uni.getStorageSync('currentBabyId');
+        if (currentBabyId && !taskForm.value.babyId) {
+          taskForm.value.babyId = currentBabyId;
+          console.log('关联任务到宝宝:', currentBabyId);
+        }
 
         // 从本地存储获取现有任务列表
         try {
@@ -350,7 +428,11 @@
         onEndTimeChange,
         getTagColorClass,
         goBack,
-        submitTask
+        submitTask,
+        babies,
+        currentBabyIndex,
+        currentBabyName,
+        onBabyChange
       };
     }
   };
@@ -642,5 +724,33 @@
     background: linear-gradient(135deg, #9f8eff, #8477fa);
     box-shadow: none;
     color: #666;
+  }
+
+  /* 添加宝宝选择器样式 */
+  .baby-selector {
+    width: 100%;
+  }
+
+  .baby-picker {
+    width: 100%;
+    height: 80rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    padding: 0 20rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .baby-name {
+    font-size: 28rpx;
+    color: #333;
+    flex: 1;
+  }
+
+  .baby-arrow {
+    font-size: 24rpx;
+    color: #999;
+    margin-left: 10rpx;
   }
 </style>

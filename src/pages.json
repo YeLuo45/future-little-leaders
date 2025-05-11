@@ -63,6 +63,13 @@
 			}
 		},
 		{
+			"path": "pages/profile/add-baby",
+			"style": {
+				"navigationBarTitleText": "添加宝宝",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/settings/settings",
 			"style": {
 				"navigationBarTitleText": "设置",
