@@ -8,52 +8,97 @@
       </view>
     </view>
     
+    <!-- 登录方式tab切换 -->
+    <view class="login-tabs">
+      <text :class="{active: loginType==='password'}" @tap="loginType='password'">密码登录</text>
+      <text :class="{active: loginType==='sms'}" @tap="loginType='sms'">验证码登录</text>
+    </view>
+
     <!-- 登录表单 -->
     <view class="form-card">
       <view class="form-header">用户登录</view>
       
-      <view class="input-group">
-        <text class="input-label">用户名</text>
-        <view class="input-container">
-          <input 
-            class="input" 
-            type="text" 
-            v-model="username" 
-            placeholder="请输入用户名" 
-            placeholder-class="placeholder"
-          />
-        </view>
-      </view>
-      
-      <view class="input-group">
-        <text class="input-label">密码</text>
-        <view class="input-container">
-          <input 
-            class="input" 
-            :type="isPasswordVisible ? 'text' : 'password'" 
-            v-model="password" 
-            placeholder="请输入密码" 
-            placeholder-class="placeholder"
-          />
-          <text 
-            class="password-toggle" 
-            @click="togglePasswordVisibility"
-          >{{ isPasswordVisible ? '👁️' : '👁️‍🗨️' }}</text>
-        </view>
-      </view>
-      
-      <view class="remember-row">
-        <view class="remember-me" @tap="remember = !remember">
-          <view class="checkbox" :class="{ active: remember, 'dark-mode': isDarkMode }">
-            <text class="checkbox-inner" v-if="remember">✓</text>
+      <!-- 账号密码登录表单 -->
+      <view v-if="loginType==='password'">
+        <view class="input-group">
+          <text class="input-label">用户名</text>
+          <view class="input-container">
+            <input 
+              class="input" 
+              type="text" 
+              v-model="username" 
+              placeholder="请输入用户名" 
+              placeholder-class="placeholder"
+            />
           </view>
-          <text class="remember-text" :class="{'dark-mode': isDarkMode}">记住我</text>
         </view>
-        <text class="forgot-text" @click="forgotPassword">忘记密码?</text>
+        <view class="input-group">
+          <text class="input-label">密码</text>
+          <view class="input-container">
+            <input 
+              class="input" 
+              :type="isPasswordVisible ? 'text' : 'password'" 
+              v-model="password" 
+              placeholder="请输入密码" 
+              placeholder-class="placeholder"
+            />
+            <text 
+              class="password-toggle" 
+              @click="togglePasswordVisibility"
+            >{{ isPasswordVisible ? '👁️' : '👁️‍🗨️' }}</text>
+          </view>
+        </view>
+        <view class="remember-row">
+          <view class="remember-me" @tap="remember = !remember">
+            <view class="checkbox" :class="{ active: remember, 'dark-mode': isDarkMode }">
+              <text class="checkbox-inner" v-if="remember">✓</text>
+            </view>
+            <text class="remember-text" :class="{'dark-mode': isDarkMode}">记住我</text>
+          </view>
+          <text class="forgot-text" @click="forgotPassword">忘记密码?</text>
+        </view>
+        <button class="login-btn" @click="login">登录</button>
       </view>
-      
-      <button class="login-btn" @click="login">登录</button>
-      
+
+      <!-- 手机验证码登录表单 -->
+      <view v-if="loginType==='sms'">
+        <view class="input-group">
+          <text class="input-label">手机号</text>
+          <view class="input-container">
+            <input 
+              class="input" 
+              type="text" 
+              v-model="phone" 
+              placeholder="请输入手机号" 
+              maxlength="11"
+              placeholder-class="placeholder"
+            />
+          </view>
+        </view>
+        <view class="input-group">
+          <text class="input-label">验证码</text>
+          <view class="input-container">
+            <input 
+              class="input" 
+              type="text" 
+              v-model="smsCode" 
+              placeholder="请输入验证码" 
+              maxlength="6"
+              placeholder-class="placeholder"
+            />
+            <button class="sms-btn" :disabled="smsCountdown>0" @click="sendSmsCode">
+              {{ smsCountdown>0 ? smsCountdown+'s' : '获取验证码' }}
+            </button>
+          </view>
+        </view>
+        <button class="login-btn" @click="smsLogin">验证码登录</button>
+      </view>
+
+      <!-- 微信一键登录 -->
+      <view class="wechat-login-row">
+        <button class="wechat-btn" @click="wechatLogin">微信一键登录</button>
+      </view>
+
       <view class="register-row">
         <text>还没有账号？</text>
         <text class="register-link" @click="register">立即注册</text>
@@ -71,11 +116,18 @@ export default {
   // 组件数据
   data() {
     return {
+      // 登录方式: password(账号密码) sms(手机验证码)
+      loginType: 'password',
       username: '', // 用户名
       password: '', // 密码
       remember: false, // 是否记住登录状态
       isPasswordVisible: false, // 控制密码是否显示
-      isDarkMode: false // 是否处于暗模式
+      isDarkMode: false, // 是否处于暗模式
+      // 手机验证码登录相关
+      phone: '',
+      smsCode: '',
+      smsCountdown: 0,
+      smsTimer: null
     }
   },
   onLoad() {
@@ -191,7 +243,73 @@ export default {
           icon: 'none'
         });
       }
+    },
+    // 发送验证码（mock）
+    sendSmsCode() {
+      if (!/^1[3-9]\d{9}$/.test(this.phone)) {
+        uni.showToast({ title: '请输入正确手机号', icon: 'none' });
+        return;
+      }
+      if (this.smsCountdown > 0) return;
+      // mock发送验证码
+      uni.showToast({ title: '验证码已发送', icon: 'success' });
+      this.smsCountdown = 60;
+      this.smsTimer = setInterval(() => {
+        this.smsCountdown--;
+        if (this.smsCountdown <= 0) {
+          clearInterval(this.smsTimer);
+          this.smsTimer = null;
+        }
+      }, 1000);
+    },
+    // 验证码登录（mock）
+    smsLogin() {
+      if (!/^1[3-9]\d{9}$/.test(this.phone)) {
+        uni.showToast({ title: '请输入正确手机号', icon: 'none' });
+        return;
+      }
+      if (!this.smsCode || this.smsCode.length !== 6) {
+        uni.showToast({ title: '请输入6位验证码', icon: 'none' });
+        return;
+      }
+      uni.showLoading({ title: '登录中...' });
+      setTimeout(() => {
+        uni.hideLoading();
+        // mock校验验证码通过
+        uni.setStorageSync('isLoggedIn', true);
+        uni.setStorageSync('username', this.phone);
+        uni.showToast({
+          title: '登录成功', icon: 'success', duration: 1500,
+          success: () => {
+            setTimeout(() => {
+              uni.switchTab({ url: '/pages/index/index' });
+            }, 1500);
+          }
+        });
+      }, 1200);
+    },
+    // 微信一键登录（mock）
+    wechatLogin() {
+      // 这里只做mock，实际需uni.login+后端
+      uni.showLoading({ title: '微信登录中...' });
+      setTimeout(() => {
+        uni.hideLoading();
+        // mock微信登录成功
+        uni.setStorageSync('isLoggedIn', true);
+        uni.setStorageSync('username', '微信用户');
+        uni.showToast({
+          title: '微信登录成功', icon: 'success', duration: 1500,
+          success: () => {
+            setTimeout(() => {
+              uni.switchTab({ url: '/pages/index/index' });
+            }, 1500);
+          }
+        });
+      }, 1200);
     }
+  },
+  beforeDestroy() {
+    if (this.smsTimer) clearInterval(this.smsTimer);
   }
 }
 </script>
@@ -239,6 +357,26 @@ export default {
   color: rgba(255, 255, 255, 0.9);
   font-size: 32rpx;
   margin-top: 10rpx;
+}
+
+/* 登录方式tab切换 */
+.login-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20rpx;
+}
+.login-tabs text {
+  font-size: 30rpx;
+  color: #888;
+  margin: 0 30rpx;
+  padding-bottom: 8rpx;
+  border-bottom: 4rpx solid transparent;
+  cursor: pointer;
+}
+.login-tabs .active {
+  color: #7C3AED;
+  border-bottom: 4rpx solid #7C3AED;
+  font-weight: bold;
 }
 
 /* 登录表单 */
@@ -446,5 +584,33 @@ export default {
   color: rgba(255, 255, 255, 0.7);
   text-align: center;
   padding: 20rpx 0;
+}
+
+.wechat-login-row {
+  margin: 30rpx 0 0 0;
+  display: flex;
+  justify-content: center;
+}
+.wechat-btn {
+  width: 80%;
+  height: 80rpx;
+  background: #1AAD19;
+  color: #fff;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+  margin: 0 auto;
+  box-shadow: 0 2rpx 8rpx rgba(26,173,25,0.15);
+  border: none;
+}
+.sms-btn {
+  margin-left: 20rpx;
+  background: #7C3AED;
+  color: #fff;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  padding: 0 20rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  border: none;
 }
 </style> 

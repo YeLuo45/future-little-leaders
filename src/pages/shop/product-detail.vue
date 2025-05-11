@@ -69,124 +69,98 @@
   </view>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue';
+import { onLoad, onShow } from '@dcloudio/uni-app';
 import { isDarkTheme } from '@/utils/themeUtils.js';
+import { getTotalPoints } from '@/utils/pointsManager';
 
-export default {
-  data() {
-    return {
-      isDarkMode: false,
-      product: {
-        name: '',
-        points: 0,
-        stock: '',
-        icon: '🎁',
-        description: ''
-      },
-      userPoints: 0
-    }
-  },
-  onLoad() {
-    // 获取当前主题模式
-    this.isDarkMode = isDarkTheme();
-    
-    // 从本地存储获取商品信息
-    const productData = uni.getStorageSync('currentProduct');
-    if (productData) {
-      this.product = productData;
-    } else {
-      // 如果没有商品信息，返回商城页面
-      uni.showToast({
-        title: '商品信息不存在',
-        icon: 'none'
-      });
-      setTimeout(() => {
-        this.goBack();
-      }, 1500);
-    }
-    
-    // 获取用户积分
-    const points = uni.getStorageSync('userPoints');
-    this.userPoints = points || 0;
-  },
-  onShow() {
-    // 每次显示页面时更新主题状态
-    this.isDarkMode = isDarkTheme();
-    
-    // 更新用户积分
-    const points = uni.getStorageSync('userPoints');
-    this.userPoints = points || 0;
-  },
-  methods: {
-    // 返回上一页
-    goBack() {
-      uni.navigateBack();
-    },
-    
-    // 兑换商品
-    exchangeProduct() {
-      // 检查积分是否足够
-      if (this.userPoints < this.product.points) {
-        uni.showToast({
-          title: '积分不足',
-          icon: 'none'
-        });
-        return;
-      }
-      
-      // 检查库存是否足够
-      if (this.product.stock !== '无限' && this.product.stock <= 0) {
-        uni.showToast({
-          title: '库存不足',
-          icon: 'none'
-        });
-        return;
-      }
-      
-      // 确认兑换
-      uni.showModal({
-        title: '确认兑换',
-        content: `是否兑换"${this.product.name}"？将消耗${this.product.points}积分`,
-        success: (res) => {
-          if (res.confirm) {
-            // 扣除积分
-            this.userPoints -= this.product.points;
-            
-            // 减少库存
-            if (this.product.stock !== '无限') {
-              this.product.stock -= 1;
-            }
-            
-            // 获取所有商品
-            const allProducts = uni.getStorageSync('shopProducts') || [];
-            
-            // 更新商品库存
-            if (this.product.index !== undefined && allProducts[this.product.index]) {
-              allProducts[this.product.index].stock = this.product.stock;
-              
-              // 保存更新后的商品列表
-              uni.setStorageSync('shopProducts', allProducts);
-            }
-            
-            // 保存积分变化
-            uni.setStorageSync('userPoints', this.userPoints);
-            
-            // 提示兑换成功
-            uni.showToast({
-              title: '兑换成功',
-              icon: 'success'
-            });
-            
-            // 2秒后返回商城页面
-            setTimeout(() => {
-              this.goBack();
-            }, 2000);
-          }
-        }
-      });
-    }
-  }
+// 暗黑模式
+const isDarkMode = ref(false);
+// 商品信息
+const product = ref({
+  name: '',
+  points: 0,
+  stock: '',
+  icon: '🎁',
+  description: ''
+});
+// 用户积分 todo:支持积分变动
+const userPoints = ref(0);
+
+// 返回上一页
+function goBack() {
+  uni.navigateBack();
 }
+
+// 兑换商品
+function exchangeProduct() {
+  if (userPoints.value < product.value.points) {
+    uni.showToast({ title: '积分不足', icon: 'none' });
+    return;
+  }
+  if (product.value.stock !== '无限' && product.value.stock <= 0) {
+    uni.showToast({ title: '库存不足', icon: 'none' });
+    return;
+  }
+  uni.showModal({
+    title: '确认兑换',
+    content: `是否兑换"${product.value.name}"？将消耗${product.value.points}积分`,
+    success: (res) => {
+      if (res.confirm) {
+        // 扣除积分
+        userPoints.value -= product.value.points;
+        // 减少库存
+        if (product.value.stock !== '无限') {
+          product.value.stock -= 1;
+        }
+        // 获取所有商品
+        let allProducts = uni.getStorageSync('shopProducts') || '[]';
+        if (typeof allProducts === 'string') {
+          allProducts = JSON.parse(allProducts);
+        }
+        // 更新商品库存
+        if (product.value.index !== undefined && allProducts[product.value.index]) {
+          allProducts[product.value.index].stock = product.value.stock;
+          uni.setStorageSync('shopProducts', JSON.stringify(allProducts));
+        }
+        // 保存积分变化
+        uni.setStorageSync('userPoints', userPoints.value);
+        // 提示兑换成功
+        uni.showToast({ title: '兑换成功', icon: 'success' });
+        // 2秒后返回商城页面
+        setTimeout(() => {
+          goBack();
+        }, 2000);
+      }
+    }
+  });
+}
+
+// 页面加载时
+onLoad(() => {
+  isDarkMode.value = isDarkTheme();
+  // 获取商品信息
+  const productData = uni.getStorageSync('currentProduct');
+  if (productData) {
+    product.value = productData;
+  } else {
+    uni.showToast({ title: '商品信息不存在', icon: 'none' });
+    setTimeout(() => {
+      goBack();
+    }, 1500);
+  }
+  // 获取用户积分
+  userPoints.value = getTotalPoints() || 0;
+});
+
+// 页面显示时
+onShow(() => {
+  isDarkMode.value = isDarkTheme();
+  // 更新用户积分
+  const points = uni.getStorageSync('userPoints');
+  userPoints.value = points || 0;
+});
 </script>
 
 <style>

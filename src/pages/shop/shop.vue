@@ -19,7 +19,7 @@
 
 		<scroll-view scroll-y class="products-list">
 			<view class="product-list">
-				<view class="product-card" v-for="(item, index) in (products || [])" :key="index">
+				<view class="product-card" v-for="(item, index) in (products || [])" :key="index" @tap="goToProductDetail(item, index)">
 					<view class="product-content">
 						<view class="product-left">
 							<view class="product-icon">{{ item.icon || '🎁' }}</view>
@@ -54,38 +54,8 @@
 		</scroll-view>
 
 		<!-- 悬浮添加按钮 -->
-		<view class="float-btn" :class="{ 'dark-mode': isDarkMode }" @tap="showAddProductModal">
+		<view class="float-btn" :class="{ 'dark-mode': isDarkMode }" @tap="goToAddProduct">
 			<text>＋</text>
-		</view>
-
-		<!-- 添加商品模态框 -->
-		<view class="modal-mask" v-if="showModal" @tap="cancelAddProduct"></view>
-		<view class="modal-base" v-if="showModal" @tap.stop>
-			<view class="modal-title">添加新商品</view>
-			<view class="modal-input-group">
-				<view class="modal-input-label">商品名称:</view>
-				<input type="text" v-model="newProduct.name" placeholder="请输入商品名称" class="modal-input" />
-
-				<view class="modal-input-label">所需积分:</view>
-				<input type="number" v-model="newProduct.points" placeholder="请输入所需积分" class="modal-input" />
-
-				<view class="modal-input-label">库存数量:</view>
-				<input type="text" v-model="newProduct.stock" placeholder="请输入库存数量，无限则填'无限'" class="modal-input" />
-
-				<view class="modal-input-label">商品描述:</view>
-				<textarea v-model="newProduct.description" placeholder="请输入商品描述（可选）" class="modal-textarea"></textarea>
-
-				<view class="modal-input-label">图标:</view>
-				<view class="icon-picker">
-					<view v-for="(icon, i) in availableIcons" :key="i"
-						:class="['icon-option', newProduct.icon === icon ? 'selected' : '']" @tap="selectIcon(icon)">
-						{{ icon }}</view>
-				</view>
-			</view>
-			<view class="modal-buttons">
-				<button class="modal-btn modal-cancel" @tap="cancelAddProduct">取消</button>
-				<button class="modal-btn modal-confirm" @tap="addProduct">确认</button>
-			</view>
 		</view>
 	</view>
 </template>
@@ -103,15 +73,6 @@ export default {
 		const totalScore = ref(0);
 		const products = ref([]);
 		const searchKeyword = ref('');
-		const showModal = ref(false);
-		const newProduct = ref({
-			name: '',
-			points: '',
-			stock: '',
-			icon: '🎁',
-			description: ''
-		});
-		const availableIcons = ['🎁', '🎮', '📱', '🎧', '🎯', '🎨', '📚', '🎵', '🏆', '⚽', '🍕', '🎬'];
 
 		// 清除搜索内容
 		const clearSearch = () => {
@@ -128,26 +89,20 @@ export default {
 			});
 		};
 
-		// 显示添加商品模态框
-		const showAddProductModal = () => {
-			showModal.value = true;
+		// 跳转到添加商品页面
+		const goToAddProduct = () => {
+			uni.navigateTo({
+				url: '/pages/shop/add-product'
+			});
 		};
 
-		// 取消添加商品
-		const cancelAddProduct = () => {
-			showModal.value = false;
-			newProduct.value = {
-				name: '',
-				points: '',
-				stock: '',
-				icon: '🎁',
-				description: ''
-			};
-		};
-
-		// 选择图标
-		const selectIcon = (icon) => {
-			newProduct.value.icon = icon;
+		// 跳转到商品详情页
+		const goToProductDetail = (item, index) => {
+			// 存储当前商品信息，带上index方便详情页库存等操作
+			uni.setStorageSync('currentProduct', { ...item, index });
+			uni.navigateTo({
+				url: '/pages/shop/product-detail'
+			});
 		};
 
 		// 加载商品列表
@@ -209,71 +164,6 @@ export default {
 			}
 		};
 
-		// 保存商品列表到本地存储
-		const saveProducts = () => {
-			try {
-				uni.setStorageSync('shopProducts', JSON.stringify(products.value));
-			} catch (e) {
-				console.error('保存商品列表失败:', e);
-				uni.showToast({
-					title: '保存失败，请重试',
-					icon: 'none'
-				});
-			}
-		};
-
-		// 添加新商品
-		const addProduct = () => {
-			// 验证必填字段
-			if (!newProduct.value.name) {
-				uni.showToast({
-					title: '商品名称不能为空',
-					icon: 'none'
-				});
-				return;
-			}
-
-			if (!newProduct.value.points || isNaN(Number(newProduct.value.points))) {
-				uni.showToast({
-					title: '请输入有效的积分数值',
-					icon: 'none'
-				});
-				return;
-			}
-
-			if (!newProduct.value.stock) {
-				uni.showToast({
-					title: '库存不能为空',
-					icon: 'none'
-				});
-				return;
-			}
-
-			// 创建新商品对象
-			const product = {
-				name: newProduct.value.name,
-				points: Number(newProduct.value.points),
-				stock: newProduct.value.stock,
-				icon: newProduct.value.icon,
-				description: newProduct.value.description
-			};
-
-			// 添加到商品列表
-			products.value.unshift(product);
-
-			// 保存到本地存储
-			saveProducts();
-
-			// 关闭模态框
-			showModal.value = false;
-
-			// 提示添加成功
-			uni.showToast({
-				title: '商品添加成功',
-				icon: 'success'
-			});
-		};
-
 		// 兑换商品
 		const exchangeProduct = async (product) => {
 			if (!product || product.points > totalScore.value) {
@@ -330,6 +220,8 @@ export default {
 
 			// 添加积分更新事件监听
 			uni.$on('pointsUpdated', updatePoints);
+			// 添加商品列表更新事件监听
+			uni.$on('refreshProductList', loadProducts);
 
 			// 初始化积分
 			updatePoints();
@@ -341,6 +233,7 @@ export default {
 		onUnmounted(() => {
 			// 移除事件监听
 			uni.$off('pointsUpdated');
+			uni.$off('refreshProductList');
 		});
 
 		return {
@@ -348,19 +241,13 @@ export default {
 			totalScore,
 			products,
 			searchKeyword,
-			showModal,
-			newProduct,
-			availableIcons,
 			exchangeProduct,
 			updatePoints,
 			loadProducts,
-			saveProducts,
 			clearSearch,
 			searchProducts,
-			showAddProductModal,
-			cancelAddProduct,
-			selectIcon,
-			addProduct
+			goToAddProduct,
+			goToProductDetail
 		};
 	}
 }
