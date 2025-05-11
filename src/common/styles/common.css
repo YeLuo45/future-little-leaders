@@ -176,7 +176,8 @@
 }
 
 .modal-confirm {
-  background-color: var(--primary-color);
+  /* background-color: var(--primary-color); */
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
   color: white;
   border: none;
   box-shadow: 0 6rpx 15rpx var(--primary-shadow);

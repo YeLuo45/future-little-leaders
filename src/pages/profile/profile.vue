@@ -17,22 +17,22 @@
 
 		<!-- 功能列表 -->
 		<view class="function-list">
-			<view class="function-item" @tap="navigateTo('task-records')">
+			<view class="function-item" @tap="navigateTo('task/task-records')">
 				<text class="icon">📋</text>
 				<text class="label">任务记录</text>
 				<text class="arrow">></text>
 			</view>
-			<view class="function-item" @tap="navigateTo('exchange-records')">
+			<view class="function-item" @tap="navigateTo('shop/exchange-records')">
 				<text class="icon">🛍️</text>
 				<text class="label">兑换记录</text>
 				<text class="arrow">></text>
 			</view>
-			<view class="function-item" @tap="navigateTo('favorites')">
+			<!-- <view class="function-item" @tap="navigateTo('favorites')">
 				<text class="icon">⭐</text>
 				<text class="label">我的收藏</text>
 				<text class="arrow">></text>
-			</view>
-			<view class="function-item" @tap="navigateTo('settings')">
+			</view> -->
+			<view class="function-item" @tap="navigateTo('settings/settings')">
 				<text class="icon">⚙️</text>
 				<text class="label">设置</text>
 				<text class="arrow">></text>
@@ -116,7 +116,7 @@ export default {
 		// 页面跳转
 		const navigateTo = (page) => {
 			uni.navigateTo({
-				url: `/pages/${page}/${page}`
+				url: `/pages/${page}`
 			});
 		};
 
@@ -161,9 +161,12 @@ export default {
 }
 
 .user-info {
-	background-color: #8477fa;
-	padding: 40rpx 30rpx;
+	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+	padding: 40rpx 30rpx 30rpx;
 	color: white;
+	position: relative;
+  	border-radius: 0 0 30rpx 30rpx;
+  	box-shadow: 0 4rpx 20rpx rgba(124, 58, 237, 0.3);
 }
 
 .avatar-section {

@@ -96,7 +96,7 @@ export default {
 	display: flex;
 	align-items: center;
 	height: 88rpx;
-	background-color: #8477fa;
+	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
 	padding: 0 30rpx;
 	position: relative;
 }

@@ -1,63 +1,6 @@
 <template>
 	<view class="page-container" :class="{ 'dark-mode': isDarkMode }">
-		<view class="page-header">
-			<view class="header-content">
-				<view class="title-section">
-					<text class="title">积分商城</text>
-					<text class="subtitle">用积分兑换心仪礼品</text>
-				</view>
-				<view class="points">{{ totalScore }}积分</view>
-			</view>
-		</view>
-
-		<view class="search-box" :class="{ 'dark-mode': isDarkMode }">
-			<text class="search-icon">🔍</text>
-			<input type="text" v-model="searchKeyword" placeholder="搜索商品" class="search-input" confirm-type="search"
-				@confirm="searchProducts" />
-			<text class="search-clear" v-if="searchKeyword" @tap="clearSearch">✕</text>
-		</view>
-
-		<scroll-view scroll-y class="products-list">
-			<view class="product-list">
-				<view class="product-card" v-for="(item, index) in (products || [])" :key="index">
-					<view class="product-content">
-						<view class="product-left">
-							<view class="product-icon">{{ item.icon || '🎁' }}</view>
-						</view>
-						<view class="product-info">
-							<view class="product-title">
-								<view class="product-name">{{ item.name }}</view>
-							</view>
-							<view class="product-tags">
-								<view class="product-points">
-									<text class="points-icon">🔥</text>
-									<text class="points-value">{{ item.points || 0 }}积分</text>
-								</view>
-								<view class="product-stock">
-									<text class="stock-icon">📦</text>
-									<text class="stock-value">{{ item.stock || '无限' }}</text>
-								</view>
-							</view>
-							<view class="product-description">{{ item.description || '暂无描述' }}</view>
-						</view>
-					</view>
-					<view class="product-action" :class="{ 'dark-mode': isDarkMode }">
-						<button class="exchange-btn" @tap.stop="exchangeProduct(item)">兑换</button>
-					</view>
-				</view>
-
-				<!-- 无商品提示 -->
-				<view class="empty-state" v-if="!products || products.length === 0">
-					<text class="empty-text">暂无商品</text>
-				</view>
-			</view>
-		</scroll-view>
-
-		<!-- 悬浮添加按钮 -->
-		<view class="float-btn" :class="{ 'dark-mode': isDarkMode }" @tap="showAddProductModal">
-			<text>＋</text>
-		</view>
-
+		
 		<!-- 添加商品模态框 -->
 		<view class="modal-mask" v-if="showModal" @tap="cancelAddProduct"></view>
 		<view class="modal-base" v-if="showModal" @tap.stop>
@@ -93,16 +36,13 @@
 <script>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useThemeStore } from '@/stores/theme';
-import { getTotalPoints, deductPoints, updateTotalPoints } from '@/utils/pointsManager';
 import { isDarkTheme } from '@/utils/themeUtils.js';
 
 export default {
 	setup() {
 		const themeStore = useThemeStore();
 		const isDarkMode = ref(false);
-		const totalScore = ref(0);
 		const products = ref([]);
-		const searchKeyword = ref('');
 		const showModal = ref(false);
 		const newProduct = ref({
 			name: '',
@@ -113,21 +53,7 @@ export default {
 		});
 		const availableIcons = ['🎁', '🎮', '📱', '🎧', '🎯', '🎨', '📚', '🎵', '🏆', '⚽', '🍕', '🎬'];
 
-		// 清除搜索内容
-		const clearSearch = () => {
-			searchKeyword.value = '';
-		};
-
-		// 搜索商品
-		const searchProducts = () => {
-			// 这里可以添加更多搜索逻辑
-			uni.showToast({
-				title: '搜索: ' + searchKeyword.value,
-				icon: 'none',
-				duration: 1000
-			});
-		};
-
+	
 		// 显示添加商品模态框
 		const showAddProductModal = () => {
 			showModal.value = true;
@@ -148,65 +74,6 @@ export default {
 		// 选择图标
 		const selectIcon = (icon) => {
 			newProduct.value.icon = icon;
-		};
-
-		// 加载商品列表
-		const loadProducts = () => {
-			try {
-				const storedProducts = uni.getStorageSync('shopProducts');
-				if (storedProducts) {
-					// 检查存储的数据是否是有效的JSON字符串
-					if (typeof storedProducts === 'string') {
-						try {
-							const parsedProducts = JSON.parse(storedProducts);
-							// 验证解析后的数据是否是数组
-							if (Array.isArray(parsedProducts)) {
-								products.value = parsedProducts;
-							} else {
-								console.warn('存储的商品数据不是数组，将使用默认商品列表');
-								setDefaultProducts();
-							}
-						} catch (parseError) {
-							console.error('解析商品数据失败:', parseError);
-							setDefaultProducts();
-						}
-					} else {
-						console.warn('存储的商品数据不是字符串，将使用默认商品列表');
-						setDefaultProducts();
-					}
-				} else {
-					setDefaultProducts();
-				}
-			} catch (e) {
-				console.error('加载商品列表失败:', e);
-				setDefaultProducts();
-			}
-		};
-
-		// 设置默认商品列表
-		const setDefaultProducts = () => {
-			products.value = [
-				{
-					name: '游戏时间30分钟',
-					points: 50,
-					stock: '无限',
-					icon: '🎮',
-					description: '获得额外30分钟游戏时间，可在周末或假期使用。兑换后立即生效。'
-				},
-				{
-					name: '新玩具',
-					points: 200,
-					stock: 5,
-					icon: '🎁',
-					description: '可从玩具柜中选择一款喜欢的玩具带回家。限量供应，先到先得。'
-				}
-			];
-			// 保存默认商品列表
-			try {
-				uni.setStorageSync('shopProducts', JSON.stringify(products.value));
-			} catch (e) {
-				console.error('保存默认商品列表失败:', e);
-			}
 		};
 
 		// 保存商品列表到本地存储
@@ -274,68 +141,13 @@ export default {
 			});
 		};
 
-		// 兑换商品
-		const exchangeProduct = async (product) => {
-			if (!product || product.points > totalScore.value) {
-				uni.showToast({
-					title: '积分不足',
-					icon: 'none'
-				});
-				return;
-			}
-
-			try {
-				// 扣除积分
-				if (await deductPoints(product.points)) {
-					// 创建兑换记录
-					const exchangeRecord = {
-						productName: product.name,
-						points: product.points,
-						exchangeTime: new Date().toISOString(),
-						status: '兑换成功'
-					};
-
-					// 保存兑换记录
-					const history = JSON.parse(uni.getStorageSync('exchangeHistory') || '[]');
-					history.unshift(exchangeRecord);
-					uni.setStorageSync('exchangeHistory', JSON.stringify(history));
-
-					// 更新积分显示
-					updatePoints();
-
-					uni.showToast({
-						title: '兑换成功',
-						icon: 'success'
-					});
-				}
-			} catch (e) {
-				console.error('兑换失败:', e);
-				uni.showToast({
-					title: '兑换失败，请重试',
-					icon: 'none'
-				});
-			}
-		};
-
-		// 更新积分显示
-		const updatePoints = () => {
-			totalScore.value = getTotalPoints();
-		};
-
+	
 		onMounted(() => {
 			// 初始化主题
 			if (themeStore.initTheme) {
 				themeStore.initTheme();
 			}
 
-			// 添加积分更新事件监听
-			uni.$on('pointsUpdated', updatePoints);
-
-			// 初始化积分
-			updatePoints();
-
-			// 加载商品列表
-			loadProducts();
 		});
 
 		onUnmounted(() => {
@@ -345,18 +157,11 @@ export default {
 
 		return {
 			isDarkMode,
-			totalScore,
 			products,
-			searchKeyword,
 			showModal,
 			newProduct,
 			availableIcons,
-			exchangeProduct,
-			updatePoints,
-			loadProducts,
 			saveProducts,
-			clearSearch,
-			searchProducts,
 			showAddProductModal,
 			cancelAddProduct,
 			selectIcon,
@@ -378,24 +183,15 @@ export default {
 	background-color: #121212;
 }
 
-/* .page-header {
+.shop-header {
 	padding: 40rpx 30rpx 30rpx;
 	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
 	color: white;
 	position: relative;
 	box-shadow: 0 6rpx 16rpx rgba(132, 119, 250, 0.2);
-} */
-
-.page-header {
-	padding: 40rpx 30rpx 30rpx;
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	color: white;
-	position: relative;
-    border-radius: 0 0 30rpx 30rpx;
-    box-shadow: 0 4rpx 20rpx rgba(124, 58, 237, 0.3);
 }
 
-.dark-mode .page-header {
+.dark-mode .shop-header {
 	/* background-color: #5e52c9; */
 	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
 	box-shadow: 0 6rpx 16rpx rgba(94, 82, 201, 0.3);
@@ -413,7 +209,6 @@ export default {
 }
 
 .title {
-  margin-top: 10rpx;
 	font-size: 48rpx;
 	font-weight: bold;
 	margin-bottom: 10rpx;
@@ -421,9 +216,8 @@ export default {
 }
 
 .subtitle {
-  font-size: 28rpx;
-  opacity: 0.9;
-  margin-bottom: 10rpx;
+	font-size: 28rpx;
+	opacity: 0.9;
 }
 
 .points {

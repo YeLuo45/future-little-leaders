@@ -14,28 +14,17 @@
       <!-- 任务标题 -->
       <view class="form-item">
         <text class="form-label">任务标题</text>
-        <input 
-          class="form-input"
-          v-model="taskForm.title" 
-          placeholder="请输入任务标题"
-          placeholder-class="placeholder"
-        />
+        <input class="form-input" v-model="taskForm.title" placeholder="请输入任务标题" placeholder-class="placeholder" />
       </view>
 
       <!-- 任务标签 -->
       <view class="form-item">
         <text class="form-label">任务标签</text>
         <view class="tags-container">
-          <view 
-            v-for="(tag, index) in availableTags" 
-            :key="index"
-            class="tag-item"
-            :class="[
-              `tag-${getTagColorClass(tag)}`,
-              {'selected': taskForm.tags.includes(tag)}
-            ]"
-            @tap="toggleTag(tag)"
-          >
+          <view v-for="(tag, index) in availableTags" :key="index" class="tag-item" :class="[
+            `tag-${getTagColorClass(tag)}`,
+            { 'selected': taskForm.tags.includes(tag) }
+          ]" @tap="toggleTag(tag)">
             {{ tag }}
           </view>
         </view>
@@ -45,18 +34,11 @@
       <view class="form-item">
         <text class="form-label">任务类型</text>
         <view class="type-selector">
-          <view 
-            class="type-item"
-            :class="{'selected': taskForm.type === 'normal'}"
-            @tap="taskForm.type = 'normal'"
-          >
+          <view class="type-item" :class="{ 'selected': taskForm.type === 'normal' }" @tap="taskForm.type = 'normal'">
             普通任务
           </view>
-          <view 
-            class="type-item"
-            :class="{'selected': taskForm.type === 'recurring'}"
-            @tap="taskForm.type = 'recurring'"
-          >
+          <view class="type-item" :class="{ 'selected': taskForm.type === 'recurring' }"
+            @tap="taskForm.type = 'recurring'">
             周期性任务
           </view>
         </view>
@@ -66,58 +48,36 @@
       <view class="form-item" v-if="taskForm.type === 'recurring'">
         <text class="form-label">重复周期</text>
         <view class="recurring-selector">
-          <view 
-            class="recurring-item"
-            :class="{'selected': taskForm.recurringType === 'daily'}"
-            @tap="taskForm.recurringType = 'daily'"
-          >
+          <view class="recurring-item" :class="{ 'selected': taskForm.recurringType === 'daily' }"
+            @tap="taskForm.recurringType = 'daily'">
             每日
           </view>
-          <view 
-            class="recurring-item"
-            :class="{'selected': taskForm.recurringType === 'weekly'}"
-            @tap="taskForm.recurringType = 'weekly'"
-          >
+          <view class="recurring-item" :class="{ 'selected': taskForm.recurringType === 'weekly' }"
+            @tap="taskForm.recurringType = 'weekly'">
             每周
           </view>
-          <view 
-            class="recurring-item"
-            :class="{'selected': taskForm.recurringType === 'monthly'}"
-            @tap="taskForm.recurringType = 'monthly'"
-          >
+          <view class="recurring-item" :class="{ 'selected': taskForm.recurringType === 'monthly' }"
+            @tap="taskForm.recurringType = 'monthly'">
             每月
           </view>
-          <view 
-            class="recurring-item"
-            :class="{'selected': taskForm.recurringType === 'custom'}"
-            @tap="taskForm.recurringType = 'custom'"
-          >
+          <view class="recurring-item" :class="{ 'selected': taskForm.recurringType === 'custom' }"
+            @tap="taskForm.recurringType = 'custom'">
             自定义
           </view>
         </view>
 
         <!-- 每周选择 -->
         <view class="weekday-selector" v-if="taskForm.recurringType === 'weekly'">
-          <view 
-            v-for="(day, index) in weekdays" 
-            :key="index"
-            class="weekday-item"
-            :class="{'selected': taskForm.weekdays.includes(day.value)}"
-            @tap="toggleWeekday(day.value)"
-          >
+          <view v-for="(day, index) in weekdays" :key="index" class="weekday-item"
+            :class="{ 'selected': taskForm.weekdays.includes(day.value) }" @tap="toggleWeekday(day.value)">
             {{ day.label }}
           </view>
         </view>
 
         <!-- 每月选择 -->
         <view class="monthday-selector" v-if="taskForm.recurringType === 'monthly'">
-          <view 
-            v-for="day in 31" 
-            :key="day"
-            class="monthday-item"
-            :class="{'selected': taskForm.monthDays.includes(day)}"
-            @tap="toggleMonthDay(day)"
-          >
+          <view v-for="day in 31" :key="day" class="monthday-item"
+            :class="{ 'selected': taskForm.monthDays.includes(day) }" @tap="toggleMonthDay(day)">
             {{ day }}日
           </view>
         </view>
@@ -142,25 +102,15 @@
       <!-- 任务时长 -->
       <view class="form-item">
         <text class="form-label">任务时长（分钟）</text>
-        <input 
-          class="form-input"
-          v-model="taskForm.total" 
-          type="number"
-          placeholder="请输入任务时长"
-          placeholder-class="placeholder"
-        />
+        <input class="form-input" v-model="taskForm.total" type="number" placeholder="请输入任务时长"
+          placeholder-class="placeholder" />
       </view>
 
       <!-- 任务积分 -->
       <view class="form-item">
         <text class="form-label">任务积分</text>
-        <input 
-          class="form-input"
-          v-model="taskForm.points" 
-          type="number"
-          placeholder="请输入任务积分"
-          placeholder-class="placeholder"
-        />
+        <input class="form-input" v-model="taskForm.points" type="number" placeholder="请输入任务积分"
+          placeholder-class="placeholder" />
       </view>
     </view>
 
@@ -174,470 +124,523 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+  import { ref, computed } from 'vue';
 
-export default {
-  setup() {
-    // 可选标签列表
-    const availableTags = [
-      '阅读', '认知', '健康', '运动', '营养',
-      '睡眠', '语言', '思维', '安全', '情感', '社交'
-    ];
+  export default {
+    setup() {
+      // 可选标签列表
+      const availableTags = [
+        '阅读', '认知', '健康', '运动', '营养',
+        '睡眠', '语言', '思维', '安全', '情感', '社交'
+      ];
 
-    // 星期选项
-    const weekdays = [
-      { label: '周一', value: 1 },
-      { label: '周二', value: 2 },
-      { label: '周三', value: 3 },
-      { label: '周四', value: 4 },
-      { label: '周五', value: 5 },
-      { label: '周六', value: 6 },
-      { label: '周日', value: 7 }
-    ];
+      // 星期选项
+      const weekdays = [
+        { label: '周一', value: 1 },
+        { label: '周二', value: 2 },
+        { label: '周三', value: 3 },
+        { label: '周四', value: 4 },
+        { label: '周五', value: 5 },
+        { label: '周六', value: 6 },
+        { label: '周日', value: 7 }
+      ];
 
-    // 表单数据
-    const taskForm = ref({
-      title: '',
-      tags: [],
-      type: 'normal', // 'normal' 或 'recurring'
-      recurringType: 'daily', // 'daily', 'weekly', 'monthly', 'custom'
-      weekdays: [], // 每周重复的日期
-      monthDays: [], // 每月重复的日期
-      customStartTime: '', // 自定义开始时间
-      customEndTime: '', // 自定义结束时间
-      total: '',
-      points: '',
-      completed: 0,
-      status: 'ongoing',
-      createdAt: null
-    });
+      // 表单数据
+      const taskForm = ref({
+        title: '',
+        tags: [],
+        type: 'normal', // 'normal' 或 'recurring'
+        recurringType: 'daily', // 只支持type为'recurring'时，支持'daily', 'weekly', 'monthly', 'custom'
+        weekdays: [], // 每周重复的日期
+        monthDays: [], // 每月重复的日期
+        customStartTime: '', // 自定义开始时间
+        customEndTime: '', // 自定义结束时间
+        total: '',
+        points: '',
+        completed: 0,
+        status: 'ongoing',
+        createdAt: null
+      });
 
-    // 表单验证
-    const isFormValid = computed(() => {
-      const baseValidation = taskForm.value.title &&
-        taskForm.value.tags.length > 0 &&
-        taskForm.value.total > 0 &&
-        taskForm.value.points > 0;
+      // 表单验证
+      const isFormValid = computed(() => {
+        const baseValidation = taskForm.value.title &&
+          taskForm.value.tags.length > 0 &&
+          taskForm.value.total > 0 &&
+          taskForm.value.points > 0;
 
-      if (taskForm.value.type === 'recurring') {
-        switch (taskForm.value.recurringType) {
-          case 'weekly':
-            return baseValidation && taskForm.value.weekdays.length > 0;
-          case 'monthly':
-            return baseValidation && taskForm.value.monthDays.length > 0;
-          case 'custom':
-            return baseValidation && taskForm.value.customStartTime && taskForm.value.customEndTime;
-          default:
-            return baseValidation;
+        if (taskForm.value.type === 'recurring') {
+          switch (taskForm.value.recurringType) {
+            case 'weekly':
+              return baseValidation && taskForm.value.weekdays.length > 0;
+            case 'monthly':
+              return baseValidation && taskForm.value.monthDays.length > 0;
+            case 'custom':
+              return baseValidation && taskForm.value.customStartTime && taskForm.value.customEndTime;
+            default:
+              return baseValidation;
+          }
         }
-      }
 
-      return baseValidation;
-    });
+        return baseValidation;
+      });
 
-    // 切换标签选择
-    const toggleTag = (tag) => {
-      const index = taskForm.value.tags.indexOf(tag);
-      if (index === -1) {
-        if (taskForm.value.tags.length < 3) {
-          taskForm.value.tags.push(tag);
+      // 切换标签选择
+      const toggleTag = (tag) => {
+        const index = taskForm.value.tags.indexOf(tag);
+        if (index === -1) {
+          if (taskForm.value.tags.length < 3) {
+            taskForm.value.tags.push(tag);
+          } else {
+            uni.showToast({
+              title: '最多选择3个标签',
+              icon: 'none'
+            });
+          }
         } else {
+          taskForm.value.tags.splice(index, 1);
+        }
+      };
+
+      // 切换星期选择
+      const toggleWeekday = (day) => {
+        const index = taskForm.value.weekdays.indexOf(day);
+        if (index === -1) {
+          taskForm.value.weekdays.push(day);
+        } else {
+          taskForm.value.weekdays.splice(index, 1);
+        }
+      };
+
+      // 切换日期选择
+      const toggleMonthDay = (day) => {
+        const index = taskForm.value.monthDays.indexOf(day);
+        if (index === -1) {
+          taskForm.value.monthDays.push(day);
+        } else {
+          taskForm.value.monthDays.splice(index, 1);
+        }
+      };
+
+      // 自定义时间选择
+      const onStartTimeChange = (e) => {
+        taskForm.value.customStartTime = e.detail.value;
+      };
+
+      const onEndTimeChange = (e) => {
+        taskForm.value.customEndTime = e.detail.value;
+      };
+
+      // 获取标签样式
+      const getTagColorClass = (tag) => {
+        const tagMap = {
+          '阅读': 'education',
+          '认知': 'cognitive',
+          '健康': 'health',
+          '运动': 'fitness',
+          '营养': 'nutrition',
+          '睡眠': 'sleep',
+          '语言': 'language',
+          '思维': 'growth',
+          '安全': 'default',
+          '情感': 'cognitive',
+          '社交': 'education'
+        };
+        return tagMap[tag] || 'default';
+      };
+
+      // 返回上一页
+      const goBack = () => {
+        uni.navigateBack();
+      };
+
+      // 提交任务
+      const submitTask = () => {
+        if (!isFormValid.value) {
+          // 如果表单验证不通过，则提示用户
           uni.showToast({
-            title: '最多选择3个标签',
+            title: '请完善任务信息',
+            icon: 'none'
+          });
+          return;
+        }
+
+        // 设置创建时间和状态
+        taskForm.value.createdAt = new Date();
+        taskForm.value.status = 'ongoing'; // 确保设置任务状态为进行中
+        taskForm.value.completed = 0; // 初始化已完成时间为0
+
+
+        // 从本地存储获取现有任务列表
+        try {
+          let taskList = uni.getStorageSync('taskList') || '[]';
+          taskList = JSON.parse(taskList);
+
+          // 生成新任务ID
+          const newId = taskList.length > 0 ? Math.max(...taskList.map(t => t.id)) + 1 : 1;
+          taskForm.value.id = newId;
+
+          let resetTime = 0;
+          if (taskForm.value.type === 'recurring') {
+            // 周期性任务，默认24小时
+            let interval = 24 * 3600;
+            if (taskForm.value.recurringType === 'weekly') {
+              interval = 7 * 24 * 3600;
+            } else if (taskForm.value.recurringType === 'monthly') {
+              interval = 30 * 24 * 3600;
+            }
+            // else if (taskForm.value.recurringType === 'custom') {
+            //   interval = taskForm.value.customEndTime - taskForm.value.customStartTime;
+            // }
+
+            const now = new Date();
+            resetTime = new Date(now.getTime() + interval * 1000);
+            // 设置时、分、秒、毫秒为 0
+            resetTime.setHours(0, 0, 0, 0);
+          }
+
+          // 添加新任务
+          const newTask = {
+            ...taskForm.value,
+            type: taskForm.value.type, // 确保类型正确设置
+            status: 'ongoing', // 确保状态正确设置
+            completed: 0,
+            createdAt: new Date(),
+            resetTime: resetTime
+          };
+
+          taskList.push(newTask);
+
+          // 保存更新后的任务列表
+          uni.setStorageSync('taskList', JSON.stringify(taskList));
+
+          uni.showToast({
+            title: '任务创建成功',
+            icon: 'success'
+          });
+
+          // 返回上一页并刷新
+          setTimeout(() => {
+            uni.navigateBack({
+              delta: 1,
+              success: () => {
+                // 触发首页刷新
+                uni.$emit('refreshTaskList');
+              }
+            });
+          }, 1500);
+        } catch (e) {
+          console.error('保存任务失败', e);
+          uni.showToast({
+            title: '创建失败，请重试',
             icon: 'none'
           });
         }
-      } else {
-        taskForm.value.tags.splice(index, 1);
-      }
-    };
-
-    // 切换星期选择
-    const toggleWeekday = (day) => {
-      const index = taskForm.value.weekdays.indexOf(day);
-      if (index === -1) {
-        taskForm.value.weekdays.push(day);
-      } else {
-        taskForm.value.weekdays.splice(index, 1);
-      }
-    };
-
-    // 切换日期选择
-    const toggleMonthDay = (day) => {
-      const index = taskForm.value.monthDays.indexOf(day);
-      if (index === -1) {
-        taskForm.value.monthDays.push(day);
-      } else {
-        taskForm.value.monthDays.splice(index, 1);
-      }
-    };
-
-    // 自定义时间选择
-    const onStartTimeChange = (e) => {
-      taskForm.value.customStartTime = e.detail.value;
-    };
-
-    const onEndTimeChange = (e) => {
-      taskForm.value.customEndTime = e.detail.value;
-    };
-
-    // 获取标签样式
-    const getTagColorClass = (tag) => {
-      const tagMap = {
-        '阅读': 'education',
-        '认知': 'cognitive',
-        '健康': 'health',
-        '运动': 'fitness',
-        '营养': 'nutrition',
-        '睡眠': 'sleep',
-        '语言': 'language',
-        '思维': 'growth',
-        '安全': 'default',
-        '情感': 'cognitive',
-        '社交': 'education'
       };
-      return tagMap[tag] || 'default';
-    };
 
-    // 返回上一页
-    const goBack = () => {
-      uni.navigateBack();
-    };
-
-    // 提交任务
-    const submitTask = () => {
-      if (!isFormValid.value) {
-        uni.showToast({
-          title: '请完善任务信息',
-          icon: 'none'
-        });
-        return;
-      }
-
-      // 设置创建时间和状态
-      taskForm.value.createdAt = new Date();
-      taskForm.value.status = 'ongoing'; // 确保设置任务状态为进行中
-      taskForm.value.completed = 0; // 初始化已完成时间为0
-
-      // 从本地存储获取现有任务列表
-      try {
-        let taskList = uni.getStorageSync('taskList') || '[]';
-        taskList = JSON.parse(taskList);
-        
-        // 生成新任务ID
-        const newId = taskList.length > 0 ? Math.max(...taskList.map(t => t.id)) + 1 : 1;
-        taskForm.value.id = newId;
-        
-        // 添加新任务
-        const newTask = {
-          ...taskForm.value,
-          type: taskForm.value.type, // 确保类型正确设置
-          status: 'ongoing', // 确保状态正确设置
-          completed: 0,
-          createdAt: new Date()
-        };
-        
-        taskList.push(newTask);
-        
-        // 保存更新后的任务列表
-        uni.setStorageSync('taskList', JSON.stringify(taskList));
-        
-        uni.showToast({
-          title: '任务创建成功',
-          icon: 'success'
-        });
-        
-        // 返回上一页并刷新
-        setTimeout(() => {
-          uni.navigateBack({
-            delta: 1,
-            success: () => {
-              // 触发首页刷新
-              uni.$emit('refreshTaskList');
-            }
-          });
-        }, 1500);
-      } catch (e) {
-        console.error('保存任务失败', e);
-        uni.showToast({
-          title: '创建失败，请重试',
-          icon: 'none'
-        });
-      }
-    };
-
-    return {
-      taskForm,
-      availableTags,
-      weekdays,
-      isFormValid,
-      toggleTag,
-      toggleWeekday,
-      toggleMonthDay,
-      onStartTimeChange,
-      onEndTimeChange,
-      getTagColorClass,
-      goBack,
-      submitTask
-    };
-  }
-};
+      return {
+        taskForm,
+        availableTags,
+        weekdays,
+        isFormValid,
+        toggleTag,
+        toggleWeekday,
+        toggleMonthDay,
+        onStartTimeChange,
+        onEndTimeChange,
+        getTagColorClass,
+        goBack,
+        submitTask
+      };
+    }
+  };
 </script>
 
-<style>
-.page-container {
-  min-height: 100vh;
-  background-color: #f8f8f8;
-  padding-bottom: 40rpx;
-}
+<style scoped>
+  .page-container {
+    min-height: 100vh;
+    background-color: #f8f8f8;
+    padding-bottom: 40rpx;
+  }
 
-/* 导航栏样式 */
-.nav-bar {
-  position: sticky;
-  top: 0;
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  background-color: #fff;
-  padding: 0 30rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-  z-index: 100;
-}
+  /* 导航栏样式 */
+  .nav-bar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    height: 88rpx;
+    /* background-color: #fff; */
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    padding: 10rpx 30rpx 20rpx 10rpx;
+    box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+    z-index: 100;
+  }
 
-.nav-left {
-  padding: 20rpx;
-  margin-left: -20rpx;
-}
+  .nav-left {
+    padding: 20rpx;
+    margin-left: -20rpx;
+  }
 
-.nav-icon {
-  font-size: 40rpx;
-  color: #333;
-}
+  .nav-icon {
+    font-size: 40rpx;
+    color: #333;
+  }
 
-.nav-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  font-weight: 500;
-  color: #333;
-}
+  .nav-title {
+    flex: 1;
+    text-align: center;
+    font-size: 32rpx;
+    font-weight: 500;
+    color: white;
+  }
 
-/* 表单容器 */
-.form-container {
-  padding: 30rpx;
-  background-color: #fff;
-  margin-top: 20rpx;
-  border-radius: 20rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-}
+  /* 表单容器 */
+  .form-container {
+    padding: 30rpx;
+    background-color: #fff;
+    margin-top: 20rpx;
+    border-radius: 20rpx;
+    box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  }
 
-.form-item {
-  margin-bottom: 30rpx;
-}
+  .form-item {
+    margin-bottom: 30rpx;
+  }
 
-.form-label {
-  display: block;
-  font-size: 28rpx;
-  color: #333;
-  margin-bottom: 16rpx;
-}
+  .form-label {
+    display: block;
+    font-size: 28rpx;
+    color: #333;
+    margin-bottom: 16rpx;
+  }
 
-.form-input {
-  width: 100%;
-  height: 80rpx;
-  background-color: #f5f5f5;
-  border-radius: 12rpx;
-  padding: 0 20rpx;
-  font-size: 28rpx;
-  color: #333;
-}
+  .form-input {
+    width: 100%;
+    height: 80rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    padding: 0 20rpx;
+    font-size: 28rpx;
+    color: #333;
+  }
 
-.placeholder {
-  color: #999;
-}
+  .placeholder {
+    color: #999;
+  }
 
-/* 标签样式 */
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20rpx;
-}
+  /* 标签样式 */
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20rpx;
+  }
 
-.tag-item {
-  padding: 12rpx 24rpx;
-  border-radius: 30rpx;
-  font-size: 26rpx;
-  color: #fff;
-  background-color: #8477fa;
-  transition: all 0.3s;
-}
+  .tag-item {
+    padding: 12rpx 24rpx;
+    border-radius: 30rpx;
+    font-size: 26rpx;
+    color: #fff;
+    background-color: #8477fa;
+    transition: all 0.3s;
+  }
 
-.tag-item.selected {
-  transform: scale(1.05);
-  box-shadow: 0 4rpx 12rpx rgba(132, 119, 250, 0.3);
-}
+  .tag-item.selected {
+    transform: scale(1.05);
+    box-shadow: 0 4rpx 12rpx rgba(132, 119, 250, 0.3);
+    color: black;
+  }
 
-/* 标签颜色 */
-.tag-education { background-color: #4CAF50; }
-.tag-cognitive { background-color: #2196F3; }
-.tag-health { background-color: #F44336; }
-.tag-fitness { background-color: #FF9800; }
-.tag-nutrition { background-color: #9C27B0; }
-.tag-sleep { background-color: #607D8B; }
-.tag-language { background-color: #E91E63; }
-.tag-growth { background-color: #00BCD4; }
-.tag-default { background-color: #8477fa; }
+  /* 标签颜色 */
+  .tag-education {
+    background-color: #4CAF50;
+  }
 
-/* 任务类型选择器 */
-.type-selector {
-  display: flex;
-  gap: 20rpx;
-}
+  .tag-cognitive {
+    background-color: #2196F3;
+  }
 
-.type-item {
-  flex: 1;
-  height: 80rpx;
-  line-height: 80rpx;
-  text-align: center;
-  background-color: #f5f5f5;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: #666;
-  transition: all 0.3s;
-}
+  .tag-health {
+    background-color: #F44336;
+  }
 
-.type-item.selected {
-  background-color: #8477fa;
-  color: #fff;
-}
+  .tag-fitness {
+    background-color: #FF9800;
+  }
 
-/* 重复周期选择器 */
-.recurring-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20rpx;
-  margin-bottom: 20rpx;
-}
+  .tag-nutrition {
+    background-color: #9C27B0;
+  }
 
-.recurring-item {
-  flex: 1;
-  min-width: 140rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  text-align: center;
-  background-color: #f5f5f5;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: #666;
-  transition: all 0.3s;
-}
+  .tag-sleep {
+    background-color: #607D8B;
+  }
 
-.recurring-item.selected {
-  background-color: #8477fa;
-  color: #fff;
-}
+  .tag-language {
+    background-color: #E91E63;
+  }
 
-/* 星期选择器 */
-.weekday-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-}
+  .tag-growth {
+    background-color: #00BCD4;
+  }
 
-.weekday-item {
-  width: 80rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  text-align: center;
-  background-color: #f5f5f5;
-  border-radius: 12rpx;
-  font-size: 26rpx;
-  color: #666;
-  transition: all 0.3s;
-}
+  .tag-default {
+    background-color: #8477fa;
+  }
 
-.weekday-item.selected {
-  background-color: #8477fa;
-  color: #fff;
-}
+  /* 任务类型选择器 */
+  .type-selector {
+    display: flex;
+    gap: 20rpx;
+  }
 
-/* 日期选择器 */
-.monthday-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-}
+  .type-item {
+    flex: 1;
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    font-size: 28rpx;
+    color: #666;
+    transition: all 0.3s;
+  }
 
-.monthday-item {
-  width: 80rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  text-align: center;
-  background-color: #f5f5f5;
-  border-radius: 12rpx;
-  font-size: 26rpx;
-  color: #666;
-  transition: all 0.3s;
-}
+  .type-item.selected {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+  }
 
-.monthday-item.selected {
-  background-color: #8477fa;
-  color: #fff;
-}
+  /* 重复周期选择器 */
+  .recurring-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20rpx;
+    margin-bottom: 20rpx;
+  }
 
-/* 自定义时间选择器 */
-.custom-time {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
+  .recurring-item {
+    flex: 1;
+    min-width: 140rpx;
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    font-size: 28rpx;
+    color: #666;
+    transition: all 0.3s;
+  }
 
-.time-input {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-}
+  .recurring-item.selected {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+  }
 
-.time-input text {
-  font-size: 28rpx;
-  color: #666;
-}
+  /* 星期选择器 */
+  .weekday-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+  }
 
-.picker-value {
-  flex: 1;
-  height: 80rpx;
-  line-height: 80rpx;
-  background-color: #f5f5f5;
-  border-radius: 12rpx;
-  padding: 0 20rpx;
-  font-size: 28rpx;
-  color: #333;
-}
+  .weekday-item {
+    width: 80rpx;
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    font-size: 26rpx;
+    color: #666;
+    transition: all 0.3s;
+  }
 
-/* 提交按钮 */
-.submit-btn-container {
-  padding: 40rpx 30rpx;
-}
+  .weekday-item.selected {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+  }
 
-.submit-btn {
-  width: 100%;
-  height: 88rpx;
-  line-height: 88rpx;
-  background: linear-gradient(135deg, #9f8eff, #8477fa);
-  color: #fff;
-  font-size: 32rpx;
-  border-radius: 44rpx;
-  border: none;
-  box-shadow: 0 6rpx 16rpx rgba(132, 119, 250, 0.3);
-}
+  /* 日期选择器 */
+  .monthday-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+  }
 
-.submit-btn:active {
-  transform: translateY(2rpx);
-  box-shadow: 0 2rpx 8rpx rgba(132, 119, 250, 0.2);
-}
+  .monthday-item {
+    width: 80rpx;
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    font-size: 26rpx;
+    color: #666;
+    transition: all 0.3s;
+  }
 
-.submit-btn[disabled] {
-  background: #ccc;
-  box-shadow: none;
-}
-</style> 
+  .monthday-item.selected {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+  }
+
+  /* 自定义时间选择器 */
+  .custom-time {
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+  }
+
+  .time-input {
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+  }
+
+  .time-input text {
+    font-size: 28rpx;
+    color: #666;
+  }
+
+  .picker-value {
+    flex: 1;
+    height: 80rpx;
+    line-height: 80rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    padding: 0 20rpx;
+    font-size: 28rpx;
+    color: #333;
+  }
+
+  /* 提交按钮 */
+  .submit-btn-container {
+    padding: 40rpx 30rpx;
+  }
+
+  .submit-btn {
+    width: 100%;
+    height: 88rpx;
+    line-height: 88rpx;
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: white;
+    font-size: 32rpx;
+    border-radius: 44rpx; 
+    border: none;
+    box-shadow: 0 6rpx 16rpx rgba(132, 119, 250, 0.3);
+  }
+
+  /* .submit-btn:active {
+    transform: translateY(2rpx);
+    box-shadow: 0 2rpx 8rpx rgba(132, 119, 250, 0.2);
+    color: white;
+  } */
+
+  .submit-btn[disabled] {
+    /* transform: translateY(2rpx); */
+    background: linear-gradient(135deg, #9f8eff, #8477fa);
+    box-shadow: none;
+    color: #666;
+  }
+</style>

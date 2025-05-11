@@ -37,12 +37,11 @@ export default {
 		const taskRecords = ref([]);
 		const isDarkMode = ref(false);
 
-		// 加载任务记录
+		// 加载已完成任务记录
 		const loadTaskRecords = () => {
 			try {
-				const records = uni.getStorageSync('taskList') || '[]';
+				const records = uni.getStorageSync('completedTaskList') || '[]';
 				taskRecords.value = JSON.parse(records)
-					.filter(task => task.status === 'completed')
 					.map(task => ({
 						title: task.title,
 						action: '完成任务',
@@ -97,7 +96,7 @@ export default {
 	display: flex;
 	align-items: center;
 	height: 88rpx;
-	background-color: #8477fa;
+	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
 	padding: 0 30rpx;
 	position: relative;
 }

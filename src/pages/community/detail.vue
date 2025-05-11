@@ -894,7 +894,7 @@ export default {
 	height: 70rpx;
 	line-height: 70rpx;
 	margin-left: 20rpx;
-	background-color: #8477fa;
+	background: linear-gradient(135deg, #9f8eff, #8477fa);
 	color: white;
 	font-size: 28rpx;
 	border-radius: 35rpx;
