@@ -1,37 +1,78 @@
+<!-- 添加任务页面 -->
 <template>
-	<view class="page-container" :class="{ 'dark-mode': isDarkMode }">
-		
-		<!-- 添加商品模态框 -->
-		<view class="modal-mask" v-if="showModal" @tap="cancelAddProduct"></view>
-		<view class="modal-base" v-if="showModal" @tap.stop>
-			<view class="modal-title">添加新商品</view>
-			<view class="modal-input-group">
-				<view class="modal-input-label">商品名称:</view>
-				<input type="text" v-model="newProduct.name" placeholder="请输入商品名称" class="modal-input" />
+  <view class="page-container">
+    <!-- 顶部导航栏 -->
+    <view class="nav-bar">
+      <view class="nav-left" @tap="goBack">
+        <text class="nav-icon">←</text>
+      </view>
+      <text class="nav-title">添加商品</text>
+    </view>
 
-				<view class="modal-input-label">所需积分:</view>
-				<input type="number" v-model="newProduct.points" placeholder="请输入所需积分" class="modal-input" />
+    <!-- 表单内容 -->
+    <view class="form-container">
+      <!-- 商品名称 -->
+      <view class="form-item">
+        <text class="form-label">商品名称</text>
+        <input class="form-input" v-model="newProduct.name" placeholder="请输入商品名称" placeholder-class="placeholder" />
+      </view>
 
-				<view class="modal-input-label">库存数量:</view>
-				<input type="text" v-model="newProduct.stock" placeholder="请输入库存数量，无限则填'无限'" class="modal-input" />
+      <!-- 商品标签 -->
+      <view class="form-item">
+        <text class="form-label">商品标签</text>
+        <view class="icons-container">
+          <view v-for="(tag, index) in availableTags" :key="index" class="tag-item" :class="[
+            `tag-${getTagColorClass(tag)}`,
+            { 'selected': newProduct.tags.includes(tag) }
+          ]" @tap="toggleTag(tag)">
+            {{ tag }}
+          </view>
+        </view>
+      </view>
 
-				<view class="modal-input-label">商品描述:</view>
-				<textarea v-model="newProduct.description" placeholder="请输入商品描述（可选）" class="modal-textarea"></textarea>
+      <!-- 商品积分 -->
+      <view class="form-item">
+        <text class="form-label">所需积分</text>
+        <input class="form-input" v-model="newProduct.points" type="number" placeholder="请输入所需积分"
+          placeholder-class="placeholder" />
+      </view>
 
-				<view class="modal-input-label">图标:</view>
-				<view class="icon-picker">
+
+      <!-- 库存数量 -->
+      <view class="form-item">
+        <text class="form-label">库存数量</text>
+        <input class="form-input" v-model="newProduct.total" type="number" placeholder="请输入任务时长"
+          placeholder-class="placeholder" />
+      </view>
+
+       <!-- 商品描述 -->
+       <view class="form-item">
+        <text class="form-label">商品描述</text>
+        <input class="form-input" v-model="newProduct.description" type="number" placeholder="请输入商品描述（可选）"
+          placeholder-class="placeholder" />
+      </view>
+
+       <!-- 图标 -->
+       <view class="form-item">
+        <text class="form-label">图标</text>
+        <view class="icon-picker">
 					<view v-for="(icon, i) in availableIcons" :key="i"
 						:class="['icon-option', newProduct.icon === icon ? 'selected' : '']" @tap="selectIcon(icon)">
 						{{ icon }}</view>
 				</view>
-			</view>
-			<view class="modal-buttons">
-				<button class="modal-btn modal-cancel" @tap="cancelAddProduct">取消</button>
+      </view>
+
+      
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-btn-container">
+      <button class="modal-btn modal-cancel" @tap="cancelAddProduct">取消</button>
 				<button class="modal-btn modal-confirm" @tap="addProduct">确认</button>
-			</view>
-		</view>
-	</view>
+    </view>
+  </view>
 </template>
+
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue';
@@ -183,372 +224,23 @@ export default {
 	background-color: #121212;
 }
 
-.shop-header {
-	padding: 40rpx 30rpx 30rpx;
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	color: white;
-	position: relative;
-	box-shadow: 0 6rpx 16rpx rgba(132, 119, 250, 0.2);
-}
 
-.dark-mode .shop-header {
-	/* background-color: #5e52c9; */
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	box-shadow: 0 6rpx 16rpx rgba(94, 82, 201, 0.3);
-}
-
-.header-content {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.title-section {
-	display: flex;
-	flex-direction: column;
-}
-
-.title {
-	font-size: 48rpx;
-	font-weight: bold;
-	margin-bottom: 10rpx;
-	text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
-}
-
-.subtitle {
-	font-size: 28rpx;
-	opacity: 0.9;
-}
-
-.points {
-	background-color: rgba(255, 255, 255, 0.25);
-	padding: 12rpx 28rpx;
-	border-radius: 40rpx;
-	font-size: 34rpx;
-	font-weight: bold;
-	box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.1);
-	text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
-}
-
-.search-box {
-	margin: 30rpx;
-	height: 80rpx;
-	background-color: white;
-	border-radius: 40rpx;
-	display: flex;
-	align-items: center;
-	padding: 0 30rpx;
-	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
-}
-
-.shop-container.dark-mode .search-box {
-	background-color: #1f1f1f;
-	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
-}
-
-.search-icon {
-	margin-right: 20rpx;
-	font-size: 32rpx;
-	color: #999;
-}
-
-.dark-mode .search-icon {
-	color: #777;
-}
-
-.search-input {
-	flex: 1;
-	height: 80rpx;
-	font-size: 28rpx;
-	color: #333;
-}
-
-.dark-mode .search-input {
-	color: #e0e0e0;
-}
-
-.search-clear {
-	width: 40rpx;
-	height: 40rpx;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	color: #999;
-}
-
-.dark-mode .search-clear {
-	color: #777;
-}
-
-.products-list {
-	/* padding: 0 20rpx; */
-	padding-top: 20rpx;
-	margin-bottom: 140rpx;
-	height: calc(100vh - 320rpx);
-}
-
-.product-list {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
-	padding: 10rpx;
-	margin-left: 40rpx;
-	margin-right: 40rpx;
-}
-
-.product-card {
-	background-color: white;
-	border-radius: 24rpx;
-	margin-bottom: 30rpx;
-	box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.06);
-	position: relative;
-	transition: transform 0.2s, box-shadow 0.2s;
-	overflow: hidden;
-	width: 48%;
-	/* 一行两列，留出间隔 */
-	max-width: none;
-}
-
-.product-card.dark-mode {
-	background-color: #1f1f1f;
-	box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.2);
-}
-
-.product-card:active {
-	transform: scale(0.98);
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-}
-
-.dark-mode .product-card:active {
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
-}
-
-.product-content {
-	padding: 20rpx;
-	display: flex;
-	flex-direction: column;
-}
-
-.product-left {
-	position: relative;
-	margin-right: 0;
-	margin-bottom: 15rpx;
-	align-self: center;
-}
-
-.product-icon {
-	font-size: 60rpx;
-	background-color: #f8f8f8;
-	width: 120rpx;
-	height: 120rpx;
-	border-radius: 20rpx;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
-}
-
-.product-icon.dark-mode {
-	background-color: #2a2a2a;
-	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.3);
-}
-
-.product-info {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	min-height: auto;
-	justify-content: space-between;
-	margin-left: 0;
-}
-
-.product-title {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
-	width: 100%;
-}
-
-.product-name {
-	font-size: 28rpx;
-	font-weight: bold;
-	color: #333;
-	margin-bottom: 10rpx;
-	line-height: 1.3;
-	width: calc(100% - 50rpx);
-	/* 文本溢出处理 */
-	overflow: hidden;
-	text-overflow: ellipsis;
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-}
-
-.product-name.dark-mode {
-	color: #e0e0e0;
-}
-
-.product-tags {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 10rpx;
-}
-
-.product-points {
-	display: flex;
-	align-items: center;
-}
-
-.points-icon {
-	margin-right: 5rpx;
-	font-size: 24rpx;
-	color: #8477fa;
-}
-
-.points-value {
-	font-size: 24rpx;
-	font-weight: 500;
-	color: #333;
-}
-
-.product-stock {
-	display: flex;
-	align-items: center;
-}
-
-.stock-icon {
-	margin-right: 5rpx;
-	font-size: 24rpx;
-	color: #8477fa;
-}
-
-.stock-value {
-	font-size: 24rpx;
-	font-weight: 500;
-	color: #333;
-}
-
-.product-description {
-	font-size: 24rpx;
-	color: #666;
-	margin-bottom: 10rpx;
-}
-
-.product-action {
-	display: flex;
-	justify-content: center;
-	padding: 10rpx 20rpx 16rpx;
-	background-color: #f9f9f9;
-	border-top: 1rpx solid #f0f0f0;
-}
-
-.dark-mode .product-action {
-	background-color: #252525;
-	border-top: 1rpx solid #333;
-}
-
-.exchange-btn {
-	width: 100%;
-	height: 70rpx;
-	line-height: 70rpx;
-	text-align: center;
-	font-size: 26rpx;
-	color: white;
-	/* background-color: #8477fa; */
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	border-radius: 10rpx;
-	border: none;
-	box-shadow: 0 6rpx 12rpx rgba(132, 119, 250, 0.2);
-	transition: transform 0.15s, box-shadow 0.15s;
-}
-
-.exchange-btn:active {
-	transform: translateY(2rpx);
-	box-shadow: 0 2rpx 6rpx rgba(132, 119, 250, 0.15);
-}
-
-/* 对于小屏设备的适配 */
-@media screen and (max-width: 375px) {
-	.product-card {
-		width: 100%;
-	}
-}
-
-.empty-state {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 60rpx 0;
-	color: #999;
-	font-size: 28rpx;
-	width: 100%;
-	background-color: #f9f9f9;
-	border-radius: 16rpx;
-	margin-top: 20rpx;
-}
-
-.empty-state.dark-mode {
-	background-color: #2a2a2a;
-	color: #777;
-}
-
-.empty-text {
-	font-size: 28rpx;
-}
-
-/* 移除这些样式，使用全局样式 */
-/* .float-btn {
-	position: fixed;
-	right: 30rpx;
-	bottom: 150rpx;
-	width: 110rpx;
-	height: 110rpx;
-	border-radius: 50%;
-	background: linear-gradient(135deg, #9f8eff, #8477fa);
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	color: white;
-	font-size: 60rpx;
-	box-shadow: 0 8rpx 25rpx rgba(132, 119, 250, 0.4);
-	z-index: 99;
-	transform: rotate(0deg);
-	transition: all 0.3s;
-} */
-
-/* 浮动按钮 */
-.float-btn {
-	position: fixed;
-	right: 40rpx;
-	bottom: 180rpx;
-	/* 增加底部距离 */
-	width: 100rpx;
-	height: 100rpx;
-	/* background: linear-gradient(135deg, #8477fa, #6b5bff); */
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	color: white;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 60rpx;
-	box-shadow: 0 4rpx 16rpx rgba(132, 119, 250, 0.3);
-	/* 提高z-index确保在最上层 */
-	z-index: 100;
-	transition: transform 0.2s ease;
-}
+ /* 导航栏样式 */
+ .nav-bar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    height: 88rpx;
+    /* background-color: #fff; */
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    padding: 10rpx 30rpx 20rpx 10rpx;
+    box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+    z-index: 100;
+  }
 
 
-/* 添加按钮悬停和点击效果 */
-.float-btn:active {
-	transform: scale(0.95);
-}
 
-/* .float-btn:active {
-	transform: rotate(90deg) scale(0.95);
-	box-shadow: 0 5rpx 15rpx rgba(132, 119, 250, 0.3);
-} */
 
 /* 图标选择器样式 */
 .icon-picker {
@@ -595,4 +287,271 @@ export default {
 	width: 100%;
 	box-sizing: border-box;
 }
+
+
+
+.nav-left {
+    padding: 20rpx;
+    margin-left: -20rpx;
+  }
+
+  .nav-icon {
+    font-size: 40rpx;
+    color: #333;
+  }
+
+  .nav-title {
+    flex: 1;
+    text-align: center;
+    font-size: 32rpx;
+    font-weight: 500;
+    color: white;
+  }
+
+  /* 表单容器 */
+  .form-container {
+    padding: 30rpx;
+    background-color: #fff;
+    margin-top: 20rpx;
+    border-radius: 20rpx;
+    box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  }
+
+  .form-item {
+    margin-bottom: 30rpx;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 28rpx;
+    color: #333;
+    margin-bottom: 16rpx;
+  }
+
+  .form-input {
+    width: 100%;
+    height: 80rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    padding: 0 20rpx;
+    font-size: 28rpx;
+    color: #333;
+  }
+
+  .placeholder {
+    color: #999;
+  }
+
+  /* icon样式 */
+  .icons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20rpx;
+	  /* margin-bottom: 30rpx; */
+}
+  }
+
+  .tag-item {
+    padding: 12rpx 24rpx;
+    border-radius: 30rpx;
+    font-size: 26rpx;
+    color: #fff;
+    background-color: #8477fa;
+    transition: all 0.3s;
+  }
+
+  .tag-item.selected {
+    transform: scale(1.05);
+    box-shadow: 0 4rpx 12rpx rgba(132, 119, 250, 0.3);
+    color: black;
+  }
+
+  /* 标签颜色 */
+  .tag-education {
+    background-color: #4CAF50;
+  }
+
+  .tag-cognitive {
+    background-color: #2196F3;
+  }
+
+  .tag-health {
+    background-color: #F44336;
+  }
+
+  .tag-fitness {
+    background-color: #FF9800;
+  }
+
+  .tag-nutrition {
+    background-color: #9C27B0;
+  }
+
+  .tag-sleep {
+    background-color: #607D8B;
+  }
+
+  .tag-language {
+    background-color: #E91E63;
+  }
+
+  .tag-growth {
+    background-color: #00BCD4;
+  }
+
+  .tag-default {
+    background-color: #8477fa;
+  }
+
+  /* 任务类型选择器 */
+  .type-selector {
+    display: flex;
+    gap: 20rpx;
+  }
+
+  .type-item {
+    flex: 1;
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    font-size: 28rpx;
+    color: #666;
+    transition: all 0.3s;
+  }
+
+  .type-item.selected {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+  }
+
+  /* 重复周期选择器 */
+  .recurring-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20rpx;
+    margin-bottom: 20rpx;
+  }
+
+  .recurring-item {
+    flex: 1;
+    min-width: 140rpx;
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    font-size: 28rpx;
+    color: #666;
+    transition: all 0.3s;
+  }
+
+  .recurring-item.selected {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+  }
+
+  /* 星期选择器 */
+  .weekday-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+  }
+
+  .weekday-item {
+    width: 80rpx;
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    font-size: 26rpx;
+    color: #666;
+    transition: all 0.3s;
+  }
+
+  .weekday-item.selected {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+  }
+
+  /* 日期选择器 */
+  .monthday-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+  }
+
+  .monthday-item {
+    width: 80rpx;
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    font-size: 26rpx;
+    color: #666;
+    transition: all 0.3s;
+  }
+
+  .monthday-item.selected {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+  }
+
+  /* 自定义时间选择器 */
+  .custom-time {
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+  }
+
+  .time-input {
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+  }
+
+  .time-input text {
+    font-size: 28rpx;
+    color: #666;
+  }
+
+  .picker-value {
+    flex: 1;
+    height: 80rpx;
+    line-height: 80rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    padding: 0 20rpx;
+    font-size: 28rpx;
+    color: #333;
+  }
+
+  /* 提交按钮 */
+  .submit-btn-container {
+    padding: 40rpx 30rpx;
+  }
+
+  .submit-btn {
+    width: 100%;
+    height: 88rpx;
+    line-height: 88rpx;
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: white;
+    font-size: 32rpx;
+    border-radius: 44rpx; 
+    border: none;
+    box-shadow: 0 6rpx 16rpx rgba(132, 119, 250, 0.3);
+  }
+
+  .submit-btn[disabled] {
+    /* transform: translateY(2rpx); */
+    background: linear-gradient(135deg, #9f8eff, #8477fa);
+    box-shadow: none;
+    color: #666;
+  }
+
+
 </style>
