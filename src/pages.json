@@ -1,6 +1,13 @@
 {
 	"pages": [ 
 		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "亲子任务",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/login/login",
 			"style": {
 				"navigationBarTitleText": "登录",
@@ -18,13 +25,6 @@
 				"app-plus": {
 					"titleNView": false
 				}
-			}
-		},
-		{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": "亲子任务",
-				"navigationStyle": "custom"
 			}
 		},
 		{
