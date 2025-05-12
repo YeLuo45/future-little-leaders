@@ -74,7 +74,7 @@
 <script>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useThemeStore } from '@/stores/theme';
-import { getTotalPoints, deductPoints, updateTotalPoints, getBabyPoints, deductBabyPoints } from '@/utils/pointsManager';
+import { getBabyPoints, deductBabyPoints } from '@/utils/pointsManager';
 import { isDarkTheme } from '@/utils/themeUtils.js';
 
 export default {
@@ -200,7 +200,7 @@ export default {
 
 			try {
 				// 扣除积分
-				const success = await deductPoints(product.points);
+				const success = await deductBabyPoints(currentBabyId.value, product.points);
 				if (success) {
 					// 创建兑换记录
 					const exchangeRecord = {
@@ -287,7 +287,7 @@ export default {
 			if (currentBabyId.value) {
 				totalScore.value = getBabyPoints(currentBabyId.value);
 			} else {
-				totalScore.value = getTotalPoints();
+				totalScore.value = getBabyPoints();
 			}
 		};
 

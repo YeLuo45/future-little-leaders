@@ -126,10 +126,17 @@ export default {
 				loadBabies();
 				loadExchangeRecords();
 			});
+			
+			// 添加宝宝切换事件监听
+			uni.$on('babyChanged', (babyId) => {
+				currentBabyId.value = babyId;
+				loadExchangeRecords();
+			});
 		});
 
 		onUnmounted(() => {
 			uni.$off('refreshBabyList');
+			uni.$off('babyChanged');
 		});
 
 		return {

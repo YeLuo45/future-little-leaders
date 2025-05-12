@@ -70,6 +70,13 @@
 			}
 		},
 		{
+			"path": "pages/profile/baby-management",
+			"style": {
+				"navigationBarTitleText": "宝宝管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/settings/settings",
 			"style": {
 				"navigationBarTitleText": "设置",

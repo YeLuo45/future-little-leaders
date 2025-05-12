@@ -44,6 +44,11 @@
 				<text class="label">兑换记录</text>
 				<text class="arrow">></text>
 			</view>
+			<view class="function-item" @tap="navigateTo('profile/baby-management')">
+				<text class="icon">👶</text>
+				<text class="label">宝宝管理</text>
+				<text class="arrow">></text>
+			</view>
 			<!-- <view class="function-item" @tap="navigateTo('favorites')">
 				<text class="icon">⭐</text>
 				<text class="label">我的收藏</text>
@@ -62,7 +67,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { isDarkTheme } from '@/utils/themeUtils.js';
 import { useThemeStore } from '@/stores/theme';
-import { getTotalPoints, getBabyPoints, updateBabyPoints } from '@/utils/pointsManager';
+import { getBabyPoints } from '@/utils/pointsManager';
 
 export default {
 	name: 'Profile',
@@ -116,7 +121,7 @@ export default {
 			if (id) {
 				totalScore.value = getBabyPoints(id);
 			} else {
-				totalScore.value = getTotalPoints();
+				totalScore.value = getBabyPoints();
 			}
 		};
 

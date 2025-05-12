@@ -39,8 +39,6 @@
 
 | 函数名 | 参数 | 返回值 | 功能描述 |
 |-------|------|-------|---------|
-| getTotalPoints | 无 | Number | 获取当前宝宝积分（兼容旧版本的总积分） |
-| updateTotalPoints | (points: Number) | void | 更新当前宝宝积分（同时兼容旧版本） |
 | addPoints | (amount: Number) | void | 为当前宝宝增加积分（同时兼容旧版本） |
 | deductPoints | (amount: Number) | Boolean | 为当前宝宝减少积分（同时兼容旧版本），返回是否成功 |
 

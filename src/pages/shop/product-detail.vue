@@ -73,7 +73,7 @@
 import { ref } from 'vue';
 import { onLoad, onShow } from '@dcloudio/uni-app';
 import { isDarkTheme } from '@/utils/themeUtils.js';
-import { getTotalPoints } from '@/utils/pointsManager';
+import { getBabyPoints, deductBabyPoints } from '@/utils/pointsManager';
 
 // 暗黑模式
 const isDarkMode = ref(false);
@@ -85,8 +85,10 @@ const product = ref({
   icon: '🎁',
   description: ''
 });
-// 用户积分 todo:支持积分变动
+// 用户积分
 const userPoints = ref(0);
+// 当前宝宝ID
+const currentBabyId = ref('');
 
 // 返回上一页
 function goBack() {
@@ -108,30 +110,54 @@ function exchangeProduct() {
     content: `是否兑换"${product.value.name}"？将消耗${product.value.points}积分`,
     success: (res) => {
       if (res.confirm) {
-        // 扣除积分
-        userPoints.value -= product.value.points;
-        // 减少库存
-        if (product.value.stock !== '无限') {
-          product.value.stock -= 1;
+        // 获取当前宝宝ID
+        const babyId = currentBabyId.value;
+        
+        // 调用积分管理工具扣除积分
+        const success = deductBabyPoints(babyId, product.value.points);
+        
+        if (success) {
+          // 减少库存
+          if (product.value.stock !== '无限') {
+            product.value.stock -= 1;
+          }
+          // 获取所有商品
+          let allProducts = uni.getStorageSync('shopProducts') || '[]';
+          if (typeof allProducts === 'string') {
+            allProducts = JSON.parse(allProducts);
+          }
+          // 更新商品库存
+          if (product.value.index !== undefined && allProducts[product.value.index]) {
+            allProducts[product.value.index].stock = product.value.stock;
+            uni.setStorageSync('shopProducts', JSON.stringify(allProducts));
+          }
+          
+          // 创建兑换记录
+          const exchangeRecord = {
+            productName: product.value.name,
+            points: product.value.points,
+            exchangeTime: new Date().toISOString(),
+            status: '兑换成功',
+            babyId: babyId // 添加宝宝ID到兑换记录
+          };
+
+          // 保存兑换记录
+          const history = JSON.parse(uni.getStorageSync('exchangeHistory') || '[]');
+          history.unshift(exchangeRecord);
+          uni.setStorageSync('exchangeHistory', JSON.stringify(history));
+          
+          // 更新UI显示
+          userPoints.value = getBabyPoints(babyId);
+          
+          // 提示兑换成功
+          uni.showToast({ title: '兑换成功', icon: 'success' });
+          // 2秒后返回商城页面
+          setTimeout(() => {
+            goBack();
+          }, 2000);
+        } else {
+          uni.showToast({ title: '兑换失败，积分不足', icon: 'none' });
         }
-        // 获取所有商品
-        let allProducts = uni.getStorageSync('shopProducts') || '[]';
-        if (typeof allProducts === 'string') {
-          allProducts = JSON.parse(allProducts);
-        }
-        // 更新商品库存
-        if (product.value.index !== undefined && allProducts[product.value.index]) {
-          allProducts[product.value.index].stock = product.value.stock;
-          uni.setStorageSync('shopProducts', JSON.stringify(allProducts));
-        }
-        // 保存积分变化
-        uni.setStorageSync('userPoints', userPoints.value);
-        // 提示兑换成功
-        uni.showToast({ title: '兑换成功', icon: 'success' });
-        // 2秒后返回商城页面
-        setTimeout(() => {
-          goBack();
-        }, 2000);
       }
     }
   });
@@ -150,16 +176,19 @@ onLoad(() => {
       goBack();
     }, 1500);
   }
+  
+  // 获取当前宝宝ID
+  currentBabyId.value = uni.getStorageSync('currentBabyId') || '';
+  
   // 获取用户积分
-  userPoints.value = getTotalPoints() || 0;
+  userPoints.value = getBabyPoints(currentBabyId.value);
 });
 
 // 页面显示时
 onShow(() => {
   isDarkMode.value = isDarkTheme();
   // 更新用户积分
-  const points = uni.getStorageSync('userPoints');
-  userPoints.value = points || 0;
+  userPoints.value = getBabyPoints(currentBabyId.value);
 });
 </script>
 

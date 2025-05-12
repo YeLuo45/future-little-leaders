@@ -15,6 +15,7 @@
       <view class="baby-selector">
         <picker :range="babies" range-key="name" @change="onBabyChange" :value="currentBabyIndex">
           <view class="baby-select-view">
+            <!-- <image class="baby-icon" :src="currentBabyAvatar || getDefaultAvatar(currentBabyId)" mode="aspectFill"></image> -->
             <image v-if="currentBabyAvatar" class="baby-icon" :src="currentBabyAvatar" mode="aspectFill"></image>
             <text v-else class="baby-icon-placeholder">{{ getDefaultAvatar(currentBabyId) }}</text>
             <text class="baby-name">{{ currentBabyName || '选择宝宝' }}</text>
@@ -187,7 +188,7 @@
   import { ref, computed, onMounted, onUnmounted } from 'vue';
   import { useThemeStore } from '@/stores/theme';
   import { onPageShow } from '@dcloudio/uni-app';
-  import { getTotalPoints, updateTotalPoints, addPoints, getBabyPoints, addBabyPoints } from '@/utils/pointsManager';
+  import { getBabyPoints, addBabyPoints } from '@/utils/pointsManager';
 
   export default {
     setup() {
@@ -545,7 +546,7 @@
         if (currentBabyId.value) {
           totalScore.value = getBabyPoints(currentBabyId.value);
         } else {
-          totalScore.value = getTotalPoints();
+          totalScore.value = getBabyPoints();
         }
       };
 
@@ -574,9 +575,9 @@
           const taskPoints = task.points || 10;
           // 使用宝宝ID增加积分
           if (currentBabyId.value) {
-            addBabyPoints(taskPoints, currentBabyId.value);
+            addBabyPoints(currentBabyId.value, taskPoints);
           } else {
-            addPoints(taskPoints);
+            console.warn('未找到当前宝宝ID，无法添加积分');
           }
           
           // 更新积分显示

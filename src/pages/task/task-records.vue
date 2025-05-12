@@ -126,10 +126,17 @@ export default {
 				loadBabies();
 				loadTaskRecords();
 			});
+			
+			// 添加宝宝切换事件监听
+			uni.$on('babyChanged', (babyId) => {
+				currentBabyId.value = babyId;
+				loadTaskRecords();
+			});
 		});
 
 		onUnmounted(() => {
 			uni.$off('refreshBabyList');
+			uni.$off('babyChanged');
 		});
 
 		return {
