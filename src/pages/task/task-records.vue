@@ -8,6 +8,17 @@
 			<view class="nav-title">任务记录</view>
 		</view>
 
+		<!-- 宝宝选择器 -->
+		<view class="baby-selector" v-if="babies.length > 0">
+			<picker :range="babies" range-key="name" @change="onBabyChange">
+				<view class="baby-select-view">
+					<text class="baby-select-text">当前宝宝：</text>
+					<text class="baby-name">{{ currentBabyName }}</text>
+					<text class="baby-arrow">▼</text>
+				</view>
+			</picker>
+		</view>
+
 		<!-- 任务记录列表 -->
 		<view class="records-list">
 			<view v-if="taskRecords.length === 0" class="empty-state">
@@ -28,7 +39,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { isDarkTheme } from '@/utils/themeUtils.js';
 
 export default {
@@ -36,12 +47,52 @@ export default {
 	setup() {
 		const taskRecords = ref([]);
 		const isDarkMode = ref(false);
+		
+		// 宝宝相关
+		const babies = ref([]);
+		const currentBabyId = ref('');
+		const currentBabyName = computed(() => {
+			if (!Array.isArray(babies.value) || babies.value.length === 0) {
+				return '暂无宝宝';
+			}
+			const baby = babies.value.find(b => b && b.id === currentBabyId.value);
+			return baby ? baby.name : '请选择宝宝';
+		});
+
+		// 加载宝宝信息
+		const loadBabies = () => {
+			try {
+				const storedBabies = uni.getStorageSync('babies') || '[]';
+				babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : (Array.isArray(storedBabies) ? storedBabies : []);
+				
+				const storedBabyId = uni.getStorageSync('currentBabyId');
+				currentBabyId.value = storedBabyId || (babies.value.length > 0 ? babies.value[0].id : '');
+				
+				if (babies.value.length > 0 && !storedBabyId) {
+					uni.setStorageSync('currentBabyId', currentBabyId.value);
+				}
+			} catch (e) {
+				console.error('加载宝宝信息失败:', e);
+				babies.value = [];
+			}
+		};
+
+		// 切换宝宝
+		const onBabyChange = (e) => {
+			const idx = e.detail.value;
+			if (idx >= 0 && idx < babies.value.length && babies.value[idx]) {
+				currentBabyId.value = babies.value[idx].id;
+				uni.setStorageSync('currentBabyId', currentBabyId.value);
+				loadTaskRecords();
+			}
+		};
 
 		// 加载已完成任务记录
 		const loadTaskRecords = () => {
 			try {
 				const records = uni.getStorageSync('completedTaskList') || '[]';
 				taskRecords.value = JSON.parse(records)
+					.filter(task => (!task.babyId || task.babyId === currentBabyId.value))
 					.map(task => ({
 						title: task.title,
 						action: '完成任务',
@@ -66,15 +117,29 @@ export default {
 		};
 
 		onMounted(() => {
+			loadBabies();
 			loadTaskRecords();
 			isDarkMode.value = isDarkTheme();
+
+			// 添加宝宝列表更新事件监听
+			uni.$on('refreshBabyList', () => {
+				loadBabies();
+				loadTaskRecords();
+			});
+		});
+
+		onUnmounted(() => {
+			uni.$off('refreshBabyList');
 		});
 
 		return {
 			taskRecords,
 			isDarkMode,
 			formatDate,
-			goBack
+			goBack,
+			babies,
+			currentBabyName,
+			onBabyChange
 		};
 	}
 };
@@ -187,5 +252,49 @@ export default {
 
 .dark-mode .record-date {
 	color: #777;
+}
+
+/* 添加宝宝选择器样式 */
+.baby-selector {
+	margin: 20rpx;
+	padding: 20rpx;
+	background-color: white;
+	border-radius: 12rpx;
+	box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.dark-mode .baby-selector {
+	background-color: #2a2a2a;
+}
+
+.baby-select-view {
+	display: flex;
+	align-items: center;
+}
+
+.baby-select-text {
+	font-size: 28rpx;
+	color: #666;
+}
+
+.dark-mode .baby-select-text {
+	color: #999;
+}
+
+.baby-name {
+	flex: 1;
+	font-size: 28rpx;
+	font-weight: bold;
+	color: #333;
+	margin: 0 10rpx;
+}
+
+.dark-mode .baby-name {
+	color: #fff;
+}
+
+.baby-arrow {
+	font-size: 24rpx;
+	color: #999;
 }
 </style> 

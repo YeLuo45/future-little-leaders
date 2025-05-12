@@ -127,6 +127,13 @@
 			}
 		},
 		{
+			"path": "pages/task/recurring-tasks",
+			"style": {
+				"navigationBarTitleText": "任务管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/shop/exchange-records",
 			"style": {
 				"navigationBarTitleText": "兑换记录",

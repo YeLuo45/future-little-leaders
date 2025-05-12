@@ -34,6 +34,11 @@
 				<text class="label">任务记录</text>
 				<text class="arrow">></text>
 			</view>
+			<view class="function-item" @tap="navigateTo('task/recurring-tasks')">
+				<text class="icon">🔄</text>
+				<text class="label">任务管理</text>
+				<text class="arrow">></text>
+			</view>
 			<view class="function-item" @tap="navigateTo('shop/exchange-records')">
 				<text class="icon">🛍️</text>
 				<text class="label">兑换记录</text>
