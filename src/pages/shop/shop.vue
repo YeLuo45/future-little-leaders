@@ -13,7 +13,7 @@
 			<view class="baby-selector" v-if="babies.length > 0">
 				<picker :range="babies" range-key="name" @change="onBabyChange">
 					<view class="baby-select-view">
-						<text>当前宝宝：</text>
+						<text class="baby-select-text">当前宝宝：</text>
 						<text class="baby-name">{{ currentBabyName }}</text>
 						<text class="baby-arrow">▼</text>
 					</view>
@@ -89,8 +89,13 @@ export default {
 		const babies = ref([]);
 		const currentBabyId = ref('');
 		const currentBabyName = computed(() => {
-			const baby = babies.value.find(b => b.id === currentBabyId.value);
-			return baby ? baby.name : '';
+			// 首先确保babies.value是数组，并且有元素
+			if (!Array.isArray(babies.value) || babies.value.length === 0) {
+				return '暂无宝宝';
+			}
+			// 查找当前宝宝
+			const baby = babies.value.find(b => b && b.id === currentBabyId.value);
+			return baby ? baby.name : '请选择宝宝';
 		});
 
 		// 清除搜索内容
@@ -235,30 +240,46 @@ export default {
 
 		// 加载宝宝信息
 		const loadBabies = () => {
-			babies.value = uni.getStorageSync('babies') || [];
-			const storedBabyId = uni.getStorageSync('currentBabyId');
-			currentBabyId.value = storedBabyId || (babies.value.length > 0 ? babies.value[0].id : '');
-			
-			// 如果存在宝宝且未设置当前宝宝ID，设置第一个宝宝为当前宝宝
-			if (babies.value.length > 0 && !storedBabyId) {
-				uni.setStorageSync('currentBabyId', currentBabyId.value);
+			try {
+				// 确保babies总是一个数组
+				const storedBabies = uni.getStorageSync('babies') || '[]';
+				babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : (Array.isArray(storedBabies) ? storedBabies : []);
+				
+				console.log('商城页面宝宝列表类型:', typeof babies.value, '是否数组:', Array.isArray(babies.value), '数量:', babies.value.length);
+				
+				const storedBabyId = uni.getStorageSync('currentBabyId');
+				currentBabyId.value = storedBabyId || (babies.value.length > 0 ? babies.value[0].id : '');
+				
+				// 如果存在宝宝且未设置当前宝宝ID，设置第一个宝宝为当前宝宝
+				if (babies.value.length > 0 && !storedBabyId) {
+					uni.setStorageSync('currentBabyId', currentBabyId.value);
+				}
+				
+				// 更新当前宝宝积分
+				updatePoints();
+			} catch (e) {
+				console.error('加载宝宝信息失败:', e);
+				// 发生错误时确保babies是一个空数组
+				babies.value = [];
 			}
-			
-			// 更新当前宝宝积分
-			updatePoints();
 		};
 		
 		// 切换宝宝
 		const onBabyChange = (e) => {
 			const idx = e.detail.value;
-			currentBabyId.value = babies.value[idx].id;
-			uni.setStorageSync('currentBabyId', currentBabyId.value);
-			
-			// 更新积分显示
-			updatePoints();
-			
-			// 广播宝宝切换事件
-			uni.$emit('babyChanged', currentBabyId.value);
+			// 确保索引有效
+			if (idx >= 0 && idx < babies.value.length && babies.value[idx]) {
+				currentBabyId.value = babies.value[idx].id;
+				uni.setStorageSync('currentBabyId', currentBabyId.value);
+				
+				// 更新积分显示
+				updatePoints();
+				
+				// 广播宝宝切换事件
+				uni.$emit('babyChanged', currentBabyId.value);
+			} else {
+				console.error('宝宝切换失败: 无效的索引', idx, '宝宝列表长度:', babies.value.length);
+			}
 		};
 
 		// 更新积分显示
@@ -295,6 +316,7 @@ export default {
 			// 添加宝宝切换事件监听
 			uni.$on('babyChanged', (babyId) => {
 				currentBabyId.value = babyId;
+				loadBabies();
 				updatePoints();
 			});
 			
@@ -302,7 +324,10 @@ export default {
 			uni.$on('refreshProductList', loadProducts);
 			
 			// 添加宝宝列表更新事件监听
-			uni.$on('refreshBabyList', loadBabies);
+			uni.$on('refreshBabyList', () => {
+				loadBabies();
+				updatePoints();
+			});
 		});
 
 		onUnmounted(() => {
@@ -782,6 +807,12 @@ export default {
 	display: flex;
 	align-items: center;
 	color: white;
+	padding-left: 60rpx;
+}
+
+.baby-select-text{
+	font-size: 28rpx;
+	padding-left: 100rpx;
 }
 
 .baby-name {

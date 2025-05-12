@@ -15,7 +15,8 @@
       <view class="baby-selector">
         <picker :range="babies" range-key="name" @change="onBabyChange" :value="currentBabyIndex">
           <view class="baby-select-view">
-            <text class="baby-icon">��</text>
+            <image v-if="currentBabyAvatar" class="baby-icon" :src="currentBabyAvatar" mode="aspectFill"></image>
+            <text v-else class="baby-icon-placeholder">{{ getDefaultAvatar(currentBabyId) }}</text>
             <text class="baby-name">{{ currentBabyName || '选择宝宝' }}</text>
             <text class="selector-arrow">▼</text>
           </view>
@@ -254,6 +255,63 @@
       const currentBabyIndex = computed(() => {
         return babies.value.findIndex(b => b.id === currentBabyId.value);
       });
+      const getDefaultAvatar = (babyId) => {
+        // 基于宝宝ID返回一个默认表情头像
+        // 使用宝宝ID的最后一个字符作为随机种子
+        const lastChar = babyId ? babyId.charAt(babyId.length - 1) : '0';
+        const lastDigit = parseInt(lastChar, 16) % 5; // 获取0-4的值
+        
+        // 定义几个可爱的表情作为默认头像
+        const defaultAvatars = ['👶', '👼', '🧒', '👦', '👧'];
+        return defaultAvatars[lastDigit];
+      };
+
+      const currentBabyAvatar = computed(() => {
+        const baby = babies.value.find(b => b.id === currentBabyId.value);
+        let avatar = baby ? baby.avatar : '';
+        
+        // 检查是否为Blob URL，可能是无效的
+        if (avatar && avatar.startsWith('blob:')) {
+          console.log('检测到Blob类型头像，可能无效，改用emoji表情代替');
+          // Blob URL可能已失效，返回null表示没有有效头像
+          return null;
+        }
+        
+        // 非Blob URL的普通URL头像
+        if (avatar && !avatar.startsWith('blob:')) {
+          console.log('当前宝宝头像:', avatar, '宝宝ID:', currentBabyId.value);
+          return avatar;
+        }
+        
+        // 无头像或头像无效
+        console.log('宝宝无有效头像，使用默认表情');
+        return null;
+      });
+
+      // 修复无效的Blob URL
+      const fixInvalidBlobAvatars = () => {
+        let needUpdate = false;
+        
+        // 检查每个宝宝的头像
+        babies.value.forEach(baby => {
+          if (baby.avatar && baby.avatar.startsWith('blob:')) {
+            console.log(`修复宝宝[${baby.name}]的Blob头像`);
+            // 将无效的Blob URL删除，改用默认头像
+            baby.avatar = ''; 
+            needUpdate = true;
+          }
+        });
+        
+        // 如果有修改，保存回存储
+        if (needUpdate) {
+          try {
+            uni.setStorageSync('babies', JSON.stringify(babies.value));
+            console.log('已修复并保存宝宝头像数据');
+          } catch (e) {
+            console.error('保存修复后的宝宝数据失败:', e);
+          }
+        }
+      };
 
       // 加载宝宝信息
       const loadBabies = () => {
@@ -262,11 +320,28 @@
           const storedBabies = uni.getStorageSync('babies') || '[]';
           babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
           
+          // 修复无效的Blob URL头像
+          fixInvalidBlobAvatars();
+          
           // 加载当前选中宝宝
           const storedCurrentBabyId = uni.getStorageSync('currentBabyId');
           currentBabyId.value = storedCurrentBabyId || (babies.value[0]?.id || '');
           
-          console.log('加载宝宝信息:', babies.value, currentBabyId.value);
+          // 打印更详细的宝宝信息
+          console.log('加载宝宝信息:', babies.value.map(b => ({
+            id: b.id,
+            name: b.name,
+            hasAvatar: !!b.avatar,
+            avatarLength: b.avatar ? b.avatar.length : 0
+          })));
+          
+          console.log('当前选中宝宝ID:', currentBabyId.value);
+          
+          // 检查是否有宝宝没有头像
+          const babiesWithoutAvatar = babies.value.filter(b => !b.avatar);
+          if (babiesWithoutAvatar.length > 0) {
+            console.log('警告: 有', babiesWithoutAvatar.length, '个宝宝没有头像');
+          }
         } catch (e) {
           console.error('加载宝宝信息失败:', e);
         }
@@ -755,6 +830,7 @@
         babies,
         currentBabyId,
         currentBabyName,
+        currentBabyAvatar,
         currentBabyIndex,
         onBabyChange,
         manualRefreshTasks,
@@ -772,7 +848,8 @@
         testTaskList,
         scrollTop,
         handleScroll,
-        resetScroll
+        resetScroll,
+        getDefaultAvatar
       };
     }
   };
@@ -1262,8 +1339,26 @@
   }
 
   .baby-icon {
+    width: 50rpx;
+    height: 50rpx;
+    border-radius: 50%;
+    margin-right: 16rpx;
+    border: 2rpx solid #ffffff;
+    box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+  }
+
+  .baby-icon-placeholder {
+    width: 50rpx;
+    height: 50rpx;
+    border-radius: 50%;
+    margin-right: 16rpx;
+    background-color: rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 32rpx;
-    margin-right: 10rpx;
+    border: 2rpx solid #ffffff;
+    box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
   }
 
   .baby-name {

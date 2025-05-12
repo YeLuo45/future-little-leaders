@@ -77,8 +77,13 @@ export default {
 		const babies = ref([]);
 		const currentBabyId = ref('');
 		const currentBabyName = computed(() => {
-			const baby = babies.value.find(b => b.id === currentBabyId.value);
-			return baby ? baby.name : '';
+			// 首先确保babies.value是数组，并且有元素
+			if (!Array.isArray(babies.value) || babies.value.length === 0) {
+				return '暂无宝宝';
+			}
+			// 查找当前宝宝
+			const baby = babies.value.find(b => b && b.id === currentBabyId.value);
+			return baby ? baby.name : '请选择宝宝';
 		});
 
 		// 跳转到添加宝宝页面
@@ -148,34 +153,50 @@ export default {
 
 		// 加载宝宝信息
 		const loadBabies = () => {
-			babies.value = uni.getStorageSync('babies') || [];
-			const storedBabyId = uni.getStorageSync('currentBabyId');
-			currentBabyId.value = storedBabyId || (babies.value.length > 0 ? babies.value[0].id : '');
-			
-			// 如果存在宝宝且未设置当前宝宝ID，设置第一个宝宝为当前宝宝
-			if (babies.value.length > 0 && !storedBabyId) {
-				uni.setStorageSync('currentBabyId', currentBabyId.value);
+			try {
+				// 确保babies总是一个数组
+				const storedBabies = uni.getStorageSync('babies') || '[]';
+				babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : (Array.isArray(storedBabies) ? storedBabies : []);
+				
+				console.log('宝宝列表类型:', typeof babies.value, '是否数组:', Array.isArray(babies.value), '数量:', babies.value.length);
+				
+				const storedBabyId = uni.getStorageSync('currentBabyId');
+				currentBabyId.value = storedBabyId || (babies.value.length > 0 ? babies.value[0].id : '');
+				
+				// 如果存在宝宝且未设置当前宝宝ID，设置第一个宝宝为当前宝宝
+				if (babies.value.length > 0 && !storedBabyId) {
+					uni.setStorageSync('currentBabyId', currentBabyId.value);
+				}
+				
+				// 更新当前宝宝积分
+				updatePoints(currentBabyId.value);
+			} catch (e) {
+				console.error('加载宝宝信息失败:', e);
+				// 发生错误时确保babies是一个空数组
+				babies.value = [];
 			}
-			
-			// 更新当前宝宝积分
-			updatePoints(currentBabyId.value);
 		};
 
 		// 切换宝宝
 		const onBabyChange = (e) => {
 			const idx = e.detail.value;
-			currentBabyId.value = babies.value[idx].id;
-			uni.setStorageSync('currentBabyId', currentBabyId.value);
-			
-			// 更新积分显示
-			updatePoints(currentBabyId.value);
-			
-			// 广播宝宝切换事件
-			uni.$emit('babyChanged', currentBabyId.value);
-			
-			// 重新加载任务和兑换记录
-			loadTaskRecords();
-			loadExchangeRecords();
+			// 确保索引有效
+			if (idx >= 0 && idx < babies.value.length && babies.value[idx]) {
+				currentBabyId.value = babies.value[idx].id;
+				uni.setStorageSync('currentBabyId', currentBabyId.value);
+				
+				// 更新积分显示
+				updatePoints(currentBabyId.value);
+				
+				// 广播宝宝切换事件
+				uni.$emit('babyChanged', currentBabyId.value);
+				
+				// 重新加载任务和兑换记录
+				loadTaskRecords();
+				loadExchangeRecords();
+			} else {
+				console.error('宝宝切换失败: 无效的索引', idx, '宝宝列表长度:', babies.value.length);
+			}
 		};
 
 		// 页面跳转
@@ -349,6 +370,7 @@ export default {
 .baby-select-view {
 	display: flex;
 	align-items: center;
+	padding-left: 60rpx;
 }
 .baby-name {
 	font-weight: bold;
