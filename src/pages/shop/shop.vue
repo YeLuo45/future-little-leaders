@@ -32,7 +32,8 @@
 
 		<scroll-view scroll-y class="products-list">
 			<view class="product-list">
-				<view class="product-card" v-for="(item, index) in (products || [])" :key="index" @tap="goToProductDetail(item, index)">
+				<view class="product-card" v-for="(item, index) in (products || [])" :key="index"
+					@tap="goToProductDetail(item, index)">
 					<view class="product-content">
 						<view class="product-left">
 							<view class="product-icon">{{ item.icon || '🎁' }}</view>
@@ -514,10 +515,12 @@
 	}
 
 	.products-list {
-		/* padding: 0 20rpx; */
-		padding-top: 20rpx;
-		margin-bottom: 140rpx;
-		height: calc(100vh - 320rpx);
+		height: calc(100vh - 50rpx);
+		padding: 0 30rpx 10rpx;
+		box-sizing: border-box;
+		overflow: hidden;
+		position: relative;
+		z-index: 1;
 	}
 
 	.product-list {
@@ -603,12 +606,14 @@
 	}
 
 	.product-name {
+		margin: 0 10rpx;
 		font-size: 28rpx;
 		font-weight: bold;
+		text-align: center;
 		color: #333;
 		margin-bottom: 10rpx;
 		line-height: 1.3;
-		width: calc(100% - 50rpx);
+		width: calc(100% - 30rpx);
 		/* 文本溢出处理 */
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -663,9 +668,13 @@
 	}
 
 	.product-description {
+		/* background-color: rgb(248, 248, 248); */
+		margin-bottom: 10rpx;
+
+		height: 90rpx;
+
 		font-size: 24rpx;
 		color: #666;
-		margin-bottom: 10rpx;
 	}
 
 	.product-action {
@@ -830,61 +839,61 @@
 	}
 
 	/* 宝宝选择器 */
-.baby-selector {
-	margin-top: 20rpx;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	background-color: rgba(255, 255, 255, 0.25);
-	border-radius: 40rpx;
-	padding: 10rpx 30rpx;
-	width: 70%;
-	margin-left: auto;
-	margin-right: auto;
-	box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.15);
-}
+	.baby-selector {
+		margin-top: 20rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: rgba(255, 255, 255, 0.25);
+		border-radius: 40rpx;
+		padding: 10rpx 30rpx;
+		width: 70%;
+		margin-left: auto;
+		margin-right: auto;
+		box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.15);
+	}
 
-.baby-select-view {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-
-.baby-select-text {
-	font-size: 28rpx;
-}
+	.baby-select-view {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 
 
-.baby-name {
-	font-size: 32rpx;
-	font-weight: bold;
-	color: white;
-	margin-right: 10rpx;
-	text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
-}
+	.baby-select-text {
+		font-size: 28rpx;
+	}
 
 
-.baby-icon {
-	width: 50rpx;
-	height: 50rpx;
-	border-radius: 50%;
-	margin-right: 16rpx;
-	border: 2rpx solid #ffffff;
-	box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
-}
+	.baby-name {
+		font-size: 32rpx;
+		font-weight: bold;
+		color: white;
+		margin-right: 10rpx;
+		text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
+	}
 
-.baby-icon-placeholder {
-	width: 50rpx;
-	height: 50rpx;
-	border-radius: 50%;
-	margin-right: 16rpx;
-	background-color: rgba(255, 255, 255, 0.3);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 32rpx;
-	border: 2rpx solid #ffffff;
-	box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
-}
+
+	.baby-icon {
+		width: 50rpx;
+		height: 50rpx;
+		border-radius: 50%;
+		margin-right: 16rpx;
+		border: 2rpx solid #ffffff;
+		box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.baby-icon-placeholder {
+		width: 50rpx;
+		height: 50rpx;
+		border-radius: 50%;
+		margin-right: 16rpx;
+		background-color: rgba(255, 255, 255, 0.3);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 32rpx;
+		border: 2rpx solid #ffffff;
+		box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+	}
 </style>
