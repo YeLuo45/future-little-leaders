@@ -29,11 +29,12 @@
         <text class="form-label">头像</text>
         <view class="avatar-selector">
           <view class="avatar-preview" @tap="selectAvatar">
-            <image :src="selectedAvatar || '/static/avatar.svg'" mode="aspectFill" class="avatar-image"></image>
-            <view class="avatar-overlay">
+            <image class="avatar-image" :src="selectedAvatar || '/static/avatar.svg'" mode="aspectFill"></image>
+            <!-- <view class="avatar-overlay">
               <text class="avatar-text">点击选择</text>
-            </view>
+            </view> -->
           </view>
+          
         </view>
       </view>
 
@@ -336,24 +337,34 @@ export default {
 
 .avatar-preview {
   position: relative;
-  width: 200rpx;
-  height: 200rpx;
-  border-radius: 100rpx;
+  /* width: 200rpx;
+  height: 200rpx; */
+  /* width: 100%;
+  height: 100%; */
+  /* border-radius: 400rpx; */
   overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);  */
+
+  width: 240rpx;
+	height: 240rpx;
+	border-radius: 400rpx;
+	margin-right: 20rpx;
+	border: 4rpx solid rgba(255, 255, 255, 0.3);
 }
 
 .avatar-image {
-  width: 100%;
-  height: 100%;
+  /* width: 100%;
+  height: 100%; */
+  justify-content: center;
+  align-items: center;
 }
 
 .avatar-overlay {
-  position: absolute;
+  position: relative;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60rpx;
+  height: 40rpx;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -439,10 +450,6 @@ export default {
   overflow: hidden;
 }
 
-.avatar-preview {
-  width: 100%;
-  height: 100%;
-}
 
 .avatar-option.upload {
   background-color: #f0f0f0;

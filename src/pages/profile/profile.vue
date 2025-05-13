@@ -54,11 +54,17 @@
 				<text class="label">我的收藏</text>
 				<text class="arrow">></text>
 			</view> -->
+			<view class="function-item" @tap="navigateTo('settings/auth-settings')">
+				<text class="icon">🔒</text>
+				<text class="label">认证模式</text>
+				<text class="arrow">></text>
+			</view>
 			<view class="function-item" @tap="navigateTo('settings/settings')">
 				<text class="icon">⚙️</text>
 				<text class="label">设置</text>
 				<text class="arrow">></text>
 			</view>
+			
 		</view>
 	</view>
 </template>
@@ -82,6 +88,11 @@ export default {
 		const themeStore = useThemeStore();
 		const taskRecords = ref([]);
 		const exchangeRecords = ref([]);
+		const authSettings = ref({
+			isEnabled: false,
+			hasPassword: false,
+			hasBiometric: false
+		});
 
 		// 宝宝相关
 		const babies = ref([]);
@@ -161,6 +172,18 @@ export default {
 			}
 		};
 
+		// 加载认证设置
+		const loadAuthSettings = () => {
+			try {
+				const settings = uni.getStorageSync('authSettings');
+				if (settings) {
+					authSettings.value = JSON.parse(settings);
+				}
+			} catch (e) {
+				console.error('加载认证设置失败:', e);
+			}
+		};
+
 		// 加载宝宝信息
 		const loadBabies = () => {
 			try {
@@ -221,6 +244,7 @@ export default {
 			loadBabies();
 			loadTaskRecords();
 			loadExchangeRecords();
+			loadAuthSettings();
 			isDark.value = isDarkTheme();
 
 			// 初始化主题
@@ -264,7 +288,8 @@ export default {
 			currentBabyId,
 			currentBabyName,
 			onBabyChange,
-			navigateToAddBaby
+			navigateToAddBaby,
+			authSettings
 		};
 	}
 };

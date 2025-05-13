@@ -30,7 +30,7 @@
 					<text class="record-status">{{ record.status }}</text>
 				</view>
 				<view class="record-details">
-					<text class="record-action">{{ record.action }}</text>
+					<text class="record-description">{{ record.description || '暂无描述' }}</text>
 					<text class="record-date">{{ formatDate(record.date) }}</text>
 				</view>
 			</view>
@@ -47,6 +47,11 @@ export default {
 	setup() {
 		const taskRecords = ref([]);
 		const isDarkMode = ref(false);
+		const authSettings = ref({
+			isEnabled: false,
+			hasPassword: false,
+			hasBiometric: false
+		});
 		
 		// 宝宝相关
 		const babies = ref([]);
@@ -95,6 +100,7 @@ export default {
 					.filter(task => (!task.babyId || task.babyId === currentBabyId.value))
 					.map(task => ({
 						title: task.title,
+						description: task.description,
 						action: '完成任务',
 						date: task.completedAt || new Date().toISOString(),
 						status: '已完成'
@@ -116,10 +122,115 @@ export default {
 			uni.navigateBack();
 		};
 
+		// 加载认证设置
+		const loadAuthSettings = () => {
+			try {
+				const settings = uni.getStorageSync('authSettings');
+				if (settings) {
+					authSettings.value = JSON.parse(settings);
+				}
+			} catch (e) {
+				console.error('加载认证设置失败:', e);
+			}
+		};
+
+		// 验证身份
+		const verifyIdentity = () => {
+			return new Promise((resolve, reject) => {
+				if (!authSettings.value.isEnabled) {
+					resolve(true);
+					return;
+				}
+
+				// 如果开启了生物识别
+				if (authSettings.value.hasBiometric) {
+					uni.startSoterAuthentication({
+						requestAuthModes: ['fingerPrint'],
+						challenge: 'challenge',
+						authContent: '请验证指纹',
+						success: () => {
+							resolve(true);
+						},
+						fail: () => {
+							// 如果生物识别失败，尝试密码验证
+							if (authSettings.value.hasPassword) {
+								uni.showModal({
+									title: '验证失败',
+									content: '是否使用密码验证？',
+									success: (res) => {
+										if (res.confirm) {
+											uni.showModal({
+												title: '密码验证',
+												editable: true,
+												placeholderText: '请输入密码',
+												success: (res) => {
+													const password = uni.getStorageSync('authPassword');
+													if (res.content === password) {
+														resolve(true);
+													} else {
+														uni.showToast({
+															title: '密码错误',
+															icon: 'none'
+														});
+														reject(new Error('密码错误'));
+													}
+												}
+											});
+										} else {
+											reject(new Error('验证取消'));
+										}
+									}
+								});
+							} else {
+								reject(new Error('验证失败'));
+							}
+						}
+					});
+				} else if (authSettings.value.hasPassword) {
+					// 如果只开启了密码验证
+					uni.showModal({
+						title: '密码验证',
+						editable: true,
+						placeholderText: '请输入密码',
+						success: (res) => {
+							const password = uni.getStorageSync('authPassword');
+							if (res.content === password) {
+								resolve(true);
+							} else {
+								uni.showToast({
+									title: '密码错误',
+									icon: 'none'
+								});
+								reject(new Error('密码错误'));
+							}
+						}
+					});
+				} else {
+					reject(new Error('未设置验证方式'));
+				}
+			});
+		};
+
+		// 完成任务
+		const completeTask = async (task) => {
+			try {
+				await verifyIdentity();
+				// 验证通过，执行完成任务逻辑
+				// ... 原有的完成任务逻辑 ...
+			} catch (error) {
+				console.error('验证失败:', error);
+				uni.showToast({
+					title: '验证失败，无法完成任务',
+					icon: 'none'
+				});
+			}
+		};
+
 		onMounted(() => {
 			loadBabies();
 			loadTaskRecords();
 			isDarkMode.value = isDarkTheme();
+			loadAuthSettings();
 
 			// 添加宝宝列表更新事件监听
 			uni.$on('refreshBabyList', () => {
@@ -146,7 +257,8 @@ export default {
 			goBack,
 			babies,
 			currentBabyName,
-			onBabyChange
+			onBabyChange,
+			completeTask
 		};
 	}
 };
@@ -243,13 +355,16 @@ export default {
 	align-items: center;
 }
 
-.record-action {
+.record-description {
 	font-size: 26rpx;
 	color: #666;
-}
-
-.dark-mode .record-action {
-	color: #aaa;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-bottom: 10rpx;
+	width: 70%;
 }
 
 .record-date {

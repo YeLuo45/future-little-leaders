@@ -98,6 +98,11 @@ export default {
 		const editName = ref('');
 		const showAvatarModal = ref(false);
 		const selectedBaby = ref(null);
+		const authSettings = ref({
+			isEnabled: false,
+			hasPassword: false,
+			hasBiometric: false
+		});
 		
 		// 默认头像列表
 		const defaultAvatars = [
@@ -120,6 +125,18 @@ export default {
 			} catch (e) {
 				console.error('加载宝宝信息失败:', e);
 				babies.value = [];
+			}
+		};
+
+		// 加载认证设置
+		const loadAuthSettings = () => {
+			try {
+				const settings = uni.getStorageSync('authSettings');
+				if (settings) {
+					authSettings.value = JSON.parse(settings);
+				}
+			} catch (e) {
+				console.error('加载认证设置失败:', e);
 			}
 		};
 
@@ -209,44 +226,114 @@ export default {
 			});
 		};
 
-		// 删除宝宝
-		const deleteBaby = (baby) => {
-			uni.showModal({
-				title: '确认删除',
-				content: `确定要删除"${baby.name}"吗？此操作不可撤销，相关任务和积分记录也将被删除。`,
-				confirmColor: '#ff4d4f',
-				success: (res) => {
-					if (res.confirm) {
-						try {
-							// 从列表中移除
-							babies.value = babies.value.filter(b => b.id !== baby.id);
-							
-							// 更新存储
-							uni.setStorageSync('babies', JSON.stringify(babies.value));
-							
-							// 如果删除的是当前选中的宝宝，重置当前宝宝
-							if (currentBabyId.value === baby.id) {
-								currentBabyId.value = babies.value.length > 0 ? babies.value[0].id : '';
-								uni.setStorageSync('currentBabyId', currentBabyId.value);
+		// 验证身份
+		const verifyIdentity = () => {
+			return new Promise((resolve, reject) => {
+				if (!authSettings.value.isEnabled) {
+					resolve(true);
+					return;
+				}
+
+				// 如果开启了生物识别
+				if (authSettings.value.hasBiometric) {
+					uni.startSoterAuthentication({
+						requestAuthModes: ['fingerPrint'],
+						challenge: 'challenge',
+						authContent: '请验证指纹',
+						success: () => {
+							resolve(true);
+						},
+						fail: () => {
+							// 如果生物识别失败，尝试密码验证
+							if (authSettings.value.hasPassword) {
+								uni.showModal({
+									title: '验证失败',
+									content: '是否使用密码验证？',
+									success: (res) => {
+										if (res.confirm) {
+											uni.showModal({
+												title: '密码验证',
+												editable: true,
+												placeholderText: '请输入密码',
+												success: (res) => {
+													const password = uni.getStorageSync('authPassword');
+													if (res.content === password) {
+														resolve(true);
+													} else {
+														uni.showToast({
+															title: '密码错误',
+															icon: 'none'
+														});
+														reject(new Error('密码错误'));
+													}
+												}
+											});
+										} else {
+											reject(new Error('验证取消'));
+										}
+									}
+								});
+							} else {
+								reject(new Error('验证失败'));
 							}
-							
-							// 通知其他页面刷新宝宝列表
-							uni.$emit('refreshBabyList');
-							
-							uni.showToast({
-								title: '删除成功',
-								icon: 'success'
-							});
-						} catch (e) {
-							console.error('删除宝宝失败:', e);
-							uni.showToast({
-								title: '删除失败',
-								icon: 'none'
-							});
 						}
-					}
+					});
+				} else if (authSettings.value.hasPassword) {
+					// 如果只开启了密码验证
+					uni.showModal({
+						title: '密码验证',
+						editable: true,
+						placeholderText: '请输入密码',
+						success: (res) => {
+							const password = uni.getStorageSync('authPassword');
+							if (res.content === password) {
+								resolve(true);
+							} else {
+								uni.showToast({
+									title: '密码错误',
+									icon: 'none'
+								});
+								reject(new Error('密码错误'));
+							}
+						}
+					});
+				} else {
+					reject(new Error('未设置验证方式'));
 				}
 			});
+		};
+
+		// 删除宝宝
+		const deleteBaby = async (baby) => {
+			try {
+				await verifyIdentity();
+				// 验证通过，执行删除宝宝逻辑
+				// 从列表中移除
+				babies.value = babies.value.filter(b => b.id !== baby.id);
+				
+				// 更新存储
+				uni.setStorageSync('babies', JSON.stringify(babies.value));
+				
+				// 如果删除的是当前选中的宝宝，重置当前宝宝
+				if (currentBabyId.value === baby.id) {
+					currentBabyId.value = babies.value.length > 0 ? babies.value[0].id : '';
+					uni.setStorageSync('currentBabyId', currentBabyId.value);
+				}
+				
+				// 通知其他页面刷新宝宝列表
+				uni.$emit('refreshBabyList');
+				
+				uni.showToast({
+					title: '删除成功',
+					icon: 'success'
+				});
+			} catch (error) {
+				console.error('验证失败:', error);
+				uni.showToast({
+					title: '验证失败，无法删除宝宝',
+					icon: 'none'
+				});
+			}
 		};
 
 		// 设置为当前宝宝
@@ -289,6 +376,7 @@ export default {
 		onMounted(() => {
 			isDarkMode.value = isDarkTheme();
 			loadBabies();
+			loadAuthSettings();
 			
 			// 添加宝宝列表更新事件监听
 			uni.$on('refreshBabyList', loadBabies);

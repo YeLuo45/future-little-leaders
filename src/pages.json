@@ -87,6 +87,16 @@
 			}
 		},
 		{
+			"path": "pages/settings/auth-settings",
+			"style": {
+				"navigationBarTitleText": "认证设置",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
 			"path": "pages/forgot-password/forgot-password",
 			"style": {
 				"navigationBarTitleText": "找回密码",

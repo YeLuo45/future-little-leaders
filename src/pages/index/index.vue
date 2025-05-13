@@ -10,7 +10,7 @@
         </view>
         <view class="points">{{ totalScore }}积分</view>
       </view>
-      
+
       <!-- 宝宝选择器 -->
       <view class="baby-selector">
         <picker :range="babies" range-key="name" @change="onBabyChange" :value="currentBabyIndex">
@@ -58,39 +58,31 @@
           <text class="section-title">进行中的任务 ({{ ongoingTasks.length }})</text>
           <text class="collapse-icon" :class="{ 'up': !isOngoingCollapsed }">▲</text>
         </view>
+
         <view v-if="!isOngoingCollapsed">
-          <view class="task-card" v-for="(task, index) in ongoingTasks" :key="'ongoing-' + index">
-            <view class="task-content">
+          <view class="task-item" v-for="(task, index) in ongoingTasks" :key="task.id">
+
+            <view class="task-header">
               <view class="task-left">
                 <view class="task-icon">📝</view>
               </view>
-              <view class="task-info">
-                <view class="task-title">
-                  <view class="task-name">{{ task.title }}</view>
-                  <text class="delete-icon" @tap.stop="confirmDelete(task, index)">×</text>
-                </view>
-                <view class="task-tags">
-                  <view v-for="(tag, tagIndex) in (task.tags || [])" :key="tagIndex" class="task-tag">
-                    {{ tag }}
-                  </view>
-                  <view class="task-points">
-                    <text class="points-icon">🔥</text>
-                    <text class="points-value">{{ task.points }}积分</text>
-                  </view>
-                </view>
-                <view class="task-progress">
-                  <view class="progress-text">
-                    {{ task.completed || 0 }}/{{ task.total || 0 }}分钟
-                  </view>
-                  <view class="progress-bar">
-                    <view class="progress-inner"
-                      :style="{ width: calculateProgress(task.completed || 0, task.total || 0) + '%' }"></view>
-                  </view>
-                </view>
+              <text class="task-title">{{ task.title }}</text>
+              <view class="task-points">
+                <text class="points-icon">🔥</text>
+                <text class="points-value">{{ task.points }}积分</text>
+              </view>
+              <!-- <text class="task-status">{{ task.status }}</text> -->
+            </view>
+            <view class="task-tags">
+              <view v-for="(tag, tagIndex) in (task.tags || [])" :key="tagIndex" class="task-tag">
+                {{ tag }}
               </view>
             </view>
+
+            <view class="task-description">{{ task.description || '暂无描述' }}</view>
+
             <view class="task-action">
-              <button class="complete-btn" @tap.stop="completeTask(task)">完成打卡</button>
+              <button class="complete-btn" @tap="completeTask(task)">完成打卡</button>
             </view>
           </view>
 
@@ -108,46 +100,33 @@
           <text class="collapse-icon" :class="{ 'up': !isRecurringCollapsed }">▲</text>
         </view>
         <view v-show="!isRecurringCollapsed">
-          <!-- 添加调试信息 -->
-          <!-- <view class="debug-info" v-if="recurringTasks && recurringTasks.length > 0">
-            <text>找到 {{ recurringTasks.length }} 个周期性任务</text>
-          </view> -->
 
           <template v-if="recurringTasks && recurringTasks.length > 0">
             <view class="task-card" v-for="(task, index) in recurringTasks" :key="'recurring-' + task.id">
-              <view class="task-content">
+              <view class="task-header">
                 <view class="task-left">
                   <view class="task-icon">📅</view>
                 </view>
-                <view class="task-info">
-                  <view class="task-title">
-                    <view class="task-name">{{ task.title }}</view>
-                    <text class="delete-icon" @tap.stop="confirmDelete(task, index)">×</text>
-                  </view>
-                  <view class="task-tags">
-                    <view v-for="(tag, tagIndex) in (task.tags || [])" :key="tagIndex" class="task-tag">
-                      {{ tag }}
-                    </view>
-                    <view class="task-points">
-                      <text class="points-icon">🔥</text>
-                      <text class="points-value">{{ task.points }}积分</text>
-                    </view>
-                  </view>
-                  <view class="task-progress">
-                    <view class="progress-text">
-                      {{ task.completed || 0 }}/{{ task.total || 0 }}分钟
-                    </view>
-                    <view class="progress-bar">
-                      <view class="progress-inner"
-                        :style="{ width: calculateProgress(task.completed || 0, task.total || 0) + '%' }"></view>
-                    </view>
-                  </view>
+                <text class="task-title">{{ task.title }}</text>
+                <view class="task-points">
+                  <text class="points-icon">🔥</text>
+                  <text class="points-value">{{ task.points }}积分</text>
                 </view>
               </view>
+
+              <view class="task-tags">
+                <view v-for="(tag, tagIndex) in (task.tags || [])" :key="tagIndex" class="task-tag">
+                  {{ tag }}
+                </view>
+              </view>
+
+              <view class="task-description">{{ task.description || '暂无描述' }}</view>
+
               <view class="task-action">
-                <button class="complete-btn" @tap.stop="completeTask(task)">完成打卡</button>
+                <button class="complete-btn" @tap="completeTask(task)">完成打卡</button>
               </view>
             </view>
+
           </template>
 
           <!-- 无任务提示 -->
@@ -182,7 +161,7 @@
       </view>
     </view>
   </view>
-</template> 
+</template>
 
 <script>
   import { ref, computed, onMounted, onUnmounted } from 'vue';
@@ -261,7 +240,7 @@
         // 使用宝宝ID的最后一个字符作为随机种子
         const lastChar = babyId ? babyId.charAt(babyId.length - 1) : '0';
         const lastDigit = parseInt(lastChar, 16) % 5; // 获取0-4的值
-        
+
         // 定义几个可爱的表情作为默认头像
         const defaultAvatars = ['👶', '👼', '🧒', '👦', '👧'];
         return defaultAvatars[lastDigit];
@@ -270,20 +249,20 @@
       const currentBabyAvatar = computed(() => {
         const baby = babies.value.find(b => b.id === currentBabyId.value);
         let avatar = baby ? baby.avatar : '';
-        
+
         // 检查是否为Blob URL，可能是无效的
         if (avatar && avatar.startsWith('blob:')) {
           console.log('检测到Blob类型头像，可能无效，改用emoji表情代替');
           // Blob URL可能已失效，返回null表示没有有效头像
           return null;
         }
-        
+
         // 非Blob URL的普通URL头像
         if (avatar && !avatar.startsWith('blob:')) {
           console.log('当前宝宝头像:', avatar, '宝宝ID:', currentBabyId.value);
           return avatar;
         }
-        
+
         // 无头像或头像无效
         console.log('宝宝无有效头像，使用默认表情');
         return null;
@@ -292,17 +271,17 @@
       // 修复无效的Blob URL
       const fixInvalidBlobAvatars = () => {
         let needUpdate = false;
-        
+
         // 检查每个宝宝的头像
         babies.value.forEach(baby => {
           if (baby.avatar && baby.avatar.startsWith('blob:')) {
             console.log(`修复宝宝[${baby.name}]的Blob头像`);
             // 将无效的Blob URL删除，改用默认头像
-            baby.avatar = ''; 
+            baby.avatar = '';
             needUpdate = true;
           }
         });
-        
+
         // 如果有修改，保存回存储
         if (needUpdate) {
           try {
@@ -320,14 +299,14 @@
           // 加载宝宝列表
           const storedBabies = uni.getStorageSync('babies') || '[]';
           babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
-          
+
           // 修复无效的Blob URL头像
           fixInvalidBlobAvatars();
-          
+
           // 加载当前选中宝宝
           const storedCurrentBabyId = uni.getStorageSync('currentBabyId');
           currentBabyId.value = storedCurrentBabyId || (babies.value[0]?.id || '');
-          
+
           // 打印更详细的宝宝信息
           console.log('加载宝宝信息:', babies.value.map(b => ({
             id: b.id,
@@ -335,9 +314,9 @@
             hasAvatar: !!b.avatar,
             avatarLength: b.avatar ? b.avatar.length : 0
           })));
-          
+
           console.log('当前选中宝宝ID:', currentBabyId.value);
-          
+
           // 检查是否有宝宝没有头像
           const babiesWithoutAvatar = babies.value.filter(b => !b.avatar);
           if (babiesWithoutAvatar.length > 0) {
@@ -354,14 +333,14 @@
         if (babies.value[idx]) {
           currentBabyId.value = babies.value[idx].id;
           uni.setStorageSync('currentBabyId', currentBabyId.value);
-          
+
           // 显式调用任务重新加载，确保UI更新
           loadTasksAndPointsFromStorage();
-          
+
           // 添加调试日志
           console.log('切换宝宝:', babies.value[idx].name, '宝宝ID:', currentBabyId.value);
           console.log('已重新加载任务列表');
-          
+
           // 强制刷新一下UI
           setTimeout(() => {
             // 模拟状态变化，触发视图更新
@@ -434,7 +413,7 @@
         // 添加依赖currentBabyId，确保它变化时重新计算
         const babyId = currentBabyId.value;
         console.log('计算ongoingTasks，当前宝宝:', babyId);
-        
+
         return taskList.value
           .filter(task => {
 
@@ -467,7 +446,7 @@
         // 添加依赖currentBabyId，确保它变化时重新计算
         const babyId = currentBabyId.value;
         console.log('计算recurringTasks，当前宝宝:', babyId);
-        
+
         const tasks = taskList.value
           .filter(task => {
             // 如果task.babyId是undefined，则认为过滤
@@ -552,13 +531,128 @@
 
       // 完成任务
       const completeTask = (task) => {
+        // 检查是否开启认证模式
+        try {
+          const authSettings = uni.getStorageSync('authSettings');
+          if (authSettings) {
+            const settings = JSON.parse(authSettings);
+            if (settings.isEnabled) {
+              // 检查是否设置了认证方式
+              if (!settings.hasPassword && !settings.hasBiometric && !settings.hasFaceId) {
+                uni.showToast({
+                  title: '请先设置认证方式',
+                  icon: 'none'
+                });
+                return;
+              }
+
+              // 显示认证选择弹窗
+              uni.showActionSheet({
+                itemList: [
+                  settings.hasPassword ? '密码验证' : null,
+                  settings.hasBiometric ? '指纹验证' : null,
+                  settings.hasFaceId ? '人脸识别' : null
+                ].filter(Boolean),
+                success: (res) => {
+                  const selectedMethod = res.tapIndex;
+                  const methods = [
+                    settings.hasPassword ? 'password' : null,
+                    settings.hasBiometric ? 'biometric' : null,
+                    settings.hasFaceId ? 'faceId' : null
+                  ].filter(Boolean);
+
+                  const method = methods[selectedMethod];
+                  verifyAuthentication(method, () => {
+                    // 认证成功后继续完成任务
+                    completeTaskAfterAuth(task);
+                  });
+                }
+              });
+              return;
+            }
+          }
+        } catch (e) {
+          console.error('检查认证设置失败:', e);
+        }
+
+        // 如果不需要认证或认证已通过，直接完成任务
+        completeTaskAfterAuth(task);
+      };
+
+      // 认证验证
+      const verifyAuthentication = (method, callback) => {
+        switch (method) {
+          case 'password':
+            // 显示密码输入弹窗
+            uni.showModal({
+              title: '请输入密码',
+              editable: true,
+              placeholderText: '请输入密码',
+              success: (res) => {
+                if (res.confirm) {
+                  const storedPassword = uni.getStorageSync('authPassword');
+                  if (res.content === storedPassword) {
+                    callback();
+                  } else {
+                    uni.showToast({
+                      title: '密码错误',
+                      icon: 'none'
+                    });
+                  }
+                }
+              }
+            });
+            break;
+
+          case 'biometric':
+            // #ifdef MP-WEIXIN
+            uni.startSoterAuthentication({
+              requestAuthModes: ['fingerPrint'],
+              challenge: 'challenge',
+              authContent: '请验证指纹',
+              success: () => {
+                callback();
+              },
+              fail: () => {
+                uni.showToast({
+                  title: '指纹验证失败',
+                  icon: 'none'
+                });
+              }
+            });
+            // #endif
+            break;
+
+          case 'faceId':
+            // #ifdef MP-WEIXIN
+            uni.startSoterAuthentication({
+              requestAuthModes: ['facial'],
+              challenge: 'challenge',
+              authContent: '请进行人脸识别',
+              success: () => {
+                callback();
+              },
+              fail: () => {
+                uni.showToast({
+                  title: '人脸识别失败',
+                  icon: 'none'
+                });
+              }
+            });
+            // #endif
+            break;
+        }
+      };
+
+      // 认证后完成任务
+      const completeTaskAfterAuth = (task) => {
         // 更新任务状态
         const index = taskList.value.findIndex(t => t.id === task.id);
         if (index !== -1) {
           taskList.value[index].status = 'completed';
           taskList.value[index].completed = task.total;
           taskList.value[index].completedAt = new Date().toISOString();
-          
+
           // 确保任务关联到当前宝宝
           if (!taskList.value[index].babyId && currentBabyId.value) {
             taskList.value[index].babyId = currentBabyId.value;
@@ -579,7 +673,7 @@
           } else {
             console.warn('未找到当前宝宝ID，无法添加积分');
           }
-          
+
           // 更新积分显示
           updateShowPoints();
 
@@ -627,7 +721,7 @@
           });
           return;
         }
-        
+
         // 正常跳转添加任务页面
         uni.navigateTo({
           url: '../task/add-task'
@@ -658,7 +752,7 @@
             // 过滤非当前宝宝的任务
             // 注意：这里不过滤taskList本身，只在computed中过滤显示
             taskList.value = parsedTasks;
-            
+
             // 转换日期字符串为Date对象
             taskList.value.forEach(task => {
               if (typeof task.createdAt === 'string') {
@@ -668,12 +762,12 @@
               if (!task.type) task.type = 'normal';
               if (!task.status) task.status = 'ongoing';
             });
-            
+
             // 添加调试日志，检查当前宝宝的任务数量
             const babyTasks = parsedTasks.filter(t => !t.babyId || t.babyId === currentBabyId.value);
             console.log(`当前宝宝(${currentBabyId.value})的任务:`, babyTasks.length);
           }
-          
+
           // 加载已完成任务列表
           const storedCompletedTasks = uni.getStorageSync('completedTaskList');
           if (storedCompletedTasks) {
@@ -725,23 +819,23 @@
             }
           });
         }
-        
+
         // 重新加载宝宝信息
         loadBabies();
-        
+
         // 重新加载任务
         loadTasksAndPointsFromStorage();
-        
+
         // 刷新周期性任务
         refreshTasks();
-        
+
         // 显示提示
         uni.showToast({
           title: '刷新成功',
           icon: 'success',
           duration: 1000
         });
-        
+
         console.log('手动刷新任务完成');
       };
 
@@ -753,7 +847,7 @@
 
         // 加载宝宝信息
         loadBabies();
-        
+
         // 加载任务列表
         loadTasksAndPointsFromStorage();
         // 立即检查任务
@@ -773,14 +867,14 @@
 
         // 添加积分更新事件监听
         uni.$on('pointsUpdated', updateShowPoints);
-        
+
         // 添加宝宝积分更新事件监听
         uni.$on('babyPointsUpdated', (data) => {
           if (data && data.babyId === currentBabyId.value) {
             totalScore.value = data.points;
           }
         });
-        
+
         // 添加宝宝变更事件监听
         uni.$on('babyChanged', (babyId) => {
           currentBabyId.value = babyId;
@@ -870,14 +964,6 @@
     /* 防止内容溢出 */
   }
 
-  /* 顶部标题区域 */
-  /* .page-header {
-  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-  padding: 40rpx 30rpx 30rpx;
-  color: white;
-  border-radius: 0 0 30rpx 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(124, 58, 237, 0.3);
-} */
 
   .page-header {
     padding: 40rpx 30rpx 30rpx;
@@ -1035,23 +1121,35 @@
     flex: 1;
   }
 
-  .task-title {
+  .task-item {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 16rpx;
+    background-color: #fff;
+    padding: 28rpx 24rpx 24rpx 24rpx;
+    margin-bottom: 24rpx;
+    box-shadow: 0 2rpx 12rpx rgba(124, 58, 237, 0.06);
+    position: relative;
+    min-height: 120rpx;
+  }
+
+  .task-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12rpx;
+    margin-bottom: 8rpx;
   }
 
-  .task-name {
+  .task-title {
     font-size: 32rpx;
     color: #333;
     font-weight: bold;
-  }
-
-  .delete-icon {
-    color: #999;
-    font-size: 40rpx;
-    padding: 10rpx;
+    /* text-align: center; */
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .task-tags {
@@ -1069,48 +1167,26 @@
     color: #666;
   }
 
-  .task-points {
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-  }
 
-  .points-icon {
-    margin-right: 8rpx;
-  }
 
-  .points-value {
-    font-size: 24rpx;
-    color: #ff6b6b;
-  }
-
-  .task-progress {
-    margin-top: 16rpx;
-  }
-
-  .progress-text {
-    font-size: 24rpx;
+  .task-description {
+    font-size: 26rpx;
     color: #666;
-    margin-bottom: 8rpx;
-  }
-
-  .progress-bar {
-    height: 6rpx;
-    background-color: #f0f0f0;
-    border-radius: 3rpx;
+    margin: 8rpx 0 16rpx 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 36rpx;
   }
 
-  .progress-inner {
-    height: 100%;
-    background: linear-gradient(90deg, #8B5CF6, #7C3AED);
-    border-radius: 3rpx;
-    transition: width 0.3s ease;
-  }
 
-  .task-action {
-    display: flex;
-    justify-content: flex-end;
+  .task-points {
+    font-size: 26rpx;
+    color: #ff6b6b;
+    font-weight: 500;
+    padding-right: 20rpx;
   }
 
   .complete-btn {
@@ -1122,24 +1198,6 @@
     border: none;
   }
 
-  /* 浮动按钮 */
-  /* .float-btn {
-  position: fixed;
-  right: 30rpx;
-  bottom: 120rpx;
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 4rpx 16rpx rgba(132, 119, 250, 0.3);
-  z-index: 1000;
-  font-size: 50rpx;
-  transition: transform 0.2s ease;
-} */
 
   /* 浮动按钮 */
   .float-btn {
@@ -1170,24 +1228,6 @@
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
     box-shadow: 0 4rpx 16rpx rgba(108, 92, 231, 0.3);
   }
-
-  /* 测试按钮 */
-  /* .test-btn {
-  position: fixed;
-  right: 40rpx;
-  bottom: 260rpx;
-  width: 100rpx;
-  height: 100rpx;
-  background: linear-gradient(135deg, #ff6b6b, #ff4757);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 107, 0.3);
-  z-index: 100;
-} */
 
   /* 模态框 */
   .modal-mask {

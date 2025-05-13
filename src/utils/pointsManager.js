@@ -66,7 +66,7 @@ export const addBabyPoints = (babyId, points) => {
   
   try {
     const currentPoints = getBabyPoints(babyId);
-    const newPoints = currentPoints + points;
+    const newPoints = currentPoints + parseInt(points);
     return updateBabyPoints(babyId, newPoints);
   } catch (e) {
     console.error('添加宝宝积分失败:', e);
