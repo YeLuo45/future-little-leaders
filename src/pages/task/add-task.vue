@@ -17,6 +17,14 @@
         <input class="form-input" v-model="taskForm.title" placeholder="请输入任务标题" placeholder-class="placeholder" />
       </view>
 
+        <!-- 任务描述 -->
+      <view class="form-item">
+        <text class="form-label">任务描述</text>
+        <input class="form-input-desc" v-model="taskForm.description" type="string" placeholder="请输入任务描述(不超过50字)"
+          placeholder-class="placeholder" />
+      </view>
+
+
       <!-- 宝宝选择器 -->
       <view class="form-item">
         <text class="form-label">选择宝宝</text>
@@ -113,11 +121,11 @@
       </view>
 
       <!-- 任务时长 -->
-      <view class="form-item">
+      <!-- <view class="form-item">
         <text class="form-label">任务时长（分钟）</text>
         <input class="form-input" v-model="taskForm.total" type="number" placeholder="请输入任务时长"
           placeholder-class="placeholder" />
-      </view>
+      </view> -->
 
       <!-- 任务积分 -->
       <view class="form-item">
@@ -169,6 +177,7 @@
       // 表单数据
       const taskForm = ref({
         title: '',
+        description: '',
         tags: [],
         type: 'normal', // 'normal' 或 'recurring'
         recurringType: 'daily', // 只支持type为'recurring'时，支持'daily', 'weekly', 'monthly', 'custom'
@@ -233,11 +242,12 @@
         }
       };
 
-      // 表单验证 - 添加宝宝ID检查
+      // 表单验证 - 添加宝宝ID检查, 任务描述不超过50字
       const isFormValid = computed(() => {
         const baseValidation = taskForm.value.title &&
+          taskForm.value.description.length <= 50 &&
           taskForm.value.tags.length > 0 &&
-          taskForm.value.total > 0 &&
+          // taskForm.value.total > 0 &&
           taskForm.value.points > 0 &&
           taskForm.value.babyId; // 确保选择了宝宝
 
@@ -498,6 +508,16 @@
   }
 
   .form-input {
+    width: 100%;
+    height: 80rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    padding: 0 20rpx;
+    font-size: 28rpx;
+    color: #333;
+  }
+
+  .form-input-desc {
     width: 100%;
     height: 80rpx;
     background-color: #f5f5f5;
