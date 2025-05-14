@@ -1,45 +1,41 @@
+<!-- 个人信息编辑页面 -->
 <template>
-  <view class="page-container" :class="{'dark-mode': isDarkMode}">
-    <!-- 顶部导航栏 -->
-    <view class="nav-bar">
+  <view class="page-container">
+
+     <!-- 顶部导航栏 -->
+     <view class="nav-bar">
       <view class="nav-left" @tap="goBack">
         <text class="icon">←</text>
       </view>
-      <view class="nav-title">添加宝宝</view>
+      <view class="nav-title">编辑资料</view>
     </view>
 
-    <!-- 表单内容 -->
+
     <!-- 头像编辑 -->
     <view class="avatar-selector" @tap="showAvatarActionSheet">
       <image class="avatar-preview" :src="form.avatar || '/static/avatar.svg'" mode="aspectFill"></image>
       <view class="avatar-edit-icon">📷</view>
     </view>
-
-    <view class="form-container">
-      <!-- 宝宝昵称 -->
-      <view class="form-item">
-        <text class="form-label">宝宝昵称</text>
-        <input class="form-input" v-model="form.name" placeholder="请输入宝宝昵称" />
-      </view>
-      
-      <!-- 性别选择 -->
-      <view class="form-item" @tap="showGenderModal = true">
-        <text class="form-label">性别</text>
-        <view class="form-value">{{ form.gender ? (form.gender === 'male' ? '男' : '女') : '请选择' }}</view>
-      </view>
-      
-      <!-- 出生日期编辑 -->
-      <view class="form-item" @tap="showDateModal = true">
-        <text class="form-label">出生日期</text>
-        <view class="form-value">{{ form.birthdate || '请选择' }}</view>
-      </view>
-
-      <!-- 保存按钮 -->
-      <view class="btn-container">
-        <button class="save-btn" @tap="saveBaby" :disabled="!isFormValid">添加宝宝</button>
-      </view>
+    <!-- 昵称编辑 -->
+    <view class="form-item">
+      <text class="form-label">昵称</text>
+      <input class="form-input" v-model="form.nickname" maxlength="20" placeholder="请输入昵称" />
     </view>
-
+    <!-- 性别编辑 -->
+    <view class="form-item" @tap="showGenderModal = true">
+      <text class="form-label">性别</text>
+      <view class="form-value">{{ form.gender ? (form.gender === 'male' ? '男' : '女') : '请选择' }}</view>
+    </view>
+    <!-- 出生日期编辑 -->
+    <view class="form-item" @tap="showDateModal = true">
+      <text class="form-label">出生日期</text>
+      <view class="form-value">{{ form.birthdate || '请选择' }}</view>
+    </view>
+    <!-- 保存按钮 -->
+    <view class="btn-container">
+      <button class="save-btn" @tap="saveProfile" :disabled="!isFormValid">保存</button>
+    </view>
+    
     <!-- 头像选择弹窗 -->
     <view class="modal-mask" v-if="showAvatarModal" @tap="closeAvatarModal">
       <view class="modal-content" @tap.stop>
@@ -55,20 +51,20 @@
     <!-- 性别选择弹窗 -->
     <view class="modal-mask" v-if="showGenderModal" @tap="closeGenderModal">
       <view class="modal-content" @tap.stop>
-        <view class="modal-title">选择性别</view>
+        <view class="modal-title">修改性别</view>
         <view class="gender-options">
-          <view class="gender-option" :class="{'selected': tempGender === 'female'}" @tap="selectGender('female')">
-            <radio :checked="tempGender === 'female'" color="#007AFF" />
+          <view class="gender-option" :class="{'selected': form.gender === 'female'}" @tap="selectGender('female')">
+            <radio :checked="form.gender === 'female'" color="#007AFF" />
             <text>女</text>
           </view>
-          <view class="gender-option" :class="{'selected': tempGender === 'male'}" @tap="selectGender('male')">
-            <radio :checked="tempGender === 'male'" color="#007AFF" />
+          <view class="gender-option" :class="{'selected': form.gender === 'male'}" @tap="selectGender('male')">
+            <radio :checked="form.gender === 'male'" color="#007AFF" />
             <text>男</text>
           </view>
         </view>
         <view class="modal-actions">
           <button class="modal-btn cancel" @tap="closeGenderModal">取消</button>
-          <button class="modal-btn confirm" @tap="confirmGender">确定</button>
+          <button class="modal-btn confirm" @tap="confirmGender">保存</button>
         </view>
       </view>
     </view>
@@ -100,21 +96,17 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue';
-import { isDarkTheme } from '@/utils/themeUtils.js';
-
+import { ref, computed, onMounted, reactive, watch } from 'vue';
+import { isDarkTheme } from '@/utils/themeUtils';
 export default {
-  name: 'AddBaby',
+  name: 'ProfileEdit',
   setup() {
-    const isDarkMode = ref(false);
-    // 表单数据结构统一
+    // 表单数据
     const form = ref({
-      name: '',
-      birthdate: '',
       avatar: '',
+      nickname: '',
       gender: '',
-      id: '',
-      createdAt: ''
+      birthdate: ''
     });
     
     // 控制弹窗
@@ -126,6 +118,7 @@ export default {
     // 日期选择器
     const yearsList = ref([]);
     const datePickerValue = ref([0, 0, 0]);
+    const tempDate = ref('');
     const indicatorStyle = "height: 34px; line-height: 34px;";
     
     // 计算当前月有多少天
@@ -143,9 +136,10 @@ export default {
         years.push(year);
       }
       yearsList.value = years;
+      console.log("yearsList:", yearsList.value);
     };
     
-    // 初始化日期选择器
+    // 根据出生日期设置日期选择器初始值
     const initDatePicker = () => {
       if (form.value.birthdate) {
         const [year, month, day] = form.value.birthdate.split('-').map(Number);
@@ -171,14 +165,64 @@ export default {
     const onDatePickerChange = (e) => {
       datePickerValue.value = e.detail.value;
     };
-
-    // 表单有效性验证
+    
+    // 表单校验
     const isFormValid = computed(() => {
-      return form.value.name.trim() !== '' && 
-             form.value.birthdate !== '' && 
-             form.value.gender !== '';
+      return form.value.nickname.length >= 2 && 
+             form.value.nickname.length <= 20 && 
+             form.value.gender && 
+             form.value.birthdate;
     });
 
+     // 返回上一页
+     const goBack = () => {
+      uni.navigateBack();
+    };
+
+    
+    // 加载用户信息
+    onMounted(() => {
+      try {
+        const user = uni.getStorageSync('userInfo');
+        if (user) {
+          const info = JSON.parse(user);
+          form.value = {
+            avatar: info.avatar || '',
+            nickname: info.nickname || '',
+            gender: info.gender || '',
+            birthdate: info.birthdate || ''
+          };
+        }
+        
+        // 初始化日期选择器
+        initYearsList();
+        initDatePicker();
+      } catch (e) {
+        console.error('加载用户信息失败:', e);
+      }
+    });
+    
+    // 保存信息
+    const saveProfile = () => {
+      if (!isFormValid.value) {
+        uni.showToast({ title: '请完善信息', icon: 'none' });
+        return;
+      }
+      try {
+        const user = uni.getStorageSync('userInfo');
+        let info = user ? JSON.parse(user) : {};
+        info = { ...info, ...form.value };
+        uni.setStorageSync('userInfo', JSON.stringify(info));
+        uni.showToast({ title: '保存成功', icon: 'success' });
+        setTimeout(() => {
+          uni.navigateBack();
+          uni.$emit('refreshUserInfo');
+        }, 1000);
+      } catch (e) {
+        uni.showToast({ title: '保存失败', icon: 'none' });
+      }
+    };
+    
     // 头像弹窗
     const showAvatarActionSheet = () => {
       showAvatarModal.value = true;
@@ -197,6 +241,9 @@ export default {
         sourceType: type === 'camera' ? ['camera'] : ['album'],
         success: (res) => {
           form.value.avatar = res.tempFilePaths[0];
+          closeAvatarModal();
+        },
+        fail: () => {
           closeAvatarModal();
         }
       });
@@ -223,7 +270,7 @@ export default {
       form.value.gender = tempGender.value;
       closeGenderModal();
     };
-
+    
     // 打开日期弹窗
     const openDateModal = () => {
       showDateModal.value = true;
@@ -241,97 +288,21 @@ export default {
       const month = String(datePickerValue.value[1] + 1).padStart(2, '0');
       const day = String(datePickerValue.value[2] + 1).padStart(2, '0');
       form.value.birthdate = `${year}-${month}-${day}`;
+      console.log("form.value.birthdate:", form.value.birthdate);
       closeDateModal();
     };
-
-    // 保存宝宝信息
-    const saveBaby = () => {
-      if (!isFormValid.value) {
-        uni.showToast({
-          title: '请填写完整信息',
-          icon: 'none'
-        });
-        return;
-      }
-
-      try {
-        // 获取现有的宝宝列表
-        let babies = [];
-        try {
-          const storedBabies = uni.getStorageSync('babies');
-          babies = storedBabies ? JSON.parse(storedBabies) : [];
-        } catch (e) {
-          console.error('读取宝宝列表失败:', e);
-          babies = [];
-        }
-
-        // 创建新宝宝对象
-        const newBaby = {
-          id: 'baby_' + Date.now(),
-          name: form.value.name.trim(),
-          birthdate: form.value.birthdate,
-          gender: form.value.gender,
-          avatar: form.value.avatar || '/static/avatar.svg',
-          createdAt: new Date().toISOString()
-        };
-
-        // 添加到列表
-        babies.push(newBaby);
-
-        // 保存到存储
-        uni.setStorageSync('babies', JSON.stringify(babies));
-
-        // 如果是第一个宝宝，设置为当前宝宝
-        if (babies.length === 1) {
-          uni.setStorageSync('currentBabyId', newBaby.id);
-        }
-
-        // 广播宝宝列表更新事件
-        uni.$emit('refreshBabyList');
-
-        uni.showToast({
-          title: '添加成功',
-          icon: 'success',
-          duration: 2000,
-          success: () => {
-            setTimeout(() => {
-              uni.navigateBack();
-            }, 2000);
-          }
-        });
-      } catch (e) {
-        console.error('保存宝宝信息失败:', e);
-        uni.showToast({
-          title: '添加失败',
-          icon: 'none'
-        });
-      }
-    };
-
-    // 返回上一页
-    const goBack = () => {
-      uni.navigateBack();
-    };
-
-    onMounted(() => {
-      isDarkMode.value = isDarkTheme();
-      // 初始化日期选择器
-      initYearsList();
-      initDatePicker();
-    });
-
+    
     return {
-      isDarkMode,
       form,
       showAvatarModal,
       showGenderModal,
-      tempGender,
       showDateModal,
       datePickerValue,
       yearsList,
       daysInMonth,
-      indicatorStyle,
+      tempGender,
       isFormValid,
+      saveProfile,
       showAvatarActionSheet,
       closeAvatarModal,
       chooseAvatar,
@@ -343,7 +314,7 @@ export default {
       closeDateModal,
       confirmDate,
       onDatePickerChange,
-      saveBaby,
+      indicatorStyle,
       goBack
     };
   }
@@ -352,6 +323,9 @@ export default {
 
 <style scoped>
 .page-container {
+  /* min-height: 100vh;
+  background: #f8f8f8;
+  padding: 40rpx 30rpx; */
   min-height: 100vh;
   background-color: #f8f8f8;
   padding-bottom: 50px;
@@ -390,46 +364,6 @@ export default {
   font-weight: bold;
 }
 
-.form-container {
-  padding: 0 30rpx;
-}
-
-.form-item {
-  padding-bottom: 36rpx;
-}
-
-.form-label {
-  font-size: 28rpx;
-  color: #333;
-  margin-bottom: 10rpx;
-  display: block;
-}
-
-.dark-mode .form-label {
-  color: #aaa;
-}
-
-.form-input {
-  width: 100%;
-  height: 80rpx;
-  background: #f5f5f5;
-  border-radius: 12rpx;
-  padding: 0 20rpx;
-  font-size: 28rpx;
-  color: #333;
-}
-
-.form-value {
-  width: 100%;
-  height: 80rpx;
-  line-height: 80rpx;
-  background: #f5f5f5;
-  border-radius: 12rpx;
-  padding: 0 20rpx;
-  font-size: 28rpx;
-  color: #333;
-}
-
 .avatar-selector {
   padding-top: 40rpx;
   display: flex;
@@ -438,14 +372,12 @@ export default {
   margin-bottom: 40rpx;
   position: relative;
 }
-
 .avatar-preview {
   width: 160rpx;
   height: 160rpx;
   border-radius: 80rpx;
   border: 6rpx solid #eee;
 }
-
 .avatar-edit-icon {
   position: absolute;
   bottom: 0;
@@ -457,11 +389,41 @@ export default {
   font-size: 32rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
 }
-
+.form-item {
+  padding-bottom: 36rpx;
+  padding-left: 30rpx;
+  padding-right: 30rpx;
+}
+.form-label {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 10rpx;
+  display: block;
+}
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  background: #f5f5f5;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+.form-value {
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: #f5f5f5;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  color: #333;
+}
 .btn-container {
   margin-top: 60rpx;
+  padding-left: 30rpx;
+  padding-right: 30rpx;
 }
-
 .save-btn {
   width: 100%;
   height: 88rpx;
@@ -473,7 +435,6 @@ export default {
   border: none;
   box-shadow: 0 6rpx 16rpx rgba(132, 119, 250, 0.3);
 }
-
 .save-btn[disabled] {
   background: linear-gradient(135deg, #9f8eff, #8477fa);
   color: #666;
@@ -493,14 +454,12 @@ export default {
   justify-content: center;
   z-index: 9999;
 }
-
 .modal-content {
   width: 100%;
   background: #fff;
   border-radius: 20rpx 20rpx 0 0;
   overflow: hidden;
 }
-
 .modal-title {
   font-size: 32rpx;
   text-align: center;
@@ -508,23 +467,19 @@ export default {
   font-weight: bold;
   border-bottom: 1px solid #eee;
 }
-
 .modal-option {
   padding: 30rpx 0;
   font-size: 28rpx;
   text-align: center;
   border-bottom: 1px solid #eee;
 }
-
 .modal-footer {
   padding: 20rpx;
 }
-
 .modal-actions {
   display: flex;
   border-top: 1px solid #eee;
 }
-
 .modal-btn {
   flex: 1;
   height: 88rpx;
@@ -535,14 +490,30 @@ export default {
   background: #fff;
   border-radius: 0;
 }
-
 .cancel {
   color: #666;
 }
-
 .confirm {
   color: #007AFF;
   font-weight: bold;
+}
+
+/* 性别选择 */
+.gender-options {
+  padding: 30rpx;
+}
+.gender-option {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1px solid #eee;
+}
+.gender-option text {
+  margin-left: 20rpx;
+  font-size: 28rpx;
+}
+.gender-option.selected {
+  color: #007AFF;
 }
 
 /* 日期选择器 */
@@ -580,33 +551,12 @@ export default {
 .date-picker-actions {
   border-top: 1px solid #eee;
 }
-
-/* 性别选择 */
-.gender-options {
-  padding: 30rpx;
-}
-
-.gender-option {
-  display: flex;
-  align-items: center;
-  padding: 24rpx 0;
-  border-bottom: 1px solid #eee;
-}
-
-.gender-option text {
-  margin-left: 20rpx;
-  font-size: 28rpx;
-}
-
-.gender-option.selected {
-  color: #007AFF;
-}
 </style>
 
 <!--
 变更说明：
-- 重构add-baby.vue，复用profile-edit.vue的组件
-- 使用相同的日期选择器组件，统一样式和交互体验
-- 统一表单数据结构，简化代码逻辑
-- 保持与个人信息编辑页一致的UI风格
+- 修复头像选择弹窗错误显示问题，调整为点击头像后才显示
+- 修复性别选择弹窗交互问题，参考图集实现样式
+- 实现出生日期选择器，使用滚轮选择方式，支持年月日选择
+- 优化UI样式，与图集保持一致
 --> 

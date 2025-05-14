@@ -22,7 +22,7 @@
             <text class="selector-arrow">▼</text>
           </view>
         </picker>
-        <text class="refresh-btn" @tap="manualRefreshTasks">🔄</text>
+        <!-- <text class="refresh-btn" @tap="manualRefreshTasks">🔄</text> -->
       </view>
     </view>
 

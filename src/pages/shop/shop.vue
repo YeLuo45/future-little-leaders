@@ -528,8 +528,8 @@
 		flex-wrap: wrap;
 		justify-content: space-between;
 		padding: 10rpx;
-		margin-left: 40rpx;
-		margin-right: 40rpx;
+		margin-left: 20rpx;
+		margin-right: 20rpx;
 	}
 
 	.product-card {

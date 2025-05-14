@@ -63,6 +63,13 @@
 			}
 		},
 		{
+			"path": "pages/profile/profile-edit",
+			"style": {
+				"navigationBarTitleText": "编辑个人资料",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/profile/add-baby",
 			"style": {
 				"navigationBarTitleText": "添加宝宝",

@@ -56,25 +56,9 @@
 		<!-- 头像选择弹窗 -->
 		<view class="modal-mask" v-if="showAvatarModal" @tap="closeAvatarModal">
 			<view class="modal-content" @tap.stop>
-				<view class="modal-header">
-					<text class="modal-title">选择头像</text>
-				</view>
-				<view class="modal-body">
-					<view class="avatar-grid">
-						<view 
-							class="avatar-option" 
-							v-for="(avatar, index) in defaultAvatars" 
-							:key="index"
-							@tap="selectDefaultAvatar(avatar, selectedBaby)"
-						>
-							<image class="avatar-preview" :src="avatar" mode="aspectFill"></image>
-						</view>
-						<view class="avatar-option upload" @tap="uploadCustomAvatar">
-							<text class="upload-icon">📤</text>
-							<text class="upload-text">上传</text>
-						</view>
-					</view>
-				</view>
+				<view class="modal-title">更换头像</view>
+				<view class="modal-option" @tap="uploadCustomAvatar('camera')">拍照</view>
+				<view class="modal-option" @tap="uploadCustomAvatar('album')">本地相册</view>
 				<view class="modal-footer">
 					<button class="modal-btn cancel" @tap="closeAvatarModal">取消</button>
 				</view>
@@ -209,11 +193,11 @@ export default {
 		};
 
 		// 上传自定义头像
-		const uploadCustomAvatar = () => {
+		const uploadCustomAvatar = (type) => {
 			uni.chooseImage({
 				count: 1,
 				sizeType: ['compressed'],
-				sourceType: ['album', 'camera'],
+				sourceType: type === 'camera' ? ['camera'] : ['album'],
 				success: (res) => {
 					const tempFilePath = res.tempFilePaths[0];
 					// 在真实应用中，这里应该上传到服务器
@@ -623,15 +607,15 @@ export default {
 	bottom: 0;
 	background: rgba(0, 0, 0, 0.6);
 	display: flex;
-	align-items: center;
+	align-items: flex-end;
 	justify-content: center;
 	z-index: 999;
 }
 
 .modal-content {
-	width: 600rpx;
+	width: 100%;
 	background-color: white;
-	border-radius: 20rpx;
+	border-radius: 20rpx 20rpx 0 0;
 	overflow: hidden;
 }
 
@@ -639,80 +623,38 @@ export default {
 	background-color: #2a2a2a;
 }
 
-.modal-header {
-	padding: 30rpx;
+.modal-title {
+	font-size: 32rpx;
 	text-align: center;
-	border-bottom: 1rpx solid #eee;
+	padding: 30rpx 0;
+	font-weight: bold;
+	border-bottom: 1px solid #eee;
 }
 
 .dark-mode .modal-header {
 	border-bottom-color: #333;
 }
 
-.modal-title {
-	font-size: 32rpx;
-	font-weight: bold;
-}
-
-.modal-body {
-	padding: 30rpx;
-}
-
-.avatar-grid {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 20rpx;
-}
-
-.avatar-option {
-	width: 120rpx;
-	height: 120rpx;
-	border-radius: 60rpx;
-	overflow: hidden;
-	position: relative;
-}
-
-.avatar-preview {
-	width: 100%;
-	height: 100%;
-}
-
-.avatar-option.upload {
-	background-color: #f0f0f0;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-}
-
-.dark-mode .avatar-option.upload {
-	background-color: #333;
-}
-
-.upload-icon {
-	font-size: 40rpx;
-	margin-bottom: 8rpx;
-}
-
-.upload-text {
-	font-size: 24rpx;
+.modal-option {
+	padding: 30rpx 0;
+	font-size: 28rpx;
+	text-align: center;
+	border-bottom: 1px solid #eee;
 }
 
 .modal-footer {
-	display: flex;
-	border-top: 1rpx solid #eee;
-}
-
-.dark-mode .modal-footer {
-	border-top-color: #333;
+	padding: 20rpx;
 }
 
 .modal-btn {
-	flex: 1;
+	width: 100%;
 	height: 88rpx;
 	line-height: 88rpx;
 	text-align: center;
 	font-size: 28rpx;
+	border: none;
+	background: #fff;
+	border-radius: 0;
 }
 
 .cancel {

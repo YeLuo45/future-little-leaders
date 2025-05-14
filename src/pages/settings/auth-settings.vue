@@ -10,9 +10,11 @@
 		<view class="auth-settings">
 			<view class="section">
 				<view class="section-title">认证模式</view>
-				<view class="setting-item">
+				<view class="setting-item" @tap="onSettingItemTap">
 					<text>开启认证模式</text>
-					<switch :checked="authSettings.isEnabled" @change="onAuthModeChange" color="#7C3AED" />
+					<switch :checked="authSettings.isEnabled" @change="onAuthModeChange" 
+					        color="#7C3AED" 
+					        :disabled="!hasAnyAuthMethod" />
 				</view>
 				<view class="section-desc">开启后，完成任务时需要验证身份</view>
 			</view>
@@ -64,7 +66,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
 export default {
 	name: 'AuthSettings',
@@ -79,6 +81,13 @@ export default {
 		const oldPassword = ref('');
 		const newPassword = ref('');
 		const confirmPassword = ref('');
+
+		// 计算是否有任意一种验证方式
+		const hasAnyAuthMethod = computed(() => {
+			return authSettings.value.hasPassword || 
+			       authSettings.value.hasBiometric || 
+			       authSettings.value.hasFaceId;
+		});
 
 		// 加载认证设置
 		const loadAuthSettings = () => {
@@ -158,29 +167,53 @@ export default {
 			});
 		};
 
+		// 点击设置项
+		const onSettingItemTap = () => {
+			// 检查是否有至少一种验证方式
+			if (!hasAnyAuthMethod.value && !authSettings.value.isEnabled) {
+				uni.showToast({
+					title: '未开启验证方式，无法开启认证模式',
+					icon: 'none',
+					duration: 2000
+				});
+			}
+		};
+
 		// 切换认证模式
 		const onAuthModeChange = async (e) => {
-			if (!authSettings.value.hasPassword && !authSettings.value.hasBiometric && !authSettings.value.hasFaceId) {
-				uni.showToast({
-					title: '请先设置至少一种验证方式',
-					icon: 'none'
+			const isChecked = e.detail.value;
+			
+			// 尝试开启认证模式
+			if (isChecked) {
+				// 检查是否有至少一种验证方式
+				if (!hasAnyAuthMethod.value) {
+					uni.showToast({
+						title: '未开启验证方式，无法开启认证模式',
+						icon: 'none',
+						duration: 2000
+					});
+					return;
+				}
+				authSettings.value.isEnabled = true;
+				saveAuthSettings();
+				uni.showToast({ 
+					title: '认证模式已开启', 
+					icon: 'success' 
 				});
-				return;
-			}
-			if (!e.detail.value) {
+			} else {
 				// 关闭认证模式时需要认证
 				try {
 					await verifyAuth();
 					authSettings.value.isEnabled = false;
 					saveAuthSettings();
-					uni.showToast({ title: '认证模式已关闭', icon: 'success' });
-				} catch {
-					// 验证失败，不关闭
-					return;
+					uni.showToast({ 
+						title: '认证模式已关闭', 
+						icon: 'success' 
+					});
+				} catch (error) {
+					// 验证失败，不做更改
+					console.error('认证失败:', error);
 				}
-			} else {
-				authSettings.value.isEnabled = true;
-				saveAuthSettings();
 			}
 		};
 
@@ -248,50 +281,91 @@ export default {
 		};
 
 		// 切换生物识别
-		const toggleBiometric = () => {
-			// 检查是否在微信小程序环境
+		const toggleBiometric = async () => {
+			// 如果已开启，则验证后关闭
+			if (authSettings.value.hasBiometric) {
+				try {
+					await verifyAuth();
+					authSettings.value.hasBiometric = false;
+					saveAuthSettings();
+					
+					// 如果没有任何验证方式，则自动关闭认证模式
+					if (!hasAnyAuthMethod.value && authSettings.value.isEnabled) {
+						authSettings.value.isEnabled = false;
+						saveAuthSettings();
+						uni.showToast({
+							title: '已关闭认证模式',
+							icon: 'none'
+						});
+					} else {
+						uni.showToast({
+							title: '已关闭生物识别',
+							icon: 'success'
+						});
+					}
+				} catch (error) {
+					console.error('认证失败:', error);
+				}
+				return;
+			}
+			
+			// 开启生物识别
 			// #ifdef MP-WEIXIN
 			uni.checkIsSupportSoterAuthentication({
 				success: (res) => {
-					if (res.supportMode.includes('fingerPrint')) {
-						// 如果已开启，则关闭
-						if (authSettings.value.hasBiometric) {
-							authSettings.value.hasBiometric = false;
-							saveAuthSettings();
-							uni.showToast({
-								title: '已关闭生物识别',
-								icon: 'success'
-							});
-						} else {
-							// 开启生物识别
-							uni.startSoterAuthentication({
-								requestAuthModes: ['fingerPrint'],
-								challenge: 'challenge',
-								authContent: '请验证指纹',
-								success: () => {
-									authSettings.value.hasBiometric = true;
-									saveAuthSettings();
-									uni.showToast({
-										title: '已开启生物识别',
-										icon: 'success'
+					console.log('Soter支持情况:', res);
+					if (res.supportMode && res.supportMode.includes('fingerPrint')) {
+						// 检查设备是否已录入指纹
+						uni.checkIsSoterEnrolledInDevice({
+							checkAuthMode: 'fingerPrint',
+							success: (res) => {
+								console.log('指纹录入情况:', res);
+								if (res.isEnrolled) {
+									// 开启指纹认证
+									uni.startSoterAuthentication({
+										requestAuthModes: ['fingerPrint'],
+										challenge: 'challenge',
+										authContent: '请验证指纹',
+										success: () => {
+											authSettings.value.hasBiometric = true;
+											saveAuthSettings();
+											uni.showToast({
+												title: '已开启生物识别',
+												icon: 'success'
+											});
+										},
+										fail: (error) => {
+											console.error('生物识别失败:', error);
+											uni.showToast({
+												title: '生物识别验证失败',
+												icon: 'none'
+											});
+										}
 									});
-								},
-								fail: () => {
+								} else {
 									uni.showToast({
-										title: '生物识别验证失败',
+										title: '设备未录入指纹',
 										icon: 'none'
 									});
 								}
-							});
-						}
+							},
+							fail: (error) => {
+								console.error('检查指纹录入失败:', error);
+								uni.showToast({
+									title: '无法验证指纹状态',
+									icon: 'none'
+								});
+							}
+						});
 					} else {
 						uni.showToast({
-							title: '设备不支持生物识别',
+							title: '设备不支持指纹识别',
 							icon: 'none'
 						});
 					}
 				},
-				fail: () => {
+				fail: (error) => {
+					console.error('检查生物识别支持失败:', error);
 					uni.showToast({
 						title: '设备不支持生物识别',
 						icon: 'none'
@@ -309,42 +383,59 @@ export default {
 		};
 
 		// 切换人脸识别
-		const toggleFaceId = () => {
+		const toggleFaceId = async () => {
+			// 如果已开启，则验证后关闭
+			if (authSettings.value.hasFaceId) {
+				try {
+					await verifyAuth();
+					authSettings.value.hasFaceId = false;
+					saveAuthSettings();
+					
+					// 如果没有任何验证方式，则自动关闭认证模式
+					if (!hasAnyAuthMethod.value && authSettings.value.isEnabled) {
+						authSettings.value.isEnabled = false;
+						saveAuthSettings();
+						uni.showToast({
+							title: '已关闭认证模式',
+							icon: 'none'
+						});
+					} else {
+						uni.showToast({
+							title: '已关闭人脸识别',
+							icon: 'success'
+						});
+					}
+				} catch (error) {
+					console.error('认证失败:', error);
+				}
+				return;
+			}
+			
 			// 检查是否在微信小程序环境
 			// #ifdef MP-WEIXIN
 			uni.checkIsSupportSoterAuthentication({
 				success: (res) => {
 					if (res.supportMode.includes('facial')) {
-						// 如果已开启，则关闭
-						if (authSettings.value.hasFaceId) {
-							authSettings.value.hasFaceId = false;
-							saveAuthSettings();
-							uni.showToast({
-								title: '已关闭人脸识别',
-								icon: 'success'
-							});
-						} else {
-							// 开启人脸识别
-							uni.startSoterAuthentication({
-								requestAuthModes: ['facial'],
-								challenge: 'challenge',
-								authContent: '请进行人脸识别',
-								success: () => {
-									authSettings.value.hasFaceId = true;
-									saveAuthSettings();
-									uni.showToast({
-										title: '已开启人脸识别',
-										icon: 'success'
-									});
-								},
-								fail: () => {
-									uni.showToast({
-										title: '人脸识别验证失败',
-										icon: 'none'
-									});
-								}
-							});
-						}
+						// 开启人脸识别
+						uni.startSoterAuthentication({
+							requestAuthModes: ['facial'],
+							challenge: 'challenge',
+							authContent: '请进行人脸识别',
+							success: () => {
+								authSettings.value.hasFaceId = true;
+								saveAuthSettings();
+								uni.showToast({
+									title: '已开启人脸识别',
+									icon: 'success'
+								});
+							},
+							fail: () => {
+								uni.showToast({
+									title: '人脸识别验证失败',
+									icon: 'none'
+								});
+							}
+						});
 					} else {
 						uni.showToast({
 							title: '设备不支持人脸识别',
@@ -380,11 +471,13 @@ export default {
 
 		return {
 			authSettings,
+			hasAnyAuthMethod,
 			showPasswordModal,
 			oldPassword,
 			newPassword,
 			confirmPassword,
 			onAuthModeChange,
+			onSettingItemTap,
 			openPasswordModal,
 			closePasswordModal,
 			savePassword,

@@ -3,10 +3,10 @@
 		<!-- 用户信息区域 -->
 		<view class="user-info">
 			<view class="avatar-section">
-				<image class="avatar" :src="userInfo.avatar || '/static/avatar.svg'" mode="aspectFill"></image>
+				<image class="avatar" :src="userInfo.avatar || '/static/avatar.svg'" mode="aspectFill" @tap="navigateToEditProfile"></image>
 				<view class="user-details">
 					<text class="nickname">{{ userInfo.nickname || '未设置昵称' }}</text>
-					<text class="user-id">ID: {{ userInfo.id || '未设置ID' }}</text>
+					<!-- <text class="user-id">ID: {{ userInfo.id || '未设置ID' }}</text> -->
 				</view>
 			</view>
 			<view class="points-info">
@@ -111,6 +111,13 @@ export default {
 		const navigateToAddBaby = () => {
 			uni.navigateTo({
 				url: '/pages/profile/add-baby'
+			});
+		};
+
+		// 跳转到个人信息编辑页面
+		const navigateToEditProfile = () => {
+			uni.navigateTo({
+				url: '/pages/profile/profile-edit'
 			});
 		};
 
@@ -268,6 +275,9 @@ export default {
 				loadTaskRecords();
 				loadExchangeRecords();
 			});
+
+			// 添加 refreshUserInfo 事件监听，编辑页保存后刷新主页面
+			uni.$on('refreshUserInfo', loadUserInfo);
 		});
 
 		onUnmounted(() => {
@@ -275,6 +285,7 @@ export default {
 			uni.$off('pointsUpdated');
 			uni.$off('babyPointsUpdated');
 			uni.$off('refreshBabyList');
+			uni.$off('refreshUserInfo');
 		});
 
 		return {
@@ -289,7 +300,8 @@ export default {
 			currentBabyName,
 			onBabyChange,
 			navigateToAddBaby,
-			authSettings
+			authSettings,
+			navigateToEditProfile
 		};
 	}
 };
