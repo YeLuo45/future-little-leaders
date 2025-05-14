@@ -4,7 +4,7 @@
     <view class="decoration decoration-1"></view>
     <view class="decoration decoration-2"></view>
     
-    <image class="logo" src="/static/logo.png" mode="aspectFill"></image>
+    <!-- <image class="logo" src="/static/logo.png" mode="aspectFill"></image> -->
     
     <view class="title">创建新账号</view>
     <view class="subtitle">填写以下信息完成注册</view>

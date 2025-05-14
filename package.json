@@ -19,7 +19,8 @@
     "build:mp-toutiao": "uni build -p mp-toutiao",
     "build:mp-qq": "uni build -p mp-qq",
     "build:mp-kuaishou": "uni build -p mp-kuaishou",
-    "build:mp-lark": "uni build -p mp-lark"
+    "build:mp-lark": "uni build -p mp-lark",
+    "compress-images": "node src/static/fix-images.js"
   },
   "keywords": [],
   "author": "",
@@ -50,7 +51,9 @@
     "@dcloudio/uni-template-compiler": "^3.0.0-3090720230310001",
     "@dcloudio/vite-plugin-uni": "^3.0.0-3090720230310001",
     "@vue/compiler-sfc": "^3.4.21",
+    "fs-extra": "^11.3.0",
     "sass": "^1.69.5",
+    "sharp": "^0.34.1",
     "typescript": "^5.2.2",
     "vite": "^4.4.11"
   }
