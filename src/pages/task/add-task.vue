@@ -20,7 +20,7 @@
         <!-- 任务描述 -->
       <view class="form-item">
         <text class="form-label">任务描述</text>
-        <input class="form-input-desc" v-model="taskForm.description" type="string" placeholder="请输入任务描述(不超过50字)"
+        <textarea class="form-textarea" v-model="taskForm.description" type="string" placeholder="请输入任务描述(不超过50字)"
           placeholder-class="placeholder" />
       </view>
 
@@ -517,12 +517,12 @@
     color: #333;
   }
 
-  .form-input-desc {
+  .form-textarea {
     width: 100%;
-    height: 80rpx;
+    height: 160rpx;
     background-color: #f5f5f5;
     border-radius: 12rpx;
-    padding: 0 20rpx;
+    padding: 20rpx;
     font-size: 28rpx;
     color: #333;
   }
