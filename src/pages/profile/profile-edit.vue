@@ -354,31 +354,32 @@ export default {
 }
 
 .nav-bar {
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-  padding: 0 30rpx;
-  position: relative;
+	display: flex;
+	align-items: center;
+	height: 88rpx;
+	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+	padding: 60rpx 40rpx 60rpx 40rpx;
+	position: relative;
 }
 
 .nav-left {
-  position: absolute;
-  left: 30rpx;
-  z-index: 1;
+	position: absolute;
+	left: 30rpx;
+	z-index: 1;
 }
 
 .icon {
-  color: white;
-  font-size: 36rpx;
+	color: white;
+	font-size: 48rpx;
+	font-weight: bold;
 }
 
 .nav-title {
-  flex: 1;
-  text-align: center;
-  color: white;
-  font-size: 32rpx;
-  font-weight: bold;
+	flex: 1;
+	text-align: center;
+	color: white;
+	font-size: 48rpx;
+	font-weight: bold;
 }
 
 .avatar-selector {

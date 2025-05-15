@@ -1,12 +1,12 @@
 <template>
   <view class="page-container" :class="{'dark-mode': isDarkMode}">
     <!-- 顶部导航栏 -->
-    <view class="header" :class="{'dark-mode': isDarkMode}">
-      <view class="back-btn" @tap="goBack">
-        <text class="back-icon">←</text>
+    <view class="nav-bar" :class="{'dark-mode': isDarkMode}">
+      <view class="nav-left" @tap="goBack">
+        <text class="icon">←</text>
       </view>
-      <view class="header-title">商品详情</view>
-      <view class="placeholder"></view>
+      <view class="nav-title">商品详情</view>
+      <!-- <view class="placeholder"></view> -->
     </view>
     
     <!-- 商品详情内容 -->
@@ -204,42 +204,37 @@ onShow(() => {
   background-color: #121212;
 }
 
-.header {
-  height: 90rpx;
-  background-color: #8477fa;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 30rpx;
-  position: relative;
-  box-shadow: 0 4rpx 12rpx rgba(132, 119, 250, 0.2);
+
+.nav-bar {
+	display: flex;
+	align-items: center;
+	height: 88rpx;
+	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+	padding: 60rpx 40rpx 60rpx 40rpx;
+	position: relative;
 }
 
-.header.dark-mode {
-  background-color: #5e52c9;
-  box-shadow: 0 4rpx 12rpx rgba(94, 82, 201, 0.3);
+.nav-left {
+	position: absolute;
+	left: 30rpx;
+	z-index: 1;
 }
 
-.back-btn {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
+.icon {
+	color: white;
+	font-size: 48rpx;
+	font-weight: bold;
 }
 
-.back-icon {
-  font-size: 36rpx;
-  font-weight: bold;
+.nav-title {
+	flex: 1;
+	text-align: center;
+	color: white;
+	font-size: 48rpx;
+	font-weight: bold;
 }
 
-.header-title {
-  font-size: 34rpx;
-  font-weight: bold;
-}
+
 
 .placeholder {
   width: 60rpx;

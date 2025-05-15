@@ -1,7 +1,7 @@
 <template>
 	<view class="page-container" :class="{'dark-mode': isDarkMode}">
 		<!-- 用户信息区域 -->
-		<view class="user-info">
+		<view class="page-header">
 			<view class="avatar-section">
 				<image class="avatar" :src="userInfo.avatar || '/static/avatar.svg'" mode="aspectFill" @tap="navigateToEditProfile"></image>
 				<view class="user-details">
@@ -85,6 +85,7 @@ export default {
 		});
 		const totalScore = ref(0);
 		const isDark = ref(false);
+		const isDarkMode = ref(false);
 		const themeStore = useThemeStore();
 		const taskRecords = ref([]);
 		const exchangeRecords = ref([]);
@@ -109,6 +110,16 @@ export default {
 
 		// 跳转到添加宝宝页面
 		const navigateToAddBaby = () => {
+			// 检查宝宝数量
+			if (babies.value.length >= 3) {
+				uni.showModal({
+					title: '提示',
+					content: '最多只能添加3个宝宝',
+					showCancel: false
+				});
+				return;
+			}
+			
 			uni.navigateTo({
 				url: '/pages/profile/add-baby'
 			});
@@ -222,20 +233,63 @@ export default {
 			const idx = e.detail.value;
 			// 确保索引有效
 			if (idx >= 0 && idx < babies.value.length && babies.value[idx]) {
-				currentBabyId.value = babies.value[idx].id;
-				uni.setStorageSync('currentBabyId', currentBabyId.value);
+				// 记录之前的宝宝ID，用于检测变化
+				const oldBabyId = currentBabyId.value;
+				const newBabyId = babies.value[idx].id;
 				
-				// 更新积分显示
-				updatePoints(currentBabyId.value);
-				
-				// 广播宝宝切换事件
-				uni.$emit('babyChanged', currentBabyId.value);
-				
-				// 重新加载任务和兑换记录
-				loadTaskRecords();
-				loadExchangeRecords();
+				// 只有宝宝ID发生变化时才触发更新
+				if (oldBabyId !== newBabyId) {
+					console.log(`[个人页] 切换宝宝: 从[${oldBabyId}]到[${newBabyId}]`);
+					
+					// 更新本地状态
+					currentBabyId.value = newBabyId;
+					
+					// 同步保存到本地存储
+					uni.setStorageSync('currentBabyId', newBabyId);
+					
+					// 更新积分显示
+					updatePoints(newBabyId);
+					
+					// 用setTimeout确保事件在状态更新后触发
+					setTimeout(() => {
+						// 广播宝宝切换事件，传递完整宝宝信息
+						uni.$emit('babyChanged', {
+							babyId: newBabyId,
+							babyInfo: babies.value[idx],
+							source: 'profile',  // 标记事件来源
+							timestamp: Date.now() // 添加时间戳避免重复
+						});
+						
+						// 显示切换提示
+						uni.showToast({
+							title: `已切换到"${babies.value[idx].name}"`,
+							icon: 'none',
+							duration: 1500
+						});
+					}, 50);
+					
+					// 重新加载任务和兑换记录
+					loadTaskRecords();
+					loadExchangeRecords();
+				}
 			} else {
 				console.error('宝宝切换失败: 无效的索引', idx, '宝宝列表长度:', babies.value.length);
+			}
+		};
+
+		// 添加宝宝状态检查函数
+		const checkBabyStatus = () => {
+			// 从存储中读取当前宝宝ID
+			const storedBabyId = uni.getStorageSync('currentBabyId');
+			
+			// 如果本地状态与存储不一致，更新本地状态
+			if (currentBabyId.value !== storedBabyId && storedBabyId) {
+				console.log(`[个人页] 检测到宝宝状态不一致，从存储同步: ${storedBabyId}`);
+				currentBabyId.value = storedBabyId;
+				loadBabies();
+				updatePoints(storedBabyId);
+				loadTaskRecords();
+				loadExchangeRecords();
 			}
 		};
 
@@ -253,6 +307,7 @@ export default {
 			loadExchangeRecords();
 			loadAuthSettings();
 			isDark.value = isDarkTheme();
+			isDarkMode.value = isDarkTheme();
 
 			// 初始化主题
 			if (themeStore.initTheme) {
@@ -278,6 +333,39 @@ export default {
 
 			// 添加 refreshUserInfo 事件监听，编辑页保存后刷新主页面
 			uni.$on('refreshUserInfo', loadUserInfo);
+
+			// 优化babyChanged事件监听
+			uni.$on('babyChanged', (data) => {
+				// 检查是否为对象(新格式)或字符串(旧格式)
+				const babyId = typeof data === 'object' ? data.babyId : data;
+				const source = typeof data === 'object' ? (data.source || 'unknown') : 'unknown';
+				
+				// 避免自己触发的事件导致循环
+				if (source === 'profile') {
+					console.log('[个人页] 忽略自己触发的宝宝变更事件');
+					return;
+				}
+				
+				// 只有当ID变化时才更新
+				if (currentBabyId.value !== babyId) {
+					console.log(`[个人页] 接收到来自[${source}]的宝宝变更事件: ${babyId}`);
+					currentBabyId.value = babyId;
+					
+					// 强制刷新处理
+					loadBabies();
+					updatePoints(babyId);
+					loadTaskRecords();
+					loadExchangeRecords();
+					
+					// 延迟确认
+					setTimeout(() => {
+						console.log('[个人页] 完成宝宝变更响应');
+					}, 200);
+				}
+			});
+			
+			// 页面加载时主动检查宝宝状态
+			checkBabyStatus();
 		});
 
 		onUnmounted(() => {
@@ -286,12 +374,14 @@ export default {
 			uni.$off('babyPointsUpdated');
 			uni.$off('refreshBabyList');
 			uni.$off('refreshUserInfo');
+			uni.$off('babyChanged');
 		});
 
 		return {
 			userInfo,
 			totalScore,
 			isDark,
+			isDarkMode,
 			navigateTo,
 			taskRecords,
 			exchangeRecords,
@@ -301,8 +391,14 @@ export default {
 			onBabyChange,
 			navigateToAddBaby,
 			authSettings,
-			navigateToEditProfile
+			navigateToEditProfile,
+			checkBabyStatus
 		};
+	},
+	// uni-app生命周期方法作为组件选项
+	onShow() {
+		// 页面显示时检查宝宝状态
+		this.checkBabyStatus();
 	}
 };
 </script>
@@ -314,9 +410,9 @@ export default {
 	padding-bottom: 100rpx;
 }
 
-.user-info {
+.page-header {
 	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	padding: 40rpx 30rpx 30rpx;
+	padding: 70rpx 40rpx 30rpx 40rpx;
 	color: white;
 	position: relative;
   	border-radius: 0 0 30rpx 30rpx;

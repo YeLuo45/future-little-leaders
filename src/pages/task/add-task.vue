@@ -4,7 +4,7 @@
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <view class="nav-left" @tap="goBack">
-        <text class="nav-icon">←</text>
+        <text class="icon">←</text>
       </view>
       <text class="nav-title">添加任务</text>
     </view>
@@ -17,7 +17,7 @@
         <input class="form-input" v-model="taskForm.title" placeholder="请输入任务标题" placeholder-class="placeholder" />
       </view>
 
-        <!-- 任务描述 -->
+      <!-- 任务描述 -->
       <view class="form-item">
         <text class="form-label">任务描述</text>
         <textarea class="form-textarea" v-model="taskForm.description" type="string" placeholder="请输入任务描述(不超过50字)"
@@ -199,11 +199,11 @@
         try {
           const storedBabies = uni.getStorageSync('babies') || '[]';
           babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
-          
+
           // 加载当前选中宝宝
           const currentBabyId = uni.getStorageSync('currentBabyId');
           taskForm.value.babyId = currentBabyId || (babies.value.length > 0 ? babies.value[0].id : '');
-          
+
           // 设置初始选中的宝宝索引
           if (taskForm.value.babyId) {
             const index = babies.value.findIndex(baby => baby.id === taskForm.value.babyId);
@@ -211,9 +211,9 @@
               currentBabyIndex.value = index;
             }
           }
-          
+
           console.log('加载宝宝信息:', babies.value, taskForm.value.babyId);
-          
+
           // 如果没有宝宝，提示用户先添加宝宝
           if (babies.value.length === 0) {
             uni.showModal({
@@ -231,7 +231,7 @@
           console.error('加载宝宝信息失败:', e);
         }
       });
-      
+
       // 切换宝宝
       const onBabyChange = (e) => {
         const idx = e.detail.value;
@@ -456,36 +456,48 @@
   }
 
   /* 导航栏样式 */
-  .nav-bar {
+  /* .nav-bar {
     position: sticky;
     top: 0;
     display: flex;
     align-items: center;
     height: 88rpx;
-    /* background-color: #fff; */
+
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
     padding: 10rpx 30rpx 20rpx 10rpx;
     box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
     z-index: 100;
+  } */
+
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    height: 88rpx;
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    padding: 60rpx 40rpx 60rpx 40rpx;
+    position: relative;
   }
 
   .nav-left {
-    padding: 20rpx;
-    margin-left: -20rpx;
+    position: absolute;
+    left: 30rpx;
+    z-index: 1;
   }
 
-  .nav-icon {
-    font-size: 40rpx;
-    color: #333;
+  .icon {
+    color: white; 
+    font-size: 48rpx;
+    font-weight: bold;
   }
 
   .nav-title {
     flex: 1;
     text-align: center;
-    font-size: 32rpx;
-    font-weight: 500;
     color: white;
+    font-size: 48rpx;
+    font-weight: bold;
   }
+
 
   /* 表单容器 */
   .form-container {
@@ -728,7 +740,7 @@
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
     color: white;
     font-size: 32rpx;
-    border-radius: 44rpx; 
+    border-radius: 44rpx;
     border: none;
     box-shadow: 0 6rpx 16rpx rgba(132, 119, 250, 0.3);
   }

@@ -166,7 +166,6 @@
 <script>
   import { ref, computed, onMounted, onUnmounted } from 'vue';
   import { useThemeStore } from '@/stores/theme';
-  import { onPageShow } from '@dcloudio/uni-app';
   import { getBabyPoints, addBabyPoints } from '@/utils/pointsManager';
   import { verifyAuth } from '@/utils/authUtils';
 
@@ -329,23 +328,50 @@
       const onBabyChange = (e) => {
         const idx = e.detail.value;
         if (babies.value[idx]) {
-          currentBabyId.value = babies.value[idx].id;
-          uni.setStorageSync('currentBabyId', currentBabyId.value);
-
-          // 显式调用任务重新加载，确保UI更新
-          loadTasksAndPointsFromStorage();
-
-          // 添加调试日志
-          console.log('切换宝宝:', babies.value[idx].name, '宝宝ID:', currentBabyId.value);
-          console.log('已重新加载任务列表');
-
-          // 强制刷新一下UI
-          setTimeout(() => {
-            // 模拟状态变化，触发视图更新
-            const temp = [...taskList.value];
-            taskList.value = [];
-            taskList.value = temp;
-          }, 10);
+          // 记录之前的宝宝ID，用于检测变化
+          const oldBabyId = currentBabyId.value;
+          const newBabyId = babies.value[idx].id;
+          
+          // 只有宝宝ID发生变化时才触发更新
+          if (oldBabyId !== newBabyId) {
+            console.log(`[首页] 切换宝宝: 从[${oldBabyId}]到[${newBabyId}]`);
+            
+            // 更新本地状态
+            currentBabyId.value = newBabyId;
+            
+            // 同步保存到本地存储
+            uni.setStorageSync('currentBabyId', newBabyId);
+            
+            // 用setTimeout确保事件在状态更新后触发
+            setTimeout(() => {
+              // 广播宝宝切换事件，传递完整宝宝信息
+              uni.$emit('babyChanged', {
+                babyId: newBabyId,
+                babyInfo: babies.value[idx],
+                source: 'index',  // 标记事件来源
+                timestamp: Date.now() // 添加时间戳避免重复
+              });
+              
+              // 强制发送通知给其他页面
+              uni.showToast({
+                title: `已切换到"${babies.value[idx].name}"`,
+                icon: 'none',
+                duration: 1500
+              });
+            }, 50);
+            
+            // 强制重新加载本页面数据
+            loadTasksAndPointsFromStorage();
+            updateShowPoints();
+            refreshTasks(); // 刷新任务状态
+            
+            // 强制刷新UI
+            setTimeout(() => {
+              const temp = [...taskList.value];
+              taskList.value = [];
+              taskList.value = temp;
+            }, 100);
+          }
         }
       };
 
@@ -739,6 +765,21 @@
         console.log('手动刷新任务完成');
       };
 
+      // 添加宝宝当前状态检查函数
+      const checkBabyStatus = () => {
+        // 从存储中读取当前宝宝ID
+        const storedBabyId = uni.getStorageSync('currentBabyId');
+        
+        // 如果本地状态与存储不一致，更新本地状态
+        if (currentBabyId.value !== storedBabyId && storedBabyId) {
+          console.log(`[首页] 检测到宝宝状态不一致，从存储同步: ${storedBabyId}`);
+          currentBabyId.value = storedBabyId;
+          loadBabies();
+          loadTasksAndPointsFromStorage();
+          updateShowPoints();
+        }
+      };
+
       onMounted(() => {
         // 初始化主题
         if (themeStore.initTheme) {
@@ -775,16 +816,33 @@
           }
         });
 
-        // 添加宝宝变更事件监听
-        uni.$on('babyChanged', (babyId) => {
-          console.log('接收到宝宝变更事件:', babyId);
-          currentBabyId.value = babyId;
-          // 立即刷新宝宝列表
-          loadBabies();
-          // 加载任务列表
-          loadTasksAndPointsFromStorage();
-          // 刷新积分显示
-          updateShowPoints();
+        // 监听宝宝变更事件，使用加强版事件处理
+        uni.$on('babyChanged', (data) => {
+          // 检查是否为对象(新格式)或字符串(旧格式)
+          const babyId = typeof data === 'object' ? data.babyId : data;
+          const source = typeof data === 'object' ? (data.source || 'unknown') : 'unknown';
+          
+          // 避免自己触发的事件导致循环
+          if (source === 'index') {
+            console.log('[首页] 忽略自己触发的宝宝变更事件');
+            return;
+          }
+          
+          // 只有当ID变化时才更新
+          if (currentBabyId.value !== babyId) {
+            console.log(`[首页] 接收到来自[${source}]的宝宝变更事件: ${babyId}`);
+            currentBabyId.value = babyId;
+            
+            // 强制刷新处理
+            loadBabies();
+            loadTasksAndPointsFromStorage();
+            updateShowPoints();
+            
+            // 延迟刷新UI
+            setTimeout(() => {
+              console.log('[首页] 完成宝宝变更响应');
+            }, 200);
+          }
         });
 
         // 添加宝宝列表刷新事件监听
@@ -805,12 +863,9 @@
           isScrollReady.value = true;
           resetScroll();
         }, 300);
-      });
-
-      // 使用 onPageShow 替代 onShow
-      onPageShow(() => {
-        // 每次页面显示时重新加载任务列表
-        loadTasksAndPointsFromStorage();
+        
+        // 页面加载时主动检查宝宝状态
+        checkBabyStatus();
       });
 
       onUnmounted(() => {
@@ -860,8 +915,18 @@
         scrollTop,
         handleScroll,
         resetScroll,
-        getDefaultAvatar
+        getDefaultAvatar,
+        checkBabyStatus,
+        loadTasksAndPointsFromStorage
       };
+    },
+    // uni-app生命周期方法作为组件选项
+    onShow() {
+      // 每次页面显示时检查宝宝状态
+      this.checkBabyStatus();
+      
+      // 重新加载任务列表
+      this.loadTasksAndPointsFromStorage();
     }
   };
 </script>
@@ -882,7 +947,7 @@
 
 
   .page-header {
-    padding: 40rpx 30rpx 30rpx;
+    padding: 70rpx 40rpx 30rpx 40rpx;
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
     color: white;
     position: relative;

@@ -570,12 +570,13 @@ export default {
 	color: #ffffff;
 }
 
+/* 导航栏样式 */
 .nav-bar {
 	display: flex;
 	align-items: center;
 	height: 88rpx;
 	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	padding: 0 30rpx;
+	padding: 60rpx 40rpx 60rpx 40rpx;
 	position: relative;
 }
 
@@ -587,14 +588,15 @@ export default {
 
 .icon {
 	color: white;
-	font-size: 36rpx;
+	font-size: 48rpx;
+	font-weight: bold;
 }
 
 .nav-title {
 	flex: 1;
 	text-align: center;
 	color: white;
-	font-size: 32rpx;
+	font-size: 48rpx;
 	font-weight: bold;
 }
 

@@ -68,7 +68,7 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, onUnmounted } from 'vue';
 import { isDarkTheme } from '@/utils/themeUtils.js';
 import { getBabyPoints } from '@/utils/pointsManager';
 import { verifyAuth } from '@/utils/authUtils';
@@ -250,16 +250,51 @@ export default {
 
 		// 设置为当前宝宝
 		const setAsCurrentBaby = (baby) => {
-			currentBabyId.value = baby.id;
-			uni.setStorageSync('currentBabyId', baby.id);
+			// 记录之前的宝宝ID，用于检测变化
+			const oldBabyId = currentBabyId.value;
+			const newBabyId = baby.id;
 			
-			// 广播宝宝切换事件
-			uni.$emit('babyChanged', baby.id);
+			// 只有宝宝ID发生变化时才触发更新
+			if (oldBabyId !== newBabyId) {
+				console.log(`[宝宝管理] 切换宝宝: 从[${oldBabyId}]到[${newBabyId}]`);
+				
+				// 更新本地状态
+				currentBabyId.value = newBabyId;
+				
+				// 同步保存到本地存储
+				uni.setStorageSync('currentBabyId', newBabyId);
+				
+				// 用setTimeout确保事件在状态更新后触发
+				setTimeout(() => {
+					// 广播宝宝切换事件，传递完整宝宝信息以便其他页面更新
+					uni.$emit('babyChanged', {
+						babyId: newBabyId,
+						babyInfo: baby,
+						source: 'babyManagement',  // 标记事件来源
+						timestamp: Date.now() // 添加时间戳避免重复
+					});
+					
+					// 显示切换提示
+					uni.showToast({
+						title: `已切换到"${baby.name}"`,
+						icon: 'none',
+						duration: 1500
+					});
+				}, 50);
+			}
+		};
+
+		// 添加宝宝状态检查函数
+		const checkBabyStatus = () => {
+			// 从存储中读取当前宝宝ID
+			const storedBabyId = uni.getStorageSync('currentBabyId');
 			
-			uni.showToast({
-				title: `已切换到"${baby.name}"`,
-				icon: 'none'
-			});
+			// 如果本地状态与存储不一致，更新本地状态
+			if (currentBabyId.value !== storedBabyId && storedBabyId) {
+				console.log(`[宝宝管理] 检测到宝宝状态不一致，从存储同步: ${storedBabyId}`);
+				currentBabyId.value = storedBabyId;
+				loadBabies();
+			}
 		};
 
 		// 更新宝宝信息
@@ -292,6 +327,42 @@ export default {
 			
 			// 添加宝宝列表更新事件监听
 			uni.$on('refreshBabyList', loadBabies);
+			
+			// 添加宝宝切换事件监听
+			uni.$on('babyChanged', (data) => {
+				// 检查是否为对象(新格式)或字符串(旧格式)
+				const babyId = typeof data === 'object' ? data.babyId : data;
+				const source = typeof data === 'object' ? (data.source || 'unknown') : 'unknown';
+				
+				// 避免自己触发的事件导致循环
+				if (source === 'babyManagement') {
+					console.log('[宝宝管理] 忽略自己触发的宝宝变更事件');
+					return;
+				}
+				
+				// 只有当ID变化时才更新
+				if (currentBabyId.value !== babyId) {
+					console.log(`[宝宝管理] 接收到来自[${source}]的宝宝变更事件: ${babyId}`);
+					currentBabyId.value = babyId;
+					
+					// 强制刷新处理
+					loadBabies();
+					
+					// 延迟确认
+					setTimeout(() => {
+						console.log('[宝宝管理] 完成宝宝变更响应');
+					}, 200);
+				}
+			});
+			
+			// 页面加载时主动检查宝宝状态
+			checkBabyStatus();
+		});
+
+		// 在onUnmounted中移除事件监听
+		onUnmounted(() => {
+			uni.$off('refreshBabyList');
+			uni.$off('babyChanged');
 		});
 
 		return {
@@ -315,8 +386,14 @@ export default {
 			uploadCustomAvatar,
 			deleteBaby,
 			setAsCurrentBaby,
-			getBabyPoints
+			getBabyPoints,
+			checkBabyStatus
 		};
+	},
+	// uni-app生命周期方法作为组件选项
+	onShow() {
+		// 每次页面显示时检查宝宝状态
+		this.checkBabyStatus();
 	}
 };
 </script>
@@ -338,7 +415,7 @@ export default {
 	align-items: center;
 	height: 88rpx;
 	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	padding: 0 30rpx;
+	padding: 60rpx 40rpx 60rpx 40rpx;
 	position: relative;
 }
 
@@ -350,14 +427,15 @@ export default {
 
 .icon {
 	color: white;
-	font-size: 36rpx;
+	font-size: 48rpx;
+	font-weight: bold;
 }
 
 .nav-title {
 	flex: 1;
 	text-align: center;
 	color: white;
-	font-size: 32rpx;
+	font-size: 48rpx;
 	font-weight: bold;
 }
 

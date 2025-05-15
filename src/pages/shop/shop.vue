@@ -11,14 +11,16 @@
 
 			<!-- 宝宝选择器区域 -->
 			<view class="baby-selector">
-				<view class="baby-select-view">
-					<!-- <text class="baby-select-text">当前宝宝：</text> -->
-					<image v-if="currentBabyAvatar" class="baby-icon" :src="currentBabyAvatar" mode="aspectFill">
-					</image>
-					<text v-else class="baby-icon-placeholder">{{ getDefaultAvatar(currentBabyId) }}</text>
-					<text class="baby-name">{{ currentBabyName }}</text>
-					<!-- <text class="baby-arrow">▼</text> -->
-				</view>
+				<picker :range="babies" range-key="name" @change="onBabyChange">
+					<view class="baby-select-view">
+						<!-- <text class="baby-select-text">当前宝宝：</text> -->
+						<image v-if="currentBabyAvatar" class="baby-icon" :src="currentBabyAvatar" mode="aspectFill">
+						</image>
+						<text v-else class="baby-icon-placeholder">{{ getDefaultAvatar(currentBabyId) }}</text>
+						<text class="baby-name">{{ currentBabyName }}</text>
+						<text class="baby-arrow">▼</text>
+					</view>
+				</picker>
 			</view>
 
 		</view>
@@ -143,16 +145,50 @@
 			// 清除搜索内容
 			const clearSearch = () => {
 				searchKeyword.value = '';
+				// 清空搜索关键词后重新加载商品列表
+				loadProducts();
 			};
 
 			// 搜索商品
 			const searchProducts = () => {
-				// 这里可以添加更多搜索逻辑
-				uni.showToast({
-					title: '搜索: ' + searchKeyword.value,
-					icon: 'none',
-					duration: 1000
-				});
+				console.log(`[商城] 执行搜索: ${searchKeyword.value}`);
+				
+				if (!searchKeyword.value.trim()) {
+					// 搜索关键词为空，加载所有商品
+					loadProducts();
+					return;
+				}
+				
+				try {
+					// 获取完整商品列表
+					const storedProducts = uni.getStorageSync('shopProducts');
+					if (storedProducts) {
+						const allProducts = typeof storedProducts === 'string' ? JSON.parse(storedProducts) : storedProducts;
+						
+						// 根据关键词过滤商品
+						const filtered = allProducts.filter(item => {
+							// 在商品名称和描述中搜索关键词
+							return (
+								item.name && item.name.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
+								item.description && item.description.toLowerCase().includes(searchKeyword.value.toLowerCase())
+							);
+						});
+						
+						// 更新显示的商品列表
+						products.value = filtered;
+						
+						console.log(`[商城] 搜索结果: 找到${filtered.length}个商品`);
+						
+						// 显示搜索结果提示
+						uni.showToast({
+							title: `找到${filtered.length}个商品`,
+							icon: 'none',
+							duration: 1500
+						});
+					}
+				} catch (e) {
+					console.error('[商城] 搜索商品失败:', e);
+				}
 			};
 
 			// 跳转到添加商品页面
@@ -182,7 +218,19 @@
 								const parsedProducts = JSON.parse(storedProducts);
 								// 验证解析后的数据是否是数组
 								if (Array.isArray(parsedProducts)) {
-									products.value = parsedProducts;
+									// 如果有搜索关键词，则过滤商品
+									if (searchKeyword.value.trim()) {
+										products.value = parsedProducts.filter(item => {
+											return (
+												item.name && item.name.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
+												item.description && item.description.toLowerCase().includes(searchKeyword.value.toLowerCase())
+											);
+										});
+										console.log(`[商城] 加载商品并过滤: ${searchKeyword.value}, 结果: ${products.value.length}个`);
+									} else {
+										products.value = parsedProducts;
+										console.log(`[商城] 加载所有商品: ${products.value.length}个`);
+									}
 								} else {
 									console.warn('存储的商品数据不是数组，将使用默认商品列表');
 									setDefaultProducts();
@@ -325,14 +373,43 @@
 				const idx = e.detail.value;
 				// 确保索引有效
 				if (idx >= 0 && idx < babies.value.length && babies.value[idx]) {
-					currentBabyId.value = babies.value[idx].id;
-					uni.setStorageSync('currentBabyId', currentBabyId.value);
-
-					// 更新积分显示
-					updatePoints();
-
-					// 广播宝宝切换事件
-					uni.$emit('babyChanged', currentBabyId.value);
+					// 记录之前的宝宝ID，用于检测变化
+					const oldBabyId = currentBabyId.value;
+					const newBabyId = babies.value[idx].id;
+					
+					// 只有宝宝ID发生变化时才触发更新
+					if (oldBabyId !== newBabyId) {
+						console.log(`[商城] 切换宝宝: 从[${oldBabyId}]到[${newBabyId}]`);
+						
+						// 更新本地状态
+						currentBabyId.value = newBabyId;
+						
+						// 同步保存到本地存储
+						uni.setStorageSync('currentBabyId', newBabyId);
+						
+						// 更新积分显示
+						updatePoints();
+						
+						// 用setTimeout确保事件在状态更新后触发
+						setTimeout(() => {
+							// 广播宝宝切换事件，传递完整宝宝信息
+							uni.$emit('babyChanged', {
+								babyId: newBabyId,
+								babyInfo: babies.value[idx],
+								source: 'shop',  // 标记事件来源
+								timestamp: Date.now() // 添加时间戳避免重复
+							});
+							
+							// 显示切换提示
+							uni.showToast({
+								title: `已切换到"${babies.value[idx].name}"`,
+								icon: 'none',
+								duration: 1500
+							});
+						}, 50);
+						
+						console.log('[商城] 已触发宝宝切换事件');
+					}
 				} else {
 					console.error('宝宝切换失败: 无效的索引', idx, '宝宝列表长度:', babies.value.length);
 				}
@@ -344,6 +421,20 @@
 					totalScore.value = getBabyPoints(currentBabyId.value);
 				} else {
 					totalScore.value = getBabyPoints();
+				}
+			};
+
+			// 添加宝宝状态检查函数
+			const checkBabyStatus = () => {
+				// 从存储中读取当前宝宝ID
+				const storedBabyId = uni.getStorageSync('currentBabyId');
+				
+				// 如果本地状态与存储不一致，更新本地状态
+				if (currentBabyId.value !== storedBabyId && storedBabyId) {
+					console.log(`[商城] 检测到宝宝状态不一致，从存储同步: ${storedBabyId}`);
+					currentBabyId.value = storedBabyId;
+					loadBabies();
+					updatePoints();
 				}
 			};
 
@@ -369,11 +460,32 @@
 					}
 				});
 
-				// 添加宝宝切换事件监听
-				uni.$on('babyChanged', (babyId) => {
-					currentBabyId.value = babyId;
-					loadBabies();
-					updatePoints();
+				// 修改babyChanged事件监听
+				uni.$on('babyChanged', (data) => {
+					// 检查是否为对象(新格式)或字符串(旧格式)
+					const babyId = typeof data === 'object' ? data.babyId : data;
+					const source = typeof data === 'object' ? (data.source || 'unknown') : 'unknown';
+					
+					// 避免自己触发的事件导致循环
+					if (source === 'shop') {
+						console.log('[商城] 忽略自己触发的宝宝变更事件');
+						return;
+					}
+					
+					// 只有当ID变化时才更新
+					if (currentBabyId.value !== babyId) {
+						console.log(`[商城] 接收到来自[${source}]的宝宝变更事件: ${babyId}`);
+						currentBabyId.value = babyId;
+						
+						// 强制刷新处理
+						loadBabies();
+						updatePoints();
+						
+						// 延迟确认
+						setTimeout(() => {
+							console.log('[商城] 完成宝宝变更响应');
+						}, 200);
+					}
 				});
 
 				// 添加商品列表更新事件监听
@@ -384,6 +496,9 @@
 					loadBabies();
 					updatePoints();
 				});
+				
+				// 页面加载时主动检查宝宝状态
+				checkBabyStatus();
 			});
 
 			onUnmounted(() => {
@@ -411,8 +526,15 @@
 				currentBabyName,
 				onBabyChange,
 				currentBabyAvatar,
-				getDefaultAvatar
+				getDefaultAvatar,
+				currentBabyId,
+				checkBabyStatus
 			};
+		},
+		// uni-app生命周期方法作为组件选项
+		onShow() {
+			// 每次页面显示时检查宝宝状态
+			this.checkBabyStatus();
 		}
 	}
 </script>
@@ -430,7 +552,7 @@
 	}
 
 	.page-header {
-		padding: 40rpx 30rpx 30rpx;
+		padding: 70rpx 40rpx 30rpx 40rpx;
 		background: linear-gradient(135deg, #8B5CF6, #7C3AED);
 		color: white;
 		position: relative;
@@ -888,6 +1010,10 @@
 		text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
 	}
 
+	.baby-arrow {
+		font-size: 24rpx;
+		color: rgba(255, 255, 255, 0.8);
+	}
 
 	.baby-icon {
 		width: 50rpx;

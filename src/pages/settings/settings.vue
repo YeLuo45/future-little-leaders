@@ -1,11 +1,18 @@
 <template>
-	<view class="settings-container" :class="{'dark-mode': isDarkMode}">
+	<view class="page-container" :class="{'dark-mode': isDarkMode}">
 		<!-- 页面标题 -->
-		<view class="header" :class="{'dark-mode': isDarkMode}">
+		<!-- <view class="header" :class="{'dark-mode': isDarkMode}">
 			<view class="back-btn" @tap="goBack">
 				<text class="back-icon">←</text>
 			</view>
-			<view class="title">设置</view>
+			<view class="nav-title">设置</view>
+		</view> -->
+		<!-- 顶部导航栏 -->
+		<view class="nav-bar" :class="{'dark-mode': isDarkMode}">
+			<view class="nav-left" @tap="goBack">
+				<text class="icon">←</text>
+			</view>
+			<view class="nav-title">设置</view>
 		</view>
 		
 		<!-- 设置项分组 -->
@@ -331,61 +338,44 @@ export default {
 </script>
 
 <style>
-.settings-container {
+.page-container {
 	background-color: #f5f5f5;
 	min-height: 100vh;
 	padding-bottom: 60rpx;
 }
 
-.settings-container.dark-mode {
+.page-container.dark-mode {
 	background-color: #121212;
 }
 
-.header {
-	position: relative;
-	height: 100rpx;
+/* 导航栏样式 */
+.nav-bar {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	background-color: #fff;
-	box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+	height: 88rpx;
+	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+	padding: 60rpx 40rpx 60rpx 40rpx;
+	position: relative;
 }
 
-.header.dark-mode {
-	background-color: #1f1f1f;
-	box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
-}
-
-.back-btn {
+.nav-left {
 	position: absolute;
 	left: 30rpx;
-	top: 50%;
-	transform: translateY(-50%);
-	width: 60rpx;
-	height: 60rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	z-index: 1;
 }
 
-.back-icon {
-	font-size: 40rpx;
+.icon {
+	color: white;
+	font-size: 48rpx;
 	font-weight: bold;
-	color: #333;
 }
 
-.dark-mode .back-icon {
-	color: #e0e0e0;
-}
-
-.title {
-	font-size: 36rpx;
-	font-weight: 500;
-	color: #333;
-}
-
-.dark-mode .title {
-	color: #e0e0e0;
+.nav-title {
+	flex: 1;
+	text-align: center;
+	color: white;
+	font-size: 48rpx;
+	font-weight: bold;
 }
 
 .settings-section {

@@ -4,7 +4,7 @@
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <view class="nav-left" @tap="goBack">
-        <text class="nav-icon">←</text>
+        <text class="icon">←</text>
       </view>
       <text class="nav-title">添加商品</text>
     </view>
@@ -181,34 +181,34 @@ export default {
 
 /* 导航栏样式 */
 .nav-bar {
-  position: sticky;
-  top: 0;
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-  padding: 10rpx 30rpx 20rpx 10rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-  z-index: 100;
+	display: flex;
+	align-items: center;
+	height: 88rpx;
+	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+	padding: 60rpx 40rpx 60rpx 40rpx;
+	position: relative;
 }
 
 .nav-left {
-  padding: 20rpx;
-  margin-left: -20rpx;
+	position: absolute;
+	left: 30rpx;
+	z-index: 1;
 }
 
-.nav-icon {
-  font-size: 40rpx;
-  color: white;
+.icon {
+	color: white;
+	font-size: 48rpx;
+	font-weight: bold;
 }
 
 .nav-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  font-weight: 500;
-  color: white;
+	flex: 1;
+	text-align: center;
+	color: white;
+	font-size: 48rpx;
+	font-weight: bold;
 }
+
 
 /* 表单容器 */
 .form-container {
