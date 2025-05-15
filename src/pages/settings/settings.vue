@@ -21,30 +21,29 @@
 				<text class="item-arrow">›</text>
 			</view>
 			
-			<!-- 隐私设置 -->
-			<view class="settings-item" @tap="navigateToPrivacy">
+			<!-- 认证设置 -->
+			<view class="settings-item" @tap="navigateTo('settings/auth-settings')">
 				<view class="item-left">
 					<view class="item-icon icon-privacy" :class="{'dark-mode': isDarkMode}">🔒</view>
-					<text class="item-label">隐私设置</text>
+					<text class="item-label">认证设置</text>
 				</view>
 				<text class="item-arrow">›</text>
 			</view>
 			
 			<!-- 账号安全 -->
-			<view class="settings-item" @tap="navigateToSecurity">
+			<!-- <view class="settings-item" @tap="navigateToSecurity">
 				<view class="item-left">
 					<view class="item-icon icon-security" :class="{'dark-mode': isDarkMode}">🛡️</view>
 					<text class="item-label">账号安全</text>
 				</view>
 				<text class="item-arrow">›</text>
-			</view>
+			</view> -->
 		</view>
 		
 		<!-- 通用设置分组 -->
-		<view class="settings-section" :class="{'dark-mode': isDarkMode}">
+		<!-- <view class="settings-section" :class="{'dark-mode': isDarkMode}">
 			<view class="section-title">通用设置</view>
 			
-			<!-- 暗色模式 -->
 			<view class="settings-item">
 				<view class="item-left">
 					<view class="item-icon icon-theme" :class="{'dark-mode': isDarkMode}">{{ isDarkMode ? '🌙' : '☀️' }}</view>
@@ -53,7 +52,7 @@
 				<switch :checked="isDarkMode" @change="toggleDarkMode" color="#8477fa" />
 			</view>
 			
-			<!-- 消息通知 -->
+			
 			<view class="settings-item" @tap="navigateToNotification">
 				<view class="item-left">
 					<view class="item-icon icon-notification" :class="{'dark-mode': isDarkMode}">🔔</view>
@@ -62,7 +61,7 @@
 				<text class="item-arrow">›</text>
 			</view>
 			
-			<!-- 语言设置 -->
+			
 			<view class="settings-item" @tap="showLanguageOptions">
 				<view class="item-left">
 					<view class="item-icon icon-language" :class="{'dark-mode': isDarkMode}">🌐</view>
@@ -74,7 +73,7 @@
 				</view>
 			</view>
 			
-			<!-- 字体大小 -->
+			
 			<view class="settings-item" @tap="showFontSizeOptions">
 				<view class="item-left">
 					<view class="item-icon icon-font" :class="{'dark-mode': isDarkMode}">Aa</view>
@@ -86,7 +85,7 @@
 				</view>
 			</view>
 			
-			<!-- 清除缓存 -->
+			
 			<view class="settings-item" @tap="clearCache">
 				<view class="item-left">
 					<view class="item-icon icon-clear" :class="{'dark-mode': isDarkMode}">🗑️</view>
@@ -94,7 +93,7 @@
 				</view>
 				<text class="item-value">{{ cacheSize }}</text>
 			</view>
-		</view>
+		</view> -->
 		
 		<!-- 关于与帮助分组 -->
 		<view class="settings-section" :class="{'dark-mode': isDarkMode}">
@@ -139,7 +138,7 @@
 		
 		<!-- 版本信息 -->
 		<view class="version-info" :class="{'dark-mode': isDarkMode}">
-			<text>当前版本：v2.1.0</text>
+			<text>当前版本：v1.0.0</text>
 		</view>
 	</view>
 </template>
@@ -174,6 +173,13 @@ export default {
 		goBack() {
 			uni.navigateBack();
 		},
+
+		// 页面跳转
+		navigateTo (page) {
+			uni.navigateTo({
+				url: `/pages/${page}`
+			});
+		},
 		
 		/**
 		 * 切换暗色模式
@@ -192,9 +198,8 @@ export default {
 		 * 导航到个人资料设置页面
 		 */
 		navigateToProfile() {
-			uni.showToast({
-				title: '即将推出',
-				icon: 'none'
+			uni.navigateTo({
+				url: '/pages/profile/profile-edit'
 			});
 		},
 		
