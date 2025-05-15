@@ -41,11 +41,31 @@
       <!-- 任务标签 -->
       <view class="form-item">
         <text class="form-label">任务标签</text>
+        <!-- 标签分类选择器 -->
+        <view class="tag-categories">
+          <view 
+            v-for="(category, catIndex) in tagCategories" 
+            :key="catIndex"
+            class="tag-category" 
+            :class="{ 'active': selectedCategory === catIndex }"
+            @tap="selectedCategory = catIndex"
+          >
+            {{ category.name }}
+          </view>
+        </view>
+        
+        <!-- 当前分类下的标签 -->
         <view class="tags-container">
-          <view v-for="(tag, index) in availableTags" :key="index" class="tag-item" :class="[
-            `tag-${getTagColorClass(tag)}`,
-            { 'selected': taskForm.tags.includes(tag) }
-          ]" @tap="toggleTag(tag)">
+          <view 
+            v-for="(tag, index) in tagCategories[selectedCategory].tags" 
+            :key="index" 
+            class="tag-item" 
+            :class="[
+              `tag-${tagCategories[selectedCategory].colorClass}`,
+              { 'selected': taskForm.tags.includes(tag) }
+            ]" 
+            @tap="toggleTag(tag)"
+          >
             {{ tag }}
           </view>
         </view>
@@ -149,7 +169,43 @@
 
   export default {
     setup() {
-      // 可选标签列表
+      // 标签分类数据
+      const selectedCategory = ref(0); // 默认选中第一个分类
+      
+      const tagCategories = ref([
+        {
+          name: '生活习惯',
+          colorClass: 'lifestyle',
+          tags: ['规律作息', '健康饮食', '卫生自理', '时间管理', '物品整理']
+        },
+        {
+          name: '学习思维',
+          colorClass: 'learning',
+          tags: ['深度阅读', '专注做事', '主动提问', '抗挫能力', '创新思维']
+        },
+        {
+          name: '心理品德',
+          colorClass: 'mental',
+          tags: ['情绪管理', '同理心', '感恩意识', '责任感', '诚实待人', '界限感']
+        },
+        {
+          name: '社会适应',
+          colorClass: 'social',
+          tags: ['数字素养', '环保意识', '安全意识', '多元包容', '劳动价值观']
+        },
+        {
+          name: '社交与运动',
+          colorClass: 'activity',
+          tags: ['社交与冲突解决', '团队合作', '运动习惯', '公共秩序', '沟通表达']
+        },
+        {
+          name: '财商培养',
+          colorClass: 'finance',
+          tags: ['金钱认知', '财富管理', '财富创造', '社会责任']
+        }
+      ]);
+      
+      // 原有的可选标签列表（保留用作备用）
       const availableTags = [
         '阅读', '认知', '健康', '运动', '营养',
         '睡眠', '语言', '思维', '安全', '情感', '社交'
@@ -313,8 +369,16 @@
         taskForm.value.customEndTime = e.detail.value;
       };
 
-      // 获取标签样式
+      // 获取标签样式 - 使用分类颜色替代个别标签颜色
       const getTagColorClass = (tag) => {
+        // 查找标签所属的分类
+        for (const category of tagCategories.value) {
+          if (category.tags.includes(tag)) {
+            return category.colorClass;
+          }
+        }
+        
+        // 如果找不到，使用旧的映射（保留兼容性）
         const tagMap = {
           '阅读': 'education',
           '认知': 'cognitive',
@@ -429,6 +493,8 @@
       return {
         taskForm,
         availableTags,
+        tagCategories,
+        selectedCategory,
         weekdays,
         isFormValid,
         toggleTag,
@@ -547,7 +613,13 @@
   .tags-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 20rpx;
+    gap: 16rpx;
+    margin-top: 20rpx;
+    padding: 16rpx;
+    border-radius: 16rpx;
+    background-color: rgba(245, 245, 245, 0.7);
+    max-height: 360rpx;
+    overflow-y: auto;
   }
 
   .tag-item {
@@ -600,6 +672,31 @@
 
   .tag-default {
     background-color: #8477fa;
+  }
+
+  /* 新增分类颜色 */
+  .tag-lifestyle {
+    background-color: #6366F1; /* 紫色系 - 生活习惯 */
+  }
+
+  .tag-learning {
+    background-color: #3B82F6; /* 蓝色系 - 学习思维 */
+  }
+
+  .tag-mental {
+    background-color: #EC4899; /* 粉色系 - 心理品德 */
+  }
+
+  .tag-social {
+    background-color: #10B981; /* 绿色系 - 社会适应 */
+  }
+
+  .tag-activity {
+    background-color: #F59E0B; /* 橙色系 - 社交与运动 */
+  }
+
+  .tag-finance {
+    background-color: #059669; /* 深绿色系 - 财商培养 */
   }
 
   /* 任务类型选择器 */
@@ -784,5 +881,43 @@
     font-size: 24rpx;
     color: #999;
     margin-left: 10rpx;
+  }
+
+  /* 标签分类选择器 */
+  .tag-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+    margin-bottom: 16rpx;
+  }
+
+  .tag-category {
+    flex: 1;
+    text-align: center;
+    padding: 16rpx 24rpx;
+    border-radius: 12rpx;
+    font-size: 26rpx;
+    color: #666;
+    background-color: #f5f5f5;
+    transition: all 0.3s;
+    min-width: 140rpx;
+  }
+
+  .tag-category.active {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 4rpx 12rpx rgba(132, 119, 250, 0.3);
+  }
+
+  /* 优化标签选择体验 - 当财商培养分类被选中时的特殊样式 */
+  .tag-categories .tag-category:nth-child(6).active {
+    background: linear-gradient(135deg, #047857, #10B981);
+  }
+
+  /* 财商培养标签样式调整，确保文字清晰显示 */
+  .tag-finance.tag-item {
+    font-size: 24rpx;
+    padding: 10rpx 20rpx;
   }
 </style>

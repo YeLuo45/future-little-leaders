@@ -64,7 +64,7 @@ import { verifyAuth } from '@/utils/authUtils';
 export default {
   setup() {
     // 可选图标列表
-    const availableIcons = ['🎁', '🎮', '📱', '🎧', '🎯', '🎨', '📚', '🎵', '🏆', '⚽', '🍕', '🎬'];
+    const availableIcons = ['🎁', '🎮', '📱', '🎯', '🎨', '📚', '🎵', '⚽', '🍕', '🎬'];
 
     // 表单数据
     const productForm = ref({
