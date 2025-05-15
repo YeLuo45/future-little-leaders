@@ -22,7 +22,7 @@
       <input class="form-input" v-model="form.nickname" maxlength="20" placeholder="请输入昵称" />
     </view>
     <!-- 性别编辑 -->
-    <view class="form-item" @tap="showGenderModal = true">
+    <view class="form-item" @tap="openGenderModal">
       <text class="form-label">性别</text>
       <view class="form-value">{{ form.gender ? (form.gender === 'male' ? '男' : '女') : '请选择' }}</view>
     </view>
@@ -53,12 +53,12 @@
       <view class="modal-content" @tap.stop>
         <view class="modal-title">修改性别</view>
         <view class="gender-options">
-          <view class="gender-option" :class="{'selected': form.gender === 'female'}" @tap="selectGender('female')">
-            <radio :checked="form.gender === 'female'" color="#007AFF" />
+          <view class="gender-option" :class="{'selected': tempGender === 'female'}" @tap="selectGender('female')">
+            <radio :checked="tempGender === 'female'" color="#007AFF" />
             <text>女</text>
           </view>
-          <view class="gender-option" :class="{'selected': form.gender === 'male'}" @tap="selectGender('male')">
-            <radio :checked="form.gender === 'male'" color="#007AFF" />
+          <view class="gender-option" :class="{'selected': tempGender === 'male'}" @tap="selectGender('male')">
+            <radio :checked="tempGender === 'male'" color="#007AFF" />
             <text>男</text>
           </view>
         </view>
@@ -524,6 +524,8 @@ export default {
   align-items: center;
   padding: 24rpx 0;
   border-bottom: 1px solid #eee;
+  position: relative;
+  z-index: 1;
 }
 .gender-option text {
   margin-left: 20rpx;
@@ -531,6 +533,17 @@ export default {
 }
 .gender-option.selected {
   color: #007AFF;
+}
+
+/* 增加一个透明的覆盖层，使整行可点击 */
+.gender-option::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
 }
 
 /* 日期选择器 */

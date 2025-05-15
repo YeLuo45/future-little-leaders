@@ -309,20 +309,17 @@
           currentBabyId.value = storedCurrentBabyId || (babies.value[0]?.id || '');
 
           // 打印更详细的宝宝信息
-          console.log('加载宝宝信息:', babies.value.map(b => ({
-            id: b.id,
-            name: b.name,
-            hasAvatar: !!b.avatar,
-            avatarLength: b.avatar ? b.avatar.length : 0
-          })));
-
-          console.log('当前选中宝宝ID:', currentBabyId.value);
+          console.log('加载宝宝信息:', babies.value.length, '个宝宝', 
+            '当前选中:', currentBabyId.value);
 
           // 检查是否有宝宝没有头像
           const babiesWithoutAvatar = babies.value.filter(b => !b.avatar);
           if (babiesWithoutAvatar.length > 0) {
             console.log('警告: 有', babiesWithoutAvatar.length, '个宝宝没有头像');
           }
+          
+          // 更新积分显示
+          updateShowPoints();
         } catch (e) {
           console.error('加载宝宝信息失败:', e);
         }
@@ -780,7 +777,22 @@
 
         // 添加宝宝变更事件监听
         uni.$on('babyChanged', (babyId) => {
+          console.log('接收到宝宝变更事件:', babyId);
           currentBabyId.value = babyId;
+          // 立即刷新宝宝列表
+          loadBabies();
+          // 加载任务列表
+          loadTasksAndPointsFromStorage();
+          // 刷新积分显示
+          updateShowPoints();
+        });
+
+        // 添加宝宝列表刷新事件监听
+        uni.$on('refreshBabyList', () => {
+          console.log('接收到宝宝列表刷新事件');
+          // 重新加载宝宝列表
+          loadBabies();
+          // 刷新任务列表
           loadTasksAndPointsFromStorage();
         });
 
@@ -807,6 +819,7 @@
         uni.$off('pointsUpdated');
         uni.$off('babyPointsUpdated');
         uni.$off('babyChanged');
+        uni.$off('refreshBabyList');
         isScrollReady.value = false;
         // 停止定时器
         clearInterval(intervalId);

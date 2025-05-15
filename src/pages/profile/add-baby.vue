@@ -23,7 +23,7 @@
       </view>
       
       <!-- 性别选择 -->
-      <view class="form-item" @tap="showGenderModal = true">
+      <view class="form-item" @tap="openGenderModal">
         <text class="form-label">性别</text>
         <view class="form-value">{{ form.gender ? (form.gender === 'male' ? '男' : '女') : '请选择' }}</view>
       </view>
@@ -288,6 +288,12 @@ export default {
 
         // 广播宝宝列表更新事件
         uni.$emit('refreshBabyList');
+        
+        // 广播宝宝变更事件，确保首页能够感知到变化
+        uni.$emit('babyChanged', newBaby.id);
+        
+        // 广播任务列表刷新事件，确保首页刷新任务
+        uni.$emit('refreshTaskList');
 
         uni.showToast({
           title: '添加成功',
@@ -295,8 +301,16 @@ export default {
           duration: 2000,
           success: () => {
             setTimeout(() => {
-              uni.navigateBack();
-            }, 2000);
+              uni.navigateBack({
+                success: () => {
+                  // 确保返回上一页后也能刷新
+                  setTimeout(() => {
+                    uni.$emit('refreshBabyList');
+                    uni.$emit('babyChanged', newBaby.id);
+                  }, 500);
+                }
+              });
+            }, 1500);
           }
         });
       } catch (e) {
@@ -591,6 +605,8 @@ export default {
   align-items: center;
   padding: 24rpx 0;
   border-bottom: 1px solid #eee;
+  position: relative;
+  z-index: 1;
 }
 
 .gender-option text {
@@ -600,6 +616,17 @@ export default {
 
 .gender-option.selected {
   color: #007AFF;
+}
+
+/* 增加一个透明的覆盖层，使整行可点击 */
+.gender-option::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
 }
 </style>
 

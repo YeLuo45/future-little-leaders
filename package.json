@@ -40,7 +40,9 @@
     "@dcloudio/uni-stat": "^3.0.0-3090720230310001",
     "@vue/runtime-core": "^3.4.21",
     "@vue/shared": "^3.4.21",
+    "pinia": "^3.0.2",
     "playwright": "^1.51.1",
+    "uuid": "^11.1.0",
     "vue": "^3.4.21"
   },
   "devDependencies": {
