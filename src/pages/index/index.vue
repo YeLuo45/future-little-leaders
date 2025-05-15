@@ -168,6 +168,7 @@
   import { useThemeStore } from '@/stores/theme';
   import { onPageShow } from '@dcloudio/uni-app';
   import { getBabyPoints, addBabyPoints } from '@/utils/pointsManager';
+  import { verifyAuth } from '@/utils/authUtils';
 
   export default {
     setup() {
@@ -532,116 +533,18 @@
       // 完成任务
       const completeTask = (task) => {
         // 检查是否开启认证模式
-        try {
-          const authSettings = uni.getStorageSync('authSettings');
-          if (authSettings) {
-            const settings = JSON.parse(authSettings);
-            if (settings.isEnabled) {
-              // 检查是否设置了认证方式
-              if (!settings.hasPassword && !settings.hasBiometric && !settings.hasFaceId) {
-                uni.showToast({
-                  title: '请先设置认证方式',
-                  icon: 'none'
-                });
-                return;
-              }
-
-              // 显示认证选择弹窗
-              uni.showActionSheet({
-                itemList: [
-                  settings.hasPassword ? '密码验证' : null,
-                  settings.hasBiometric ? '指纹验证' : null,
-                  settings.hasFaceId ? '人脸识别' : null
-                ].filter(Boolean),
-                success: (res) => {
-                  const selectedMethod = res.tapIndex;
-                  const methods = [
-                    settings.hasPassword ? 'password' : null,
-                    settings.hasBiometric ? 'biometric' : null,
-                    settings.hasFaceId ? 'faceId' : null
-                  ].filter(Boolean);
-
-                  const method = methods[selectedMethod];
-                  verifyAuthentication(method, () => {
-                    // 认证成功后继续完成任务
-                    completeTaskAfterAuth(task);
-                  });
-                }
-              });
-              return;
-            }
+        verifyAuth(
+          // 验证成功或不需要验证的回调
+          () => {
+            // 认证成功后继续完成任务
+            completeTaskAfterAuth(task);
+          },
+          // 验证失败的回调
+          (error) => {
+            console.error('认证失败:', error);
+            // 验证失败不做任何操作
           }
-        } catch (e) {
-          console.error('检查认证设置失败:', e);
-        }
-
-        // 如果不需要认证或认证已通过，直接完成任务
-        completeTaskAfterAuth(task);
-      };
-
-      // 认证验证
-      const verifyAuthentication = (method, callback) => {
-        switch (method) {
-          case 'password':
-            // 显示密码输入弹窗
-            uni.showModal({
-              title: '请输入密码',
-              editable: true,
-              placeholderText: '请输入密码',
-              success: (res) => {
-                if (res.confirm) {
-                  const storedPassword = uni.getStorageSync('authPassword');
-                  if (res.content === storedPassword) {
-                    callback();
-                  } else {
-                    uni.showToast({
-                      title: '密码错误',
-                      icon: 'none'
-                    });
-                  }
-                }
-              }
-            });
-            break;
-
-          case 'biometric':
-            // #ifdef MP-WEIXIN
-            uni.startSoterAuthentication({
-              requestAuthModes: ['fingerPrint'],
-              challenge: 'challenge',
-              authContent: '请验证指纹',
-              success: () => {
-                callback();
-              },
-              fail: () => {
-                uni.showToast({
-                  title: '指纹验证失败',
-                  icon: 'none'
-                });
-              }
-            });
-            // #endif
-            break;
-
-          case 'faceId':
-            // #ifdef MP-WEIXIN
-            uni.startSoterAuthentication({
-              requestAuthModes: ['facial'],
-              challenge: 'challenge',
-              authContent: '请进行人脸识别',
-              success: () => {
-                callback();
-              },
-              fail: () => {
-                uni.showToast({
-                  title: '人脸识别失败',
-                  icon: 'none'
-                });
-              }
-            });
-            // #endif
-            break;
-        }
+        );
       };
 
       // 认证后完成任务

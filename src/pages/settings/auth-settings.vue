@@ -48,15 +48,61 @@
 			<view class="modal-mask" v-if="showPasswordModal" @tap="closePasswordModal">
 				<view class="modal-content" @tap.stop>
 					<view class="modal-title">{{ authSettings.hasPassword ? '修改密码' : '设置密码' }}</view>
-					<view class="input-group">
-						<input v-if="authSettings.hasPassword" type="password" v-model="oldPassword"
-							placeholder="请输入原密码" class="input" />
-						<input type="password" v-model="newPassword" placeholder="请输入新密码" class="input" />
-						<input type="password" v-model="confirmPassword" placeholder="请确认新密码" class="input" />
+					
+					<!-- 原密码输入框 -->
+					<block v-if="authSettings.hasPassword">
+						<view class="password-input-box">
+							<input 
+								:type="oldPasswordVisible ? 'text' : 'password'" 
+								v-model="oldPassword"
+								placeholder="请输入原密码" 
+								class="password-input" 
+							/>
+							<text 
+								class="password-toggle-icon" 
+								@tap="oldPasswordVisible = !oldPasswordVisible"
+							>
+								{{ oldPasswordVisible ? '👁️' : '👁️‍🗨️' }}
+							</text>
+						</view>
+					</block>
+					
+					<!-- 新密码输入框 -->
+					<view class="password-input-box">
+						<input 
+							:type="newPasswordVisible ? 'text' : 'password'" 
+							v-model="newPassword"
+							placeholder="请输入新密码(6-40个字符)" 
+							class="password-input" 
+						/>
+						<text 
+							class="password-toggle-icon" 
+							@tap="newPasswordVisible = !newPasswordVisible"
+						>
+							{{ newPasswordVisible ? '👁️' : '👁️‍🗨️' }}
+						</text>
 					</view>
-					<view class="modal-buttons">
-						<button class="cancel-btn" @tap="closePasswordModal">取消</button>
-						<button class="confirm-btn" @tap="savePassword">确定</button>
+					
+					<!-- 确认密码输入框 -->
+					<view class="password-input-box">
+						<input 
+							:type="confirmPasswordVisible ? 'text' : 'password'" 
+							v-model="confirmPassword"
+							placeholder="请确认新密码" 
+							class="password-input" 
+						/>
+						<text 
+							class="password-toggle-icon" 
+							@tap="confirmPasswordVisible = !confirmPasswordVisible"
+						>
+							{{ confirmPasswordVisible ? '👁️' : '👁️‍🗨️' }}
+						</text>
+					</view>
+					
+					<!-- 按钮区域 -->
+					<view class="modal-actions">
+						<button class="modal-btn cancel-btn" @tap="closePasswordModal">取消</button>
+						<button class="modal-btn confirm-btn" @tap="savePassword">确定</button>
 					</view>
 				</view>
 			</view>
@@ -67,6 +113,7 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue';
+import { getAuthSettings, saveAuthSettings, verifyAuth } from '@/utils/authUtils';
 
 export default {
 	name: 'AuthSettings',
@@ -81,6 +128,11 @@ export default {
 		const oldPassword = ref('');
 		const newPassword = ref('');
 		const confirmPassword = ref('');
+		
+		// 密码显示状态
+		const oldPasswordVisible = ref(false);
+		const newPasswordVisible = ref(false);
+		const confirmPasswordVisible = ref(false);
 
 		// 计算是否有任意一种验证方式
 		const hasAnyAuthMethod = computed(() => {
@@ -91,80 +143,15 @@ export default {
 
 		// 加载认证设置
 		const loadAuthSettings = () => {
-			try {
-				const settings = uni.getStorageSync('authSettings');
-				if (settings) {
-					authSettings.value = JSON.parse(settings);
-				}
-			} catch (e) {
-				console.error('加载认证设置失败:', e);
+			const settings = getAuthSettings();
+			if (settings) {
+				authSettings.value = settings;
 			}
 		};
 
 		// 保存认证设置
-		const saveAuthSettings = () => {
-			try {
-				uni.setStorageSync('authSettings', JSON.stringify(authSettings.value));
-			} catch (e) {
-				console.error('保存认证设置失败:', e);
-			}
-		};
-
-		// 通用认证方法
-		const verifyAuth = () => {
-			return new Promise((resolve, reject) => {
-				const availableMethods = [];
-				if (authSettings.value.hasPassword) availableMethods.push('密码验证');
-				if (authSettings.value.hasBiometric) availableMethods.push('指纹验证');
-				if (authSettings.value.hasFaceId) availableMethods.push('人脸识别');
-				if (availableMethods.length === 0) {
-					uni.showToast({ title: '未设置认证方式', icon: 'none' });
-					reject();
-					return;
-				}
-				uni.showActionSheet({
-					itemList: availableMethods,
-					success: (res) => {
-						const method = availableMethods[res.tapIndex];
-						if (method === '密码验证') {
-							uni.showModal({
-								title: '请输入密码',
-								editable: true,
-								placeholderText: '请输入密码',
-								success: (res) => {
-									const storedPassword = uni.getStorageSync('authPassword');
-									if (res.content === storedPassword) resolve();
-									else {
-										uni.showToast({ title: '密码错误', icon: 'none' });
-										reject();
-									}
-								}
-							});
-						} else if (method === '指纹验证') {
-							// #ifdef MP-WEIXIN
-							uni.startSoterAuthentication({
-								requestAuthModes: ['fingerPrint'],
-								challenge: 'challenge',
-								authContent: '请验证指纹',
-								success: () => resolve(),
-								fail: () => { uni.showToast({ title: '指纹验证失败', icon: 'none' }); reject(); }
-							});
-							// #endif
-						} else if (method === '人脸识别') {
-							// #ifdef MP-WEIXIN
-							uni.startSoterAuthentication({
-								requestAuthModes: ['facial'],
-								challenge: 'challenge',
-								authContent: '请进行人脸识别',
-								success: () => resolve(),
-								fail: () => { uni.showToast({ title: '人脸识别失败', icon: 'none' }); reject(); }
-							});
-							// #endif
-						}
-					},
-					fail: () => { reject(); }
-				});
-			});
+		const saveSettings = () => {
+			saveAuthSettings(authSettings.value);
 		};
 
 		// 点击设置项
@@ -195,25 +182,40 @@ export default {
 					return;
 				}
 				authSettings.value.isEnabled = true;
-				saveAuthSettings();
+				saveSettings();
 				uni.showToast({ 
 					title: '认证模式已开启', 
 					icon: 'success' 
 				});
 			} else {
+				// 暂时保持开关状态，在验证成功后才实际关闭
+				setTimeout(() => {
+					authSettings.value.isEnabled = true;
+				}, 100);
+				
 				// 关闭认证模式时需要认证
-				try {
-					await verifyAuth();
-					authSettings.value.isEnabled = false;
-					saveAuthSettings();
-					uni.showToast({ 
-						title: '认证模式已关闭', 
-						icon: 'success' 
-					});
-				} catch (error) {
-					// 验证失败，不做更改
-					console.error('认证失败:', error);
-				}
+				verifyAuth(
+					// 成功回调
+					() => {
+						authSettings.value.isEnabled = false;
+						saveSettings();
+						uni.showToast({ 
+							title: '认证模式已关闭', 
+							icon: 'success' 
+						});
+					},
+					// 失败回调
+					(error) => {
+						console.error('认证失败:', error);
+						// 验证失败，强制保持开关开启状态
+						// 不需要额外操作，因为我们已经在上面提前恢复了开关状态
+						uni.showToast({
+							title: '验证失败，无法关闭认证模式',
+							icon: 'none',
+							duration: 2000
+						});
+					}
+				);
 			}
 		};
 
@@ -222,6 +224,10 @@ export default {
 			oldPassword.value = '';
 			newPassword.value = '';
 			confirmPassword.value = '';
+			// 重置密码显示状态
+			oldPasswordVisible.value = false;
+			newPasswordVisible.value = false;
+			confirmPasswordVisible.value = false;
 			showPasswordModal.value = true;
 		};
 
@@ -243,6 +249,15 @@ export default {
 			if (!newPassword.value) {
 				uni.showToast({
 					title: '请输入新密码',
+					icon: 'none'
+				});
+				return;
+			}
+			
+			// 检查密码长度
+			if (newPassword.value.length < 6 || newPassword.value.length > 40) {
+				uni.showToast({
+					title: '密码长度需要6-40个字符',
 					icon: 'none'
 				});
 				return;
@@ -271,7 +286,7 @@ export default {
 			// 保存新密码
 			uni.setStorageSync('authPassword', newPassword.value);
 			authSettings.value.hasPassword = true;
-			saveAuthSettings();
+			saveSettings();
 			closePasswordModal();
 
 			uni.showToast({
@@ -284,28 +299,32 @@ export default {
 		const toggleBiometric = async () => {
 			// 如果已开启，则验证后关闭
 			if (authSettings.value.hasBiometric) {
-				try {
-					await verifyAuth();
-					authSettings.value.hasBiometric = false;
-					saveAuthSettings();
-					
-					// 如果没有任何验证方式，则自动关闭认证模式
-					if (!hasAnyAuthMethod.value && authSettings.value.isEnabled) {
-						authSettings.value.isEnabled = false;
-						saveAuthSettings();
-						uni.showToast({
-							title: '已关闭认证模式',
-							icon: 'none'
-						});
-					} else {
-						uni.showToast({
-							title: '已关闭生物识别',
-							icon: 'success'
-						});
+				verifyAuth(
+					// 成功回调
+					() => {
+						authSettings.value.hasBiometric = false;
+						saveSettings();
+						
+						// 如果没有任何验证方式，则自动关闭认证模式
+						if (!hasAnyAuthMethod.value && authSettings.value.isEnabled) {
+							authSettings.value.isEnabled = false;
+							saveSettings();
+							uni.showToast({
+								title: '已关闭认证模式',
+								icon: 'none'
+							});
+						} else {
+							uni.showToast({
+								title: '已关闭生物识别',
+								icon: 'success'
+							});
+						}
+					},
+					// 失败回调
+					(error) => {
+						console.error('认证失败:', error);
 					}
-				} catch (error) {
-					console.error('认证失败:', error);
-				}
+				);
 				return;
 			}
 			
@@ -328,7 +347,7 @@ export default {
 										authContent: '请验证指纹',
 										success: () => {
 											authSettings.value.hasBiometric = true;
-											saveAuthSettings();
+											saveSettings();
 											uni.showToast({
 												title: '已开启生物识别',
 												icon: 'success'
@@ -340,6 +359,7 @@ export default {
 												title: '生物识别验证失败',
 												icon: 'none'
 											});
+											// 不改变设置状态，允许用户再次尝试
 										}
 									});
 								} else {
@@ -386,28 +406,32 @@ export default {
 		const toggleFaceId = async () => {
 			// 如果已开启，则验证后关闭
 			if (authSettings.value.hasFaceId) {
-				try {
-					await verifyAuth();
-					authSettings.value.hasFaceId = false;
-					saveAuthSettings();
-					
-					// 如果没有任何验证方式，则自动关闭认证模式
-					if (!hasAnyAuthMethod.value && authSettings.value.isEnabled) {
-						authSettings.value.isEnabled = false;
-						saveAuthSettings();
-						uni.showToast({
-							title: '已关闭认证模式',
-							icon: 'none'
-						});
-					} else {
-						uni.showToast({
-							title: '已关闭人脸识别',
-							icon: 'success'
-						});
+				verifyAuth(
+					// 成功回调
+					() => {
+						authSettings.value.hasFaceId = false;
+						saveSettings();
+						
+						// 如果没有任何验证方式，则自动关闭认证模式
+						if (!hasAnyAuthMethod.value && authSettings.value.isEnabled) {
+							authSettings.value.isEnabled = false;
+							saveSettings();
+							uni.showToast({
+								title: '已关闭认证模式',
+								icon: 'none'
+							});
+						} else {
+							uni.showToast({
+								title: '已关闭人脸识别',
+								icon: 'success'
+							});
+						}
+					},
+					// 失败回调
+					(error) => {
+						console.error('认证失败:', error);
 					}
-				} catch (error) {
-					console.error('认证失败:', error);
-				}
+				);
 				return;
 			}
 			
@@ -415,24 +439,65 @@ export default {
 			// #ifdef MP-WEIXIN
 			uni.checkIsSupportSoterAuthentication({
 				success: (res) => {
-					if (res.supportMode.includes('facial')) {
-						// 开启人脸识别
-						uni.startSoterAuthentication({
-							requestAuthModes: ['facial'],
-							challenge: 'challenge',
-							authContent: '请进行人脸识别',
-							success: () => {
-								authSettings.value.hasFaceId = true;
-								saveAuthSettings();
-								uni.showToast({
-									title: '已开启人脸识别',
-									icon: 'success'
-								});
+					console.log('Soter支持情况:', res);
+					if (res.supportMode && res.supportMode.includes('facial')) {
+						// 检查设备是否已录入人脸
+						uni.checkIsSoterEnrolledInDevice({
+							checkAuthMode: 'facial',
+							success: (enrollRes) => {
+								console.log('人脸录入情况:', enrollRes);
+								if (enrollRes.isEnrolled) {
+									// 开启人脸识别
+									uni.startSoterAuthentication({
+										requestAuthModes: ['facial'],
+										challenge: 'challenge',
+										authContent: '请进行人脸识别',
+										success: () => {
+											authSettings.value.hasFaceId = true;
+											saveSettings();
+											uni.showToast({
+												title: '已开启人脸识别',
+												icon: 'success'
+											});
+										},
+										fail: (error) => {
+											console.error('人脸识别失败:', error);
+											uni.showToast({
+												title: '人脸识别验证失败',
+												icon: 'none'
+											});
+											// 不改变设置状态，允许用户再次尝试
+										}
+									});
+								} else {
+									uni.showToast({
+										title: '设备未录入人脸信息',
+										icon: 'none'
+									});
+								}
 							},
-							fail: () => {
-								uni.showToast({
-									title: '人脸识别验证失败',
-									icon: 'none'
+							fail: (error) => {
+								console.error('检查人脸录入失败:', error);
+								// 当特定API不支持时，尝试直接使用认证API
+								uni.startSoterAuthentication({
+									requestAuthModes: ['facial'],
+									challenge: 'challenge',
+									authContent: '请进行人脸识别',
+									success: () => {
+										authSettings.value.hasFaceId = true;
+										saveSettings();
+										uni.showToast({
+											title: '已开启人脸识别',
+											icon: 'success'
+										});
+									},
+									fail: (authError) => {
+										console.error('人脸识别失败:', authError);
+										uni.showToast({
+											title: '人脸识别验证失败',
+											icon: 'none'
+										});
+									}
 								});
 							}
 						});
@@ -443,7 +508,8 @@ export default {
 						});
 					}
 				},
-				fail: () => {
+				fail: (error) => {
+					console.error('检查人脸识别支持失败:', error);
 					uni.showToast({
 						title: '设备不支持人脸识别',
 						icon: 'none'
@@ -476,6 +542,9 @@ export default {
 			oldPassword,
 			newPassword,
 			confirmPassword,
+			oldPasswordVisible,
+			newPasswordVisible,
+			confirmPasswordVisible,
 			onAuthModeChange,
 			onSettingItemTap,
 			openPasswordModal,
@@ -599,40 +668,63 @@ export default {
 .modal-content {
 	background-color: #fff;
 	border-radius: 12rpx;
-	padding: 30rpx;
-	width: 600rpx;
+	padding: 40rpx 30rpx;
+	width: 85%;
+	max-width: 600rpx;
+	box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 
 .modal-title {
-	font-size: 32rpx;
+	font-size: 36rpx;
 	font-weight: bold;
 	text-align: center;
-	margin-bottom: 30rpx;
+	margin-bottom: 40rpx;
+	color: #333;
 }
 
-.input-group {
+.password-input-box {
+	position: relative;
 	margin-bottom: 30rpx;
-}
-
-.input {
-	border: 1rpx solid #ddd;
 	border-radius: 8rpx;
-	padding: 20rpx;
-	margin-bottom: 20rpx;
-	font-size: 28rpx;
+	overflow: hidden;
+	border: 1rpx solid #e0e0e0;
+	height: 88rpx;
 }
 
-.modal-buttons {
+.password-input {
+	height: 88rpx;
+	width: 100%;
+	padding: 0 20rpx;
+	padding-right: 70rpx;
+	font-size: 30rpx;
+	box-sizing: border-box;
+	color: #333;
+}
+
+.password-toggle-icon {
+	position: absolute;
+	right: 20rpx;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 40rpx;
+	color: #999;
+	z-index: 2;
+}
+
+.modal-actions {
 	display: flex;
 	justify-content: space-between;
+	margin-top: 30rpx;
 }
 
-.cancel-btn,
-.confirm-btn {
-	width: 45%;
-	padding: 20rpx 0;
-	border-radius: 8rpx;
-	font-size: 28rpx;
+.modal-btn {
+	flex: 1;
+	height: 88rpx;
+	line-height: 88rpx;
+	text-align: center;
+	font-size: 32rpx;
+	border-radius: 44rpx;
+	margin: 0 15rpx;
 }
 
 .cancel-btn {
@@ -641,7 +733,8 @@ export default {
 }
 
 .confirm-btn {
-	background-color: #7C3AED;
-	color: #fff;
+	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+	color: white;
+	box-shadow: 0 4rpx 12rpx rgba(132, 119, 250, 0.3);
 }
 </style>

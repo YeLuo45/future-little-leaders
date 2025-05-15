@@ -98,6 +98,8 @@
 <script>
 import { ref, computed, onMounted, reactive, watch } from 'vue';
 import { isDarkTheme } from '@/utils/themeUtils';
+import { verifyAuth } from '@/utils/authUtils';
+
 export default {
   name: 'ProfileEdit',
   setup() {
@@ -208,19 +210,34 @@ export default {
         uni.showToast({ title: '请完善信息', icon: 'none' });
         return;
       }
-      try {
-        const user = uni.getStorageSync('userInfo');
-        let info = user ? JSON.parse(user) : {};
-        info = { ...info, ...form.value };
-        uni.setStorageSync('userInfo', JSON.stringify(info));
-        uni.showToast({ title: '保存成功', icon: 'success' });
-        setTimeout(() => {
-          uni.navigateBack();
-          uni.$emit('refreshUserInfo');
-        }, 1000);
-      } catch (e) {
-        uni.showToast({ title: '保存失败', icon: 'none' });
-      }
+      
+      // 修改个人信息前进行身份验证
+      verifyAuth(
+        // 验证成功回调
+        () => {
+          try {
+            const user = uni.getStorageSync('userInfo');
+            let info = user ? JSON.parse(user) : {};
+            info = { ...info, ...form.value };
+            uni.setStorageSync('userInfo', JSON.stringify(info));
+            uni.showToast({ title: '保存成功', icon: 'success' });
+            setTimeout(() => {
+              uni.navigateBack();
+              uni.$emit('refreshUserInfo');
+            }, 1000);
+          } catch (e) {
+            uni.showToast({ title: '保存失败', icon: 'none' });
+          }
+        },
+        // 验证失败回调
+        (error) => {
+          console.error('验证失败:', error);
+          uni.showToast({
+            title: '验证失败，无法保存',
+            icon: 'none'
+          });
+        }
+      );
     };
     
     // 头像弹窗

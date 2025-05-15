@@ -59,6 +59,7 @@
 
 <script>
 import { ref, computed } from 'vue';
+import { verifyAuth } from '@/utils/authUtils';
 
 export default {
   setup() {
@@ -101,48 +102,62 @@ export default {
         return;
       }
 
-      try {
-        // 从本地存储获取现有商品列表
-        let products = uni.getStorageSync('shopProducts') || '[]';
-        products = JSON.parse(products);
+      // 添加商品前先验证身份
+      verifyAuth(
+        // 验证成功回调
+        () => {
+          try {
+            // 从本地存储获取现有商品列表
+            let products = uni.getStorageSync('shopProducts') || '[]';
+            products = JSON.parse(products);
 
-        // 创建新商品对象
-        const newProduct = {
-          name: productForm.value.name,
-          points: Number(productForm.value.points),
-          stock: productForm.value.stock,
-          icon: productForm.value.icon,
-          description: productForm.value.description
-        };
+            // 创建新商品对象
+            const newProduct = {
+              name: productForm.value.name,
+              points: Number(productForm.value.points),
+              stock: productForm.value.stock,
+              icon: productForm.value.icon,
+              description: productForm.value.description
+            };
 
-        // 添加到商品列表
-        products.unshift(newProduct);
+            // 添加到商品列表
+            products.unshift(newProduct);
 
-        // 保存到本地存储
-        uni.setStorageSync('shopProducts', JSON.stringify(products));
+            // 保存到本地存储
+            uni.setStorageSync('shopProducts', JSON.stringify(products));
 
-        uni.showToast({
-          title: '商品添加成功',
-          icon: 'success'
-        });
+            uni.showToast({
+              title: '商品添加成功',
+              icon: 'success'
+            });
 
-        // 返回上一页并刷新
-        setTimeout(() => {
-          uni.navigateBack({
-            delta: 1,
-            success: () => {
-              // 触发商城页面刷新
-              uni.$emit('refreshProductList');
-            }
+            // 返回上一页并刷新
+            setTimeout(() => {
+              uni.navigateBack({
+                delta: 1,
+                success: () => {
+                  // 触发商城页面刷新
+                  uni.$emit('refreshProductList');
+                }
+              });
+            }, 1500);
+          } catch (e) {
+            console.error('保存商品失败:', e);
+            uni.showToast({
+              title: '创建失败，请重试',
+              icon: 'none'
+            });
+          }
+        },
+        // 验证失败回调
+        (error) => {
+          console.error('验证失败:', error);
+          uni.showToast({
+            title: '验证失败，无法添加商品',
+            icon: 'none'
           });
-        }, 1500);
-      } catch (e) {
-        console.error('保存商品失败:', e);
-        uni.showToast({
-          title: '创建失败，请重试',
-          icon: 'none'
-        });
-      }
+        }
+      );
     };
 
     return {

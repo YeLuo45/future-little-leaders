@@ -79,6 +79,7 @@
 	import { useThemeStore } from '@/stores/theme';
 	import { getBabyPoints, deductBabyPoints } from '@/utils/pointsManager';
 	import { isDarkTheme } from '@/utils/themeUtils.js';
+	import { verifyAuth } from '@/utils/authUtils';
 
 	export default {
 		setup() {
@@ -230,7 +231,7 @@
 			};
 
 			// 兑换商品
-			const exchangeProduct = async (product) => {
+			const exchangeProduct = (product) => {
 				if (!product || product.points > totalScore.value) {
 					uni.showToast({
 						title: '积分不足',
@@ -239,44 +240,58 @@
 					return;
 				}
 
-				try {
-					// 扣除积分
-					const success = await deductBabyPoints(currentBabyId.value, product.points);
-					if (success) {
-						// 创建兑换记录
-						const exchangeRecord = {
-							productName: product.name,
-							points: product.points,
-							exchangeTime: new Date().toISOString(),
-							status: '兑换成功',
-							babyId: currentBabyId.value // 添加宝宝ID到兑换记录
-						};
+				// 兑换商品前先验证身份
+				verifyAuth(
+					// 验证成功回调
+					async () => {
+						try {
+							// 扣除积分
+							const success = await deductBabyPoints(currentBabyId.value, product.points);
+							if (success) {
+								// 创建兑换记录
+								const exchangeRecord = {
+									productName: product.name,
+									points: product.points,
+									exchangeTime: new Date().toISOString(),
+									status: '兑换成功',
+									babyId: currentBabyId.value // 添加宝宝ID到兑换记录
+								};
 
-						// 保存兑换记录
-						const history = JSON.parse(uni.getStorageSync('exchangeHistory') || '[]');
-						history.unshift(exchangeRecord);
-						uni.setStorageSync('exchangeHistory', JSON.stringify(history));
+								// 保存兑换记录
+								const history = JSON.parse(uni.getStorageSync('exchangeHistory') || '[]');
+								history.unshift(exchangeRecord);
+								uni.setStorageSync('exchangeHistory', JSON.stringify(history));
 
-						// 更新积分显示
-						updatePoints();
+								// 更新积分显示
+								updatePoints();
 
+								uni.showToast({
+									title: '兑换成功',
+									icon: 'success'
+								});
+							} else {
+								uni.showToast({
+									title: '积分不足',
+									icon: 'none'
+								});
+							}
+						} catch (e) {
+							console.error('兑换失败:', e);
+							uni.showToast({
+								title: '兑换失败，请重试',
+								icon: 'none'
+							});
+						}
+					},
+					// 验证失败回调
+					(error) => {
+						console.error('验证失败:', error);
 						uni.showToast({
-							title: '兑换成功',
-							icon: 'success'
-						});
-					} else {
-						uni.showToast({
-							title: '积分不足',
+							title: '验证失败，无法兑换商品',
 							icon: 'none'
 						});
 					}
-				} catch (e) {
-					console.error('兑换失败:', e);
-					uni.showToast({
-						title: '兑换失败，请重试',
-						icon: 'none'
-					});
-				}
+				);
 			};
 
 			// 加载宝宝信息
