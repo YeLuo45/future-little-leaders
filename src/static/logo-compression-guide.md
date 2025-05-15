@@ -2,7 +2,7 @@
 
 ## 需要压缩的文件
 1. `src/static/logo.png` (423KB)
-2. `src/static/生成未来小领袖 logo.png` (423KB)
+2. `src/static/生成育儿时光纪 logo.png` (423KB)
 
 ## 立即解决方案 (必须执行)
 
@@ -10,7 +10,7 @@
    ```bash
    # 将原文件重命名为备份
    ren "src\static\logo.png" "logo-original.png"
-   ren "src\static\生成未来小领袖 logo.png" "生成未来小领袖 logo-original.png"
+   ren "src\static\生成育儿时光纪 logo.png" "生成育儿时光纪 logo-original.png"
    ```
 
 2. **使用在线压缩工具**

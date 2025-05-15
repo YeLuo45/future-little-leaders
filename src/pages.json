@@ -170,6 +170,46 @@
 				"navigationBarTitleText": "我的收藏",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/settings/about",
+			"style": {
+				"navigationBarTitleText": "关于我们",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/settings/help",
+			"style": {
+				"navigationBarTitleText": "帮助与反馈",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/settings/terms",
+			"style": {
+				"navigationBarTitleText": "用户协议",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/settings/privacy",
+			"style": {
+				"navigationBarTitleText": "隐私政策",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
 		}
 	],
 	"tabBar": {

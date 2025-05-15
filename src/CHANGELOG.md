@@ -1,3 +1,15 @@
+# 源代码变更日志
+
+## [未发布]
+
+### 新增
+- 完善设置页面相关内容：
+  - 添加了用户协议页面 (pages/settings/terms.vue)
+  - 添加了隐私政策页面 (pages/settings/privacy.vue)
+  - 添加了帮助与反馈页面 (pages/settings/help.vue)
+  - 更新了pages.json配置，添加新页面的路由信息
+  - 修复settings.vue中的页面导航方法，使其正确指向新增页面
+
 # 变更日志
 
 ## [1.0.4] - 2023-11-23

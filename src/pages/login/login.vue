@@ -3,7 +3,7 @@
     <!-- Logo和标题区域 -->
     <view class="logo-container">
       <view class="title-area">
-        <view class="title">未来小领袖</view>
+        <view class="title">育儿时光纪</view>
         <view class="subtitle">科学育儿，健康成长</view>
       </view>
     </view>
@@ -106,7 +106,7 @@
     </view>
     
     <view class="footer">
-      © 2025 未来小领袖 v1.0.0
+      © 2025 育儿时光纪 v1.0.0
     </view>
   </view>
 </template>

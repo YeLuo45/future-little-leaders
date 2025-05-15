@@ -298,9 +298,8 @@ export default {
 		 * 导航到关于我们页面
 		 */
 		navigateToAbout() {
-			uni.showToast({
-				title: '即将推出',
-				icon: 'none'
+			uni.navigateTo({
+				url: '/pages/settings/about'
 			});
 		},
 		
@@ -308,9 +307,8 @@ export default {
 		 * 导航到帮助与反馈页面
 		 */
 		navigateToHelp() {
-			uni.showToast({
-				title: '即将推出',
-				icon: 'none'
+			uni.navigateTo({
+				url: '/pages/settings/help'
 			});
 		},
 		
@@ -318,9 +316,8 @@ export default {
 		 * 导航到用户协议页面
 		 */
 		navigateToTerms() {
-			uni.showToast({
-				title: '即将推出',
-				icon: 'none'
+			uni.navigateTo({
+				url: '/pages/settings/terms'
 			});
 		},
 		
@@ -328,9 +325,8 @@ export default {
 		 * 导航到隐私政策页面
 		 */
 		navigateToPrivacyPolicy() {
-			uni.showToast({
-				title: '即将推出',
-				icon: 'none'
+			uni.navigateTo({
+				url: '/pages/settings/privacy'
 			});
 		}
 	}
