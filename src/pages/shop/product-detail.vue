@@ -74,6 +74,7 @@ import { ref } from 'vue';
 import { onLoad, onShow } from '@dcloudio/uni-app';
 import { isDarkTheme } from '@/utils/themeUtils.js';
 import { getBabyPoints, deductBabyPoints } from '@/utils/pointsManager';
+import { useShopStore } from '@/stores/shopStore';
 
 // 暗黑模式
 const isDarkMode = ref(false);
@@ -85,6 +86,8 @@ const product = ref({
   icon: '🎁',
   description: ''
 });
+// 商品Store
+const shopStore = useShopStore();
 // 用户积分
 const userPoints = ref(0);
 // 当前宝宝ID
@@ -105,6 +108,7 @@ function exchangeProduct() {
     uni.showToast({ title: '库存不足', icon: 'none' });
     return;
   }
+  
   uni.showModal({
     title: '确认兑换',
     content: `是否兑换"${product.value.name}"？将消耗${product.value.points}积分`,
@@ -117,44 +121,57 @@ function exchangeProduct() {
         const success = deductBabyPoints(babyId, product.value.points);
         
         if (success) {
-          // 减少库存
-          if (product.value.stock !== '无限') {
-            product.value.stock -= 1;
-          }
-          // 获取所有商品
-          let allProducts = uni.getStorageSync('shopProducts') || '[]';
-          if (typeof allProducts === 'string') {
-            allProducts = JSON.parse(allProducts);
-          }
-          // 更新商品库存
-          if (product.value.index !== undefined && allProducts[product.value.index]) {
-            allProducts[product.value.index].stock = product.value.stock;
-            uni.setStorageSync('shopProducts', JSON.stringify(allProducts));
-          }
+          // 找到商品在商品库中的索引
+          const productIndex = product.value.index !== undefined ? 
+                               product.value.index : 
+                               shopStore.products.findIndex(p => 
+                                  p.name === product.value.name && 
+                                  p.description === product.value.description
+                               );
           
-          // 创建兑换记录
-          const exchangeRecord = {
-            productName: product.value.name,
-            points: product.value.points,
-            exchangeTime: new Date().toISOString(),
-            status: '兑换成功',
-            babyId: babyId // 添加宝宝ID到兑换记录
-          };
+          if (productIndex !== -1) {
+            // 使用Pinia减少库存
+            const exchangeSuccess = shopStore.exchangeProduct(productIndex);
+            
+            if (!exchangeSuccess && product.value.stock !== '无限') {
+              uni.showToast({ title: '库存不足', icon: 'none' });
+              return;
+            }
+            
+            // 更新当前显示的商品库存
+            if (product.value.stock !== '无限') {
+              product.value.stock = parseInt(product.value.stock) - 1;
+            }
+            
+            // 创建兑换记录
+            const exchangeRecord = {
+              productName: product.value.name,
+              points: product.value.points,
+              exchangeTime: new Date().toISOString(),
+              status: '兑换成功',
+              babyId: babyId // 添加宝宝ID到兑换记录
+            };
 
-          // 保存兑换记录
-          const history = JSON.parse(uni.getStorageSync('exchangeHistory') || '[]');
-          history.unshift(exchangeRecord);
-          uni.setStorageSync('exchangeHistory', JSON.stringify(history));
-          
-          // 更新UI显示
-          userPoints.value = getBabyPoints(babyId);
-          
-          // 提示兑换成功
-          uni.showToast({ title: '兑换成功', icon: 'success' });
-          // 2秒后返回商城页面
-          setTimeout(() => {
-            goBack();
-          }, 2000);
+            // 保存兑换记录
+            const history = JSON.parse(uni.getStorageSync('exchangeHistory') || '[]');
+            history.unshift(exchangeRecord);
+            uni.setStorageSync('exchangeHistory', JSON.stringify(history));
+            
+            // 更新UI显示
+            userPoints.value = getBabyPoints(babyId);
+            
+            // 通知商品列表更新
+            uni.$emit('refreshProductList');
+            
+            // 提示兑换成功
+            uni.showToast({ title: '兑换成功', icon: 'success' });
+            // 2秒后返回商城页面
+            setTimeout(() => {
+              goBack();
+            }, 2000);
+          } else {
+            uni.showToast({ title: '商品信息错误', icon: 'none' });
+          }
         } else {
           uni.showToast({ title: '兑换失败，积分不足', icon: 'none' });
         }
@@ -182,6 +199,11 @@ onLoad(() => {
   
   // 获取用户积分
   userPoints.value = getBabyPoints(currentBabyId.value);
+  
+  // 确保商品Store已加载
+  if (!shopStore.isLoaded) {
+    shopStore.loadProducts();
+  }
 });
 
 // 页面显示时

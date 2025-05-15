@@ -79,6 +79,7 @@
 <script>
 	import { ref, onMounted, onUnmounted, computed } from 'vue';
 	import { useThemeStore } from '@/stores/theme';
+	import { useShopStore } from '@/stores/shopStore';
 	import { getBabyPoints, deductBabyPoints } from '@/utils/pointsManager';
 	import { isDarkTheme } from '@/utils/themeUtils.js';
 	import { verifyAuth } from '@/utils/authUtils';
@@ -86,6 +87,7 @@
 	export default {
 		setup() {
 			const themeStore = useThemeStore();
+			const shopStore = useShopStore();
 			const isDarkMode = ref(false);
 			const totalScore = ref(0);
 			const products = ref([]);
@@ -153,42 +155,23 @@
 			const searchProducts = () => {
 				console.log(`[商城] 执行搜索: ${searchKeyword.value}`);
 				
+				// 使用Pinia中的搜索方法
 				if (!searchKeyword.value.trim()) {
 					// 搜索关键词为空，加载所有商品
-					loadProducts();
+					products.value = shopStore.sortedProducts;
 					return;
 				}
 				
-				try {
-					// 获取完整商品列表
-					const storedProducts = uni.getStorageSync('shopProducts');
-					if (storedProducts) {
-						const allProducts = typeof storedProducts === 'string' ? JSON.parse(storedProducts) : storedProducts;
-						
-						// 根据关键词过滤商品
-						const filtered = allProducts.filter(item => {
-							// 在商品名称和描述中搜索关键词
-							return (
-								item.name && item.name.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
-								item.description && item.description.toLowerCase().includes(searchKeyword.value.toLowerCase())
-							);
-						});
-						
-						// 更新显示的商品列表
-						products.value = filtered;
-						
-						console.log(`[商城] 搜索结果: 找到${filtered.length}个商品`);
-						
-						// 显示搜索结果提示
-						uni.showToast({
-							title: `找到${filtered.length}个商品`,
-							icon: 'none',
-							duration: 1500
-						});
-					}
-				} catch (e) {
-					console.error('[商城] 搜索商品失败:', e);
-				}
+				products.value = shopStore.searchProducts(searchKeyword.value);
+				
+				// 显示搜索结果提示
+				uni.showToast({
+					title: `找到${products.value.length}个商品`,
+					icon: 'none',
+					duration: 1500
+				});
+				
+				console.log(`[商城] 搜索结果: 找到${products.value.length}个商品`);
 			};
 
 			// 跳转到添加商品页面
@@ -209,72 +192,19 @@
 
 			// 加载商品列表
 			const loadProducts = () => {
-				try {
-					const storedProducts = uni.getStorageSync('shopProducts');
-					if (storedProducts) {
-						// 检查存储的数据是否是有效的JSON字符串
-						if (typeof storedProducts === 'string') {
-							try {
-								const parsedProducts = JSON.parse(storedProducts);
-								// 验证解析后的数据是否是数组
-								if (Array.isArray(parsedProducts)) {
-									// 如果有搜索关键词，则过滤商品
-									if (searchKeyword.value.trim()) {
-										products.value = parsedProducts.filter(item => {
-											return (
-												item.name && item.name.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
-												item.description && item.description.toLowerCase().includes(searchKeyword.value.toLowerCase())
-											);
-										});
-										console.log(`[商城] 加载商品并过滤: ${searchKeyword.value}, 结果: ${products.value.length}个`);
-									} else {
-										products.value = parsedProducts;
-										console.log(`[商城] 加载所有商品: ${products.value.length}个`);
-									}
-								} else {
-									console.warn('存储的商品数据不是数组，将使用默认商品列表');
-									setDefaultProducts();
-								}
-							} catch (parseError) {
-								console.error('解析商品数据失败:', parseError);
-								setDefaultProducts();
-							}
-						} else {
-							console.warn('存储的商品数据不是字符串，将使用默认商品列表');
-							setDefaultProducts();
-						}
-					} else {
-						setDefaultProducts();
-					}
-				} catch (e) {
-					console.error('加载商品列表失败:', e);
-					setDefaultProducts();
+				// 使用Pinia加载商品
+				if (!shopStore.isLoaded) {
+					shopStore.loadProducts();
 				}
-			};
-
-			// 设置默认商品列表
-			const setDefaultProducts = () => {
-				products.value = [
-					{
-						name: '游戏时间30分钟',
-						points: 50,
-						stock: '无限',
-						icon: '🎮',
-						description: '获得额外30分钟游戏时间，可在周末或假期使用。兑换后立即生效。'
-					},
-					{
-						name: '新玩具',
-						points: 200,
-						stock: 5,
-						icon: '🎁',
-						description: '可从玩具柜中选择一款喜欢的玩具带回家。限量供应，先到先得。'
-					}
-				];
-				// 保存默认商品列表
-				try {
-					uni.setStorageSync('shopProducts', JSON.stringify(products.value));
-				} catch (e) {
-					console.error('保存默认商品列表失败:', e);
+				
+				// 如果有搜索关键词，则使用搜索结果
+				if (searchKeyword.value.trim()) {
+					products.value = shopStore.searchProducts(searchKeyword.value);
+					console.log(`[商城] 加载商品并过滤: ${searchKeyword.value}, 结果: ${products.value.length}个`);
+				} else {
+					// 否则使用排序后的结果
+					products.value = shopStore.sortedProducts;
+					console.log(`[商城] 加载所有商品: ${products.value.length}个`);
 				}
 			};
 
@@ -293,9 +223,35 @@
 					// 验证成功回调
 					async () => {
 						try {
+							// 找到商品在列表中的索引
+							const productIndex = shopStore.products.findIndex(p => 
+								p.name === product.name && 
+								p.description === product.description
+							);
+							
+							if (productIndex === -1) {
+								console.error('[商城] 未找到要兑换的商品');
+								uni.showToast({
+									title: '商品不存在',
+									icon: 'none'
+								});
+								return;
+							}
+							
 							// 扣除积分
 							const success = await deductBabyPoints(currentBabyId.value, product.points);
 							if (success) {
+								// 减少商品库存
+								const exchangeSuccess = shopStore.exchangeProduct(productIndex);
+								
+								if (!exchangeSuccess && product.stock !== '无限') {
+									uni.showToast({
+										title: '库存不足',
+										icon: 'none'
+									});
+									return;
+								}
+								
 								// 创建兑换记录
 								const exchangeRecord = {
 									productName: product.name,
@@ -312,7 +268,13 @@
 
 								// 更新积分显示
 								updatePoints();
-
+								
+								// 重新加载商品列表（应用排序规则）
+								loadProducts();
+								
+								// 触发商品列表刷新事件
+								uni.$emit('refreshProductList');
+								
 								uni.showToast({
 									title: '兑换成功',
 									icon: 'success'
@@ -535,6 +497,9 @@
 		onShow() {
 			// 每次页面显示时检查宝宝状态
 			this.checkBabyStatus();
+			
+			// 加载最新商品数据
+			this.loadProducts();
 		}
 	}
 </script>

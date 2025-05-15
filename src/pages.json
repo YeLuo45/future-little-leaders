@@ -84,6 +84,13 @@
 			}
 		},
 		{
+			"path": "pages/profile/product-management",
+			"style": {
+				"navigationBarTitleText": "商品管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/settings/settings",
 			"style": {
 				"navigationBarTitleText": "设置",

@@ -60,9 +60,13 @@
 <script>
 import { ref, computed } from 'vue';
 import { verifyAuth } from '@/utils/authUtils';
+import { useShopStore } from '@/stores/shopStore';
 
 export default {
   setup() {
+    // 使用商店
+    const shopStore = useShopStore();
+    
     // 可选图标列表
     const availableIcons = ['🎁', '🎮', '📱', '🎯', '🎨', '📚', '🎵', '⚽', '🍕', '🎬'];
 
@@ -107,40 +111,38 @@ export default {
         // 验证成功回调
         () => {
           try {
-            // 从本地存储获取现有商品列表
-            let products = uni.getStorageSync('shopProducts') || '[]';
-            products = JSON.parse(products);
-
             // 创建新商品对象
             const newProduct = {
               name: productForm.value.name,
               points: Number(productForm.value.points),
               stock: productForm.value.stock,
               icon: productForm.value.icon,
-              description: productForm.value.description
+              description: productForm.value.description,
+              createdAt: new Date().toISOString() // 添加创建时间
             };
 
-            // 添加到商品列表
-            products.unshift(newProduct);
-
-            // 保存到本地存储
-            uni.setStorageSync('shopProducts', JSON.stringify(products));
-
-            uni.showToast({
-              title: '商品添加成功',
-              icon: 'success'
-            });
-
-            // 返回上一页并刷新
-            setTimeout(() => {
-              uni.navigateBack({
-                delta: 1,
-                success: () => {
-                  // 触发商城页面刷新
-                  uni.$emit('refreshProductList');
-                }
+            // 使用Pinia商店添加商品
+            const success = shopStore.addProduct(newProduct);
+            
+            if (success) {
+              uni.showToast({
+                title: '商品添加成功',
+                icon: 'success'
               });
-            }, 1500);
+
+              // 立即刷新商城页面
+              uni.$emit('refreshProductList');
+
+              // 返回上一页
+              setTimeout(() => {
+                uni.navigateBack();
+              }, 1500);
+            } else {
+              uni.showToast({
+                title: '创建失败，请重试',
+                icon: 'none'
+              });
+            }
           } catch (e) {
             console.error('保存商品失败:', e);
             uni.showToast({

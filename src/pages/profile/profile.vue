@@ -49,6 +49,11 @@
 				<text class="label">宝宝管理</text>
 				<text class="arrow">></text>
 			</view>
+			<view class="function-item" @tap="navigateToProductManagement">
+				<text class="icon">🛒</text>
+				<text class="label">商品管理</text>
+				<text class="arrow">></text>
+			</view>
 			<!-- <view class="function-item" @tap="navigateTo('favorites')">
 				<text class="icon">⭐</text>
 				<text class="label">我的收藏</text>
@@ -74,6 +79,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { isDarkTheme } from '@/utils/themeUtils.js';
 import { useThemeStore } from '@/stores/theme';
 import { getBabyPoints } from '@/utils/pointsManager';
+import { verifyAuth } from '@/utils/authUtils';
 
 export default {
 	name: 'Profile',
@@ -300,6 +306,27 @@ export default {
 			});
 		};
 
+		// 添加商品管理页面入口
+		const navigateToProductManagement = () => {
+			// 先验证身份，认证通过后才能进入商品管理页面
+			verifyAuth(
+				// 验证成功回调
+				() => {
+					uni.navigateTo({
+						url: '/pages/profile/product-management'
+					});
+				},
+				// 验证失败回调
+				(error) => {
+					console.error('验证失败:', error);
+					uni.showToast({
+						title: '验证失败，无法进入商品管理',
+						icon: 'none'
+					});
+				}
+			);
+		};
+
 		onMounted(() => {
 			loadUserInfo();
 			loadBabies();
@@ -392,7 +419,8 @@ export default {
 			navigateToAddBaby,
 			authSettings,
 			navigateToEditProfile,
-			checkBabyStatus
+			checkBabyStatus,
+			navigateToProductManagement
 		};
 	},
 	// uni-app生命周期方法作为组件选项

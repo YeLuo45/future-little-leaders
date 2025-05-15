@@ -9,6 +9,13 @@
   - 添加了帮助与反馈页面 (pages/settings/help.vue)
   - 更新了pages.json配置，添加新页面的路由信息
   - 修复settings.vue中的页面导航方法，使其正确指向新增页面
+- 添加商品管理功能：
+  - 创建商品状态管理文件 src/stores/shopStore.js
+  - 修改 shop.vue 集成Pinia状态管理，优化商品排序和搜索
+  - 修改 product-detail.vue 使用Pinia管理商品库存
+  - 新增 product-management.vue 实现商品管理页面
+  - 修改 profile.vue 添加商品管理入口
+  - 更新 pages.json 添加商品管理页面路由
 
 # 变更日志
 
