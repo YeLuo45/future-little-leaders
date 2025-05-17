@@ -517,7 +517,7 @@
 	}
 
 	.page-header {
-		padding: 100rpx 40rpx 30rpx 40rpx;
+		padding: 140rpx 40rpx 30rpx 40rpx;
 		background: linear-gradient(135deg, #8B5CF6, #7C3AED);
 		color: white;
 		position: relative;

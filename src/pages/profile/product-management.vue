@@ -207,7 +207,7 @@ onMounted(() => {
 	align-items: center;
 	height: 88rpx;
 	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	padding: 60rpx 40rpx 60rpx 40rpx;
+	padding: 90rpx 40rpx 60rpx 40rpx;
 	position: relative;
 }
 

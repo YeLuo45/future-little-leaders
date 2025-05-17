@@ -522,25 +522,12 @@
   }
 
   /* 导航栏样式 */
-  /* .nav-bar {
-    position: sticky;
-    top: 0;
-    display: flex;
-    align-items: center;
-    height: 88rpx;
-
-    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-    padding: 10rpx 30rpx 20rpx 10rpx;
-    box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-    z-index: 100;
-  } */
-
   .nav-bar {
     display: flex;
     align-items: center;
     height: 88rpx;
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-    padding: 60rpx 40rpx 60rpx 40rpx;
+    padding: 75rpx 40rpx 60rpx 40rpx;
     position: relative;
   }
 
