@@ -3,7 +3,7 @@
 		<view class="page-header">
 			<view class="header-content">
 				<view class="title-section">
-					<text class="title">积分商城</text>
+					<text class="title">亲子商城</text>
 					<text class="subtitle">用积分兑换心仪礼品</text>
 				</view>
 				<view class="points">{{ totalScore }}积分</view>

@@ -13,7 +13,7 @@
 			<!-- 应用logo -->
 			<view class="logo-container">
 				<image class="app-logo" src="/static/logo.png" mode="aspectFit"></image>
-				<view class="app-name">育儿时光纪</view>
+				<view class="app-name">亲子任务宝</view>
 				<view class="app-version">版本 1.0.0</view>
 			</view>
 
@@ -22,7 +22,7 @@
 				<view class="section-title">应用介绍</view>
 				<view class="section-content">
 					<text class="paragraph">
-						育儿时光纪是一款专为中国家庭设计的亲子任务管理应用，旨在帮助父母科学引导孩子全面成长。我们提供丰富的任务分类与标签，覆盖生活习惯、学习思维、心理品德、社会适应、社交与运动以及财商培养六大领域。
+						亲子任务宝是一款专为中国家庭设计的亲子任务管理应用，旨在帮助父母科学引导孩子全面成长。我们提供丰富的任务分类与标签，覆盖生活习惯、学习思维、心理品德、社会适应、社交与运动以及财商培养六大领域。
 					</text>
 					<text class="paragraph">
 						通过精心设计的任务系统与积分奖励机制，帮助家长更好地陪伴孩子成长，培养孩子的自主能力、责任意识和全面素养。
@@ -62,7 +62,7 @@
 			<!-- 备案信息 -->
 			<view class="icp-info">
 				<text>京ICP备XXXXXXXX号-X</text>
-				<text>©2025 育儿时光纪 版权所有</text>
+				<text>©2025 亲子任务宝 版权所有</text>
 			</view>
 		</view>
 	</view>

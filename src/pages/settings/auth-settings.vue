@@ -15,7 +15,7 @@
 					<switch :checked="authSettings.isEnabled" @change="onAuthModeChange" color="#7C3AED"
 						:disabled="!hasAnyAuthMethod" />
 				</view>
-				<view class="section-desc">开启后，完成任务时需要验证身份</view>
+				<view class="section-desc">开启后，完成任务管理和商品管理、宝宝管理涉及敏感操作需要验证身份</view>
 			</view>
 
 			<view class="section">
