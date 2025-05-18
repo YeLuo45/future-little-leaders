@@ -1,15 +1,15 @@
 <template>
-	<view class="page-container" :class="{'dark-mode': isDarkMode}">
+	<view class="page-container" :class="{ 'dark-mode': isDarkMode }">
 		<!-- 顶部导航栏 -->
-		<view class="nav-bar" :class="{'dark-mode': isDarkMode}">
+		<view class="nav-bar" :class="{ 'dark-mode': isDarkMode }">
 			<view class="nav-left" @tap="goBack">
 				<text class="icon">←</text>
 			</view>
 			<view class="nav-title">隐私政策</view>
 		</view>
-		
+
 		<!-- 内容区域 -->
-		<view class="content-area" :class="{'dark-mode': isDarkMode}">
+		<view class="content-area" :class="{ 'dark-mode': isDarkMode }">
 			<!-- 政策内容 -->
 			<view class="policy-container">
 				<view class="intro-text">
@@ -17,7 +17,7 @@
 						本隐私政策于2025年1月1日生效，请您务必仔细阅读、充分理解本政策中的条款，特别是加粗或下划线标识的条款，这些条款可能涉及您的重要权益。您点击同意或继续使用我们的服务，即表示您已同意本隐私政策的全部内容。
 					</text>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">引言</view>
 					<view class="section-content">
@@ -50,7 +50,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">一、我们收集哪些信息以及如何收集</view>
 					<view class="section-content">
@@ -86,7 +86,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">二、我们如何使用收集的信息</view>
 					<view class="section-content">
@@ -113,7 +113,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">三、我们如何存储和保护信息</view>
 					<view class="section-content">
@@ -131,7 +131,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">四、我们如何分享、转让、公开披露您的个人信息</view>
 					<view class="section-content">
@@ -152,7 +152,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">五、您的权利</view>
 					<view class="section-content">
@@ -176,7 +176,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">六、未成年人保护</view>
 					<view class="section-content">
@@ -188,7 +188,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">七、本政策如何更新</view>
 					<view class="section-content">
@@ -197,7 +197,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">八、如何联系我们</view>
 					<view class="section-content">
@@ -205,14 +205,14 @@
 							如果您对本隐私政策有任何疑问、意见或建议，请通过以下方式与我们联系：
 						</text>
 						<text class="paragraph">
-							电子邮件：privacy@futureleaders.cn
+							电子邮件：yuershiguangji45@outlook.com
 						</text>
 						<text class="paragraph">
 							我们将在收到您的询问后的15个工作日内回复您。
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="policy-footer">
 					<text>最近更新日期：2023年12月1日</text>
 				</view>
@@ -222,178 +222,178 @@
 </template>
 
 <script>
-export default {
-	data() {
-		return {
-			isDarkMode: false
-		}
-	},
-	onLoad() {
-		// 从本地存储获取暗色模式设置
-		try {
-			const darkModeSetting = uni.getStorageSync('darkMode');
-			if (darkModeSetting !== '') {
-				this.isDarkMode = darkModeSetting === 'true';
+	export default {
+		data() {
+			return {
+				isDarkMode: false
 			}
-		} catch (e) {
-			console.error('获取暗色模式设置失败', e);
-		}
-	},
-	methods: {
-		/**
-		 * 返回上一页
-		 */
-		goBack() {
-			uni.navigateBack();
+		},
+		onLoad() {
+			// 从本地存储获取暗色模式设置
+			try {
+				const darkModeSetting = uni.getStorageSync('darkMode');
+				if (darkModeSetting !== '') {
+					this.isDarkMode = darkModeSetting === 'true';
+				}
+			} catch (e) {
+				console.error('获取暗色模式设置失败', e);
+			}
+		},
+		methods: {
+			/**
+			 * 返回上一页
+			 */
+			goBack() {
+				uni.navigateBack();
+			}
 		}
 	}
-}
 </script>
 
 <style>
-.page-container {
-	background-color: #f5f5f5;
-	min-height: 100vh;
-}
+	.page-container {
+		background-color: #f5f5f5;
+		min-height: 100vh;
+	}
 
-.page-container.dark-mode {
-	background-color: #121212;
-}
+	.page-container.dark-mode {
+		background-color: #121212;
+	}
 
-/* 导航栏样式 */
-.nav-bar {
-	display: flex;
-	align-items: center;
-	height: 88rpx;
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	padding: 75rpx 40rpx 60rpx 40rpx;
-	position: relative;
-}
+	/* 导航栏样式 */
+	.nav-bar {
+		display: flex;
+		align-items: center;
+		height: 88rpx;
+		background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+		padding: 90rpx 40rpx 60rpx 40rpx;
+		position: relative;
+	}
 
-.nav-left {
-	position: absolute;
-	left: 30rpx;
-	z-index: 1;
-}
+	.nav-left {
+		position: absolute;
+		left: 30rpx;
+		z-index: 1;
+	}
 
-.icon {
-	color: white;
-	font-size: 48rpx;
-	font-weight: bold;
-}
+	.icon {
+		color: white;
+		font-size: 48rpx;
+		font-weight: bold;
+	}
 
-.nav-title {
-	flex: 1;
-	text-align: center;
-	color: white;
-	font-size: 48rpx;
-	font-weight: bold;
-}
+	.nav-title {
+		flex: 1;
+		text-align: center;
+		color: white;
+		font-size: 48rpx;
+		font-weight: bold;
+	}
 
-/* 内容区域 */
-.content-area {
-	padding: 30rpx;
-	padding-bottom: 60rpx;
-}
+	/* 内容区域 */
+	.content-area {
+		padding: 30rpx;
+		padding-bottom: 60rpx;
+	}
 
-.content-area.dark-mode {
-	color: #e0e0e0;
-}
+	.content-area.dark-mode {
+		color: #e0e0e0;
+	}
 
-/* 政策内容样式 */
-.policy-container {
-	background-color: #fff;
-	border-radius: 16rpx;
-	padding: 30rpx;
-	box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
-}
+	/* 政策内容样式 */
+	.policy-container {
+		background-color: #fff;
+		border-radius: 16rpx;
+		padding: 30rpx;
+		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+	}
 
-.dark-mode .policy-container {
-	background-color: #1f1f1f;
-	box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.2);
-}
+	.dark-mode .policy-container {
+		background-color: #1f1f1f;
+		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+	}
 
-.intro-text {
-	font-size: 28rpx;
-	color: #666;
-	line-height: 1.8;
-	margin-bottom: 40rpx;
-	padding: 20rpx;
-	background-color: #f8f8f8;
-	border-radius: 8rpx;
-	text-align: justify;
-}
+	.intro-text {
+		font-size: 28rpx;
+		color: #666;
+		line-height: 1.8;
+		margin-bottom: 40rpx;
+		padding: 20rpx;
+		background-color: #f8f8f8;
+		border-radius: 8rpx;
+		text-align: justify;
+	}
 
-.dark-mode .intro-text {
-	color: #aaa;
-	background-color: #2a2a2a;
-}
+	.dark-mode .intro-text {
+		color: #aaa;
+		background-color: #2a2a2a;
+	}
 
-.section {
-	margin-bottom: 40rpx;
-}
+	.section {
+		margin-bottom: 40rpx;
+	}
 
-.section-title {
-	font-size: 32rpx;
-	font-weight: bold;
-	color: #8B5CF6;
-	margin-bottom: 20rpx;
-	position: relative;
-	padding-left: 20rpx;
-}
+	.section-title {
+		font-size: 32rpx;
+		font-weight: bold;
+		color: #8B5CF6;
+		margin-bottom: 20rpx;
+		position: relative;
+		padding-left: 20rpx;
+	}
 
-.section-title::before {
-	content: '';
-	position: absolute;
-	left: 0;
-	top: 50%;
-	transform: translateY(-50%);
-	width: 8rpx;
-	height: 32rpx;
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	border-radius: 4rpx;
-}
+	.section-title::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 8rpx;
+		height: 32rpx;
+		background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+		border-radius: 4rpx;
+	}
 
-.dark-mode .section-title {
-	color: #a78bfa;
-}
+	.dark-mode .section-title {
+		color: #a78bfa;
+	}
 
-.section-content {
-	font-size: 28rpx;
-	color: #666;
-	line-height: 1.8;
-}
+	.section-content {
+		font-size: 28rpx;
+		color: #666;
+		line-height: 1.8;
+	}
 
-.dark-mode .section-content {
-	color: #aaa;
-}
+	.dark-mode .section-content {
+		color: #aaa;
+	}
 
-.paragraph {
-	display: block;
-	margin-bottom: 20rpx;
-	text-align: justify;
-}
+	.paragraph {
+		display: block;
+		margin-bottom: 20rpx;
+		text-align: justify;
+	}
 
-.list-item {
-	padding-left: 20rpx;
-}
+	.list-item {
+		padding-left: 20rpx;
+	}
 
-.list-sub-item {
-	padding-left: 40rpx;
-}
+	.list-sub-item {
+		padding-left: 40rpx;
+	}
 
-.bold {
-	font-weight: bold;
-}
+	.bold {
+		font-weight: bold;
+	}
 
-.policy-footer {
-	margin-top: 60rpx;
-	font-size: 24rpx;
-	color: #999;
-	text-align: center;
-}
+	.policy-footer {
+		margin-top: 60rpx;
+		font-size: 24rpx;
+		color: #999;
+		text-align: center;
+	}
 
-.dark-mode .policy-footer {
-	color: #777;
-}
-</style> 
+	.dark-mode .policy-footer {
+		color: #777;
+	}
+</style>

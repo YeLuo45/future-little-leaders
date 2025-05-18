@@ -43,29 +43,18 @@
         <text class="form-label">任务标签</text>
         <!-- 标签分类选择器 -->
         <view class="tag-categories">
-          <view 
-            v-for="(category, catIndex) in tagCategories" 
-            :key="catIndex"
-            class="tag-category" 
-            :class="{ 'active': selectedCategory === catIndex }"
-            @tap="selectedCategory = catIndex"
-          >
+          <view v-for="(category, catIndex) in tagCategories" :key="catIndex" class="tag-category"
+            :class="{ 'active': selectedCategory === catIndex }" @tap="selectedCategory = catIndex">
             {{ category.name }}
           </view>
         </view>
-        
+
         <!-- 当前分类下的标签 -->
         <view class="tags-container">
-          <view 
-            v-for="(tag, index) in tagCategories[selectedCategory].tags" 
-            :key="index" 
-            class="tag-item" 
-            :class="[
-              `tag-${tagCategories[selectedCategory].colorClass}`,
-              { 'selected': taskForm.tags.includes(tag) }
-            ]" 
-            @tap="toggleTag(tag)"
-          >
+          <view v-for="(tag, index) in tagCategories[selectedCategory].tags" :key="index" class="tag-item" :class="[
+            `tag-${tagCategories[selectedCategory].colorClass}`,
+            { 'selected': taskForm.tags.includes(tag) }
+          ]" @tap="toggleTag(tag)">
             {{ tag }}
           </view>
         </view>
@@ -171,7 +160,7 @@
     setup() {
       // 标签分类数据
       const selectedCategory = ref(0); // 默认选中第一个分类
-      
+
       const tagCategories = ref([
         {
           name: '生活习惯',
@@ -204,7 +193,7 @@
           tags: ['金钱认知', '财富管理', '财富创造', '社会责任']
         }
       ]);
-      
+
       // 原有的可选标签列表（保留用作备用）
       const availableTags = [
         '阅读', '认知', '健康', '运动', '营养',
@@ -377,7 +366,7 @@
             return category.colorClass;
           }
         }
-        
+
         // 如果找不到，使用旧的映射（保留兼容性）
         const tagMap = {
           '阅读': 'education',
@@ -527,7 +516,7 @@
     align-items: center;
     height: 88rpx;
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-    padding: 75rpx 40rpx 60rpx 40rpx;
+    padding: 90rpx 40rpx 60rpx 40rpx;
     position: relative;
   }
 
@@ -538,7 +527,7 @@
   }
 
   .icon {
-    color: white; 
+    color: white;
     font-size: 48rpx;
     font-weight: bold;
   }
@@ -663,27 +652,33 @@
 
   /* 新增分类颜色 */
   .tag-lifestyle {
-    background-color: #6366F1; /* 紫色系 - 生活习惯 */
+    background-color: #6366F1;
+    /* 紫色系 - 生活习惯 */
   }
 
   .tag-learning {
-    background-color: #3B82F6; /* 蓝色系 - 学习思维 */
+    background-color: #3B82F6;
+    /* 蓝色系 - 学习思维 */
   }
 
   .tag-mental {
-    background-color: #EC4899; /* 粉色系 - 心理品德 */
+    background-color: #EC4899;
+    /* 粉色系 - 心理品德 */
   }
 
   .tag-social {
-    background-color: #10B981; /* 绿色系 - 社会适应 */
+    background-color: #10B981;
+    /* 绿色系 - 社会适应 */
   }
 
   .tag-activity {
-    background-color: #F59E0B; /* 橙色系 - 社交与运动 */
+    background-color: #F59E0B;
+    /* 橙色系 - 社交与运动 */
   }
 
   .tag-finance {
-    background-color: #059669; /* 深绿色系 - 财商培养 */
+    background-color: #059669;
+    /* 深绿色系 - 财商培养 */
   }
 
   /* 任务类型选择器 */

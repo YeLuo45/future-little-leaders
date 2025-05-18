@@ -1,15 +1,15 @@
 <template>
-	<view class="page-container" :class="{'dark-mode': isDarkMode}">
+	<view class="page-container" :class="{ 'dark-mode': isDarkMode }">
 		<!-- 顶部导航栏 -->
-		<view class="nav-bar" :class="{'dark-mode': isDarkMode}">
+		<view class="nav-bar" :class="{ 'dark-mode': isDarkMode }">
 			<view class="nav-left" @tap="goBack">
 				<text class="icon">←</text>
 			</view>
 			<view class="nav-title">用户协议</view>
 		</view>
-		
+
 		<!-- 内容区域 -->
-		<view class="content-area" :class="{'dark-mode': isDarkMode}">
+		<view class="content-area" :class="{ 'dark-mode': isDarkMode }">
 			<!-- 协议内容 -->
 			<view class="agreement-container">
 				<view class="section">
@@ -23,7 +23,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">账号注册与使用</view>
 					<view class="section-content">
@@ -41,7 +41,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">用户信息保护</view>
 					<view class="section-content">
@@ -60,7 +60,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">知识产权</view>
 					<view class="section-content">
@@ -71,11 +71,12 @@
 							2. 未经本应用或相关权利人的书面许可，您不得以任何方式擅自使用、修改、复制、传播、发行、公开发表本应用的程序或内容。
 						</text>
 						<text class="paragraph">
-							3. 您在使用本应用时上传的内容，您保证对该等内容享有合法权利。您同意授予本应用非独家的、不可撤销的、免费的、全球范围内的许可使用权，本应用有权在全球范围内使用、复制、修改、改编、出版、翻译、创造衍生作品、分发、表演和展示此等内容。
+							3.
+							您在使用本应用时上传的内容，您保证对该等内容享有合法权利。您同意授予本应用非独家的、不可撤销的、免费的、全球范围内的许可使用权，本应用有权在全球范围内使用、复制、修改、改编、出版、翻译、创造衍生作品、分发、表演和展示此等内容。
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">免责声明</view>
 					<view class="section-content">
@@ -90,7 +91,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">协议修改</view>
 					<view class="section-content">
@@ -99,7 +100,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">法律适用与争议解决</view>
 					<view class="section-content">
@@ -111,7 +112,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="section">
 					<view class="section-title">其他条款</view>
 					<view class="section-content">
@@ -126,7 +127,7 @@
 						</text>
 					</view>
 				</view>
-				
+
 				<view class="agreement-footer">
 					<text>如您对本协议有任何疑问，可通过本应用"关于我们"中的联系方式与我们联系。</text>
 					<text>最近更新日期：2023年12月1日</text>
@@ -137,153 +138,153 @@
 </template>
 
 <script>
-export default {
-	data() {
-		return {
-			isDarkMode: false
-		}
-	},
-	onLoad() {
-		// 从本地存储获取暗色模式设置
-		try {
-			const darkModeSetting = uni.getStorageSync('darkMode');
-			if (darkModeSetting !== '') {
-				this.isDarkMode = darkModeSetting === 'true';
+	export default {
+		data() {
+			return {
+				isDarkMode: false
 			}
-		} catch (e) {
-			console.error('获取暗色模式设置失败', e);
-		}
-	},
-	methods: {
-		/**
-		 * 返回上一页
-		 */
-		goBack() {
-			uni.navigateBack();
+		},
+		onLoad() {
+			// 从本地存储获取暗色模式设置
+			try {
+				const darkModeSetting = uni.getStorageSync('darkMode');
+				if (darkModeSetting !== '') {
+					this.isDarkMode = darkModeSetting === 'true';
+				}
+			} catch (e) {
+				console.error('获取暗色模式设置失败', e);
+			}
+		},
+		methods: {
+			/**
+			 * 返回上一页
+			 */
+			goBack() {
+				uni.navigateBack();
+			}
 		}
 	}
-}
 </script>
 
 <style>
-.page-container {
-	background-color: #f5f5f5;
-	min-height: 100vh;
-}
+	.page-container {
+		background-color: #f5f5f5;
+		min-height: 100vh;
+	}
 
-.page-container.dark-mode {
-	background-color: #121212;
-}
+	.page-container.dark-mode {
+		background-color: #121212;
+	}
 
-/* 导航栏样式 */
-.nav-bar {
-	display: flex;
-	align-items: center;
-	height: 88rpx;
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	padding: 75rpx 40rpx 60rpx 40rpx;
-	position: relative;
-}
+	/* 导航栏样式 */
+	.nav-bar {
+		display: flex;
+		align-items: center;
+		height: 88rpx;
+		background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+		padding: 90rpx 40rpx 60rpx 40rpx;
+		position: relative;
+	}
 
-.nav-left {
-	position: absolute;
-	left: 30rpx;
-	z-index: 1;
-}
+	.nav-left {
+		position: absolute;
+		left: 30rpx;
+		z-index: 1;
+	}
 
-.icon {
-	color: white;
-	font-size: 48rpx;
-	font-weight: bold;
-}
+	.icon {
+		color: white;
+		font-size: 48rpx;
+		font-weight: bold;
+	}
 
-.nav-title {
-	flex: 1;
-	text-align: center;
-	color: white;
-	font-size: 48rpx;
-	font-weight: bold;
-}
+	.nav-title {
+		flex: 1;
+		text-align: center;
+		color: white;
+		font-size: 48rpx;
+		font-weight: bold;
+	}
 
-/* 内容区域 */
-.content-area {
-	padding: 30rpx;
-	padding-bottom: 60rpx;
-}
+	/* 内容区域 */
+	.content-area {
+		padding: 30rpx;
+		padding-bottom: 60rpx;
+	}
 
-.content-area.dark-mode {
-	color: #e0e0e0;
-}
+	.content-area.dark-mode {
+		color: #e0e0e0;
+	}
 
-/* 协议内容样式 */
-.agreement-container {
-	background-color: #fff;
-	border-radius: 16rpx;
-	padding: 30rpx;
-	box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
-}
+	/* 协议内容样式 */
+	.agreement-container {
+		background-color: #fff;
+		border-radius: 16rpx;
+		padding: 30rpx;
+		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+	}
 
-.dark-mode .agreement-container {
-	background-color: #1f1f1f;
-	box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.2);
-}
+	.dark-mode .agreement-container {
+		background-color: #1f1f1f;
+		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+	}
 
-.section {
-	margin-bottom: 40rpx;
-}
+	.section {
+		margin-bottom: 40rpx;
+	}
 
-.section-title {
-	font-size: 32rpx;
-	font-weight: bold;
-	color: #8B5CF6;
-	margin-bottom: 20rpx;
-	position: relative;
-	padding-left: 20rpx;
-}
+	.section-title {
+		font-size: 32rpx;
+		font-weight: bold;
+		color: #8B5CF6;
+		margin-bottom: 20rpx;
+		position: relative;
+		padding-left: 20rpx;
+	}
 
-.section-title::before {
-	content: '';
-	position: absolute;
-	left: 0;
-	top: 50%;
-	transform: translateY(-50%);
-	width: 8rpx;
-	height: 32rpx;
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	border-radius: 4rpx;
-}
+	.section-title::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 8rpx;
+		height: 32rpx;
+		background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+		border-radius: 4rpx;
+	}
 
-.dark-mode .section-title {
-	color: #a78bfa;
-}
+	.dark-mode .section-title {
+		color: #a78bfa;
+	}
 
-.section-content {
-	font-size: 28rpx;
-	color: #666;
-	line-height: 1.8;
-}
+	.section-content {
+		font-size: 28rpx;
+		color: #666;
+		line-height: 1.8;
+	}
 
-.dark-mode .section-content {
-	color: #aaa;
-}
+	.dark-mode .section-content {
+		color: #aaa;
+	}
 
-.paragraph {
-	display: block;
-	margin-bottom: 20rpx;
-	text-align: justify;
-}
+	.paragraph {
+		display: block;
+		margin-bottom: 20rpx;
+		text-align: justify;
+	}
 
-.agreement-footer {
-	margin-top: 60rpx;
-	font-size: 24rpx;
-	color: #999;
-	display: flex;
-	flex-direction: column;
-	gap: 10rpx;
-	align-items: center;
-}
+	.agreement-footer {
+		margin-top: 60rpx;
+		font-size: 24rpx;
+		color: #999;
+		display: flex;
+		flex-direction: column;
+		gap: 10rpx;
+		align-items: center;
+	}
 
-.dark-mode .agreement-footer {
-	color: #777;
-}
-</style> 
+	.dark-mode .agreement-footer {
+		color: #777;
+	}
+</style>

@@ -1,5 +1,5 @@
 <template>
-	<view class="page-container" :class="{'dark-mode': isDarkMode}">
+	<view class="page-container" :class="{ 'dark-mode': isDarkMode }">
 		<!-- 顶部导航栏 -->
 		<view class="nav-bar">
 			<view class="nav-left" @tap="goBack">
@@ -24,14 +24,8 @@
 				<view class="baby-info">
 					<view class="baby-name-container">
 						<text class="baby-name" v-if="!editingBaby || editingBaby.id !== baby.id">{{ baby.name }}</text>
-						<input 
-							v-else 
-							class="baby-name-input" 
-							v-model="editName" 
-							focus 
-							@blur="saveBabyName(baby)"
-							@confirm="saveBabyName(baby)"
-						/>
+						<input v-else class="baby-name-input" v-model="editName" focus @blur="saveBabyName(baby)"
+							@confirm="saveBabyName(baby)" />
 						<text class="edit-name-btn" @tap="editBabyName(baby)">✏️</text>
 					</view>
 					<text class="baby-age">{{ formatAge(baby.birthdate) }}</text>
@@ -68,611 +62,611 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, computed, onUnmounted } from 'vue';
-import { isDarkTheme } from '@/utils/themeUtils.js';
-import { usePointsStore } from '@/stores/pointsStore';
-import { verifyAuth } from '@/utils/authUtils';
+	import { ref, reactive, onMounted, computed, onUnmounted } from 'vue';
+	import { isDarkTheme } from '@/utils/themeUtils.js';
+	import { usePointsStore } from '@/stores/pointsStore';
+	import { verifyAuth } from '@/utils/authUtils';
 
-export default {
-	name: 'BabyManagement',
-	setup() {
-		const isDarkMode = ref(false);
-		const babies = ref([]);
-		const currentBabyId = ref('');
-		const editingBaby = ref(null);
-		const editName = ref('');
-		const showAvatarModal = ref(false);
-		const selectedBaby = ref(null);
-		const authSettings = ref({
-			isEnabled: false,
-			hasPassword: false,
-			hasBiometric: false
-		});
-		const pointsStore = usePointsStore();
-		
-		// 默认头像列表
-		const defaultAvatars = [
-			'/static/avatars/baby1.png',
-			'/static/avatars/baby2.png',
-			'/static/avatars/baby3.png',
-			'/static/avatars/baby4.png',
-			'/static/avatars/baby5.png',
-			'/static/avatars/baby6.png',
-		];
+	export default {
+		name: 'BabyManagement',
+		setup() {
+			const isDarkMode = ref(false);
+			const babies = ref([]);
+			const currentBabyId = ref('');
+			const editingBaby = ref(null);
+			const editName = ref('');
+			const showAvatarModal = ref(false);
+			const selectedBaby = ref(null);
+			const authSettings = ref({
+				isEnabled: false,
+				hasPassword: false,
+				hasBiometric: false
+			});
+			const pointsStore = usePointsStore();
 
-		// 加载宝宝列表
-		const loadBabies = () => {
-			try {
-				const storedBabies = uni.getStorageSync('babies') || '[]';
-				babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
-				
+			// 默认头像列表
+			const defaultAvatars = [
+				'/static/avatars/baby1.png',
+				'/static/avatars/baby2.png',
+				'/static/avatars/baby3.png',
+				'/static/avatars/baby4.png',
+				'/static/avatars/baby5.png',
+				'/static/avatars/baby6.png',
+			];
+
+			// 加载宝宝列表
+			const loadBabies = () => {
+				try {
+					const storedBabies = uni.getStorageSync('babies') || '[]';
+					babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
+
+					const storedBabyId = uni.getStorageSync('currentBabyId');
+					currentBabyId.value = storedBabyId || '';
+				} catch (e) {
+					console.error('加载宝宝信息失败:', e);
+					babies.value = [];
+				}
+			};
+
+			// 加载认证设置
+			const loadAuthSettings = () => {
+				try {
+					const settings = uni.getStorageSync('authSettings');
+					if (settings) {
+						authSettings.value = JSON.parse(settings);
+					}
+				} catch (e) {
+					console.error('加载认证设置失败:', e);
+				}
+			};
+
+			// 返回上一页
+			const goBack = () => {
+				uni.navigateBack();
+			};
+
+			// 跳转到添加宝宝页面
+			const navigateToAddBaby = () => {
+				uni.navigateTo({
+					url: '/pages/profile/add-baby'
+				});
+			};
+
+			// 格式化年龄
+			const formatAge = (birthdate) => {
+				if (!birthdate) return '年龄未知';
+
+				const birth = new Date(birthdate);
+				const now = new Date();
+
+				let years = now.getFullYear() - birth.getFullYear();
+				let months = now.getMonth() - birth.getMonth();
+
+				if (months < 0) {
+					years--;
+					months += 12;
+				}
+
+				if (years > 0) {
+					return `${years}岁${months > 0 ? months + '个月' : ''}`;
+				} else {
+					return `${months}个月`;
+				}
+			};
+
+			// 编辑宝宝名称
+			const editBabyName = (baby) => {
+				editingBaby.value = baby;
+				editName.value = baby.name;
+			};
+
+			// 保存宝宝名称
+			const saveBabyName = (baby) => {
+				if (editName.value.trim()) {
+					updateBaby(baby.id, { name: editName.value.trim() });
+				}
+				editingBaby.value = null;
+			};
+
+			// 选择头像
+			const selectAvatar = (baby) => {
+				selectedBaby.value = baby;
+				showAvatarModal.value = true;
+			};
+
+			// 关闭头像选择弹窗
+			const closeAvatarModal = () => {
+				showAvatarModal.value = false;
+				selectedBaby.value = null;
+			};
+
+			// 选择默认头像
+			const selectDefaultAvatar = (avatar, baby) => {
+				if (baby) {
+					updateBaby(baby.id, { avatar: avatar });
+					closeAvatarModal();
+				}
+			};
+
+			// 上传自定义头像
+			const uploadCustomAvatar = (type) => {
+				uni.chooseImage({
+					count: 1,
+					sizeType: ['compressed'],
+					sourceType: type === 'camera' ? ['camera'] : ['album'],
+					success: (res) => {
+						const tempFilePath = res.tempFilePaths[0];
+						// 在真实应用中，这里应该上传到服务器
+						// 这里直接使用临时路径
+						if (selectedBaby.value) {
+							updateBaby(selectedBaby.value.id, { avatar: tempFilePath });
+							closeAvatarModal();
+						}
+					}
+				});
+			};
+
+			// 删除宝宝
+			const deleteBaby = (baby) => {
+				verifyAuth(
+					// 成功回调
+					() => {
+						// 验证通过，执行删除宝宝逻辑
+						// 从列表中移除
+						babies.value = babies.value.filter(b => b.id !== baby.id);
+
+						// 更新存储
+						uni.setStorageSync('babies', JSON.stringify(babies.value));
+
+						// 如果删除的是当前选中的宝宝，重置当前宝宝
+						if (currentBabyId.value === baby.id) {
+							currentBabyId.value = babies.value.length > 0 ? babies.value[0].id : '';
+							uni.setStorageSync('currentBabyId', currentBabyId.value);
+						}
+
+						// 通知其他页面刷新宝宝列表
+						uni.$emit('refreshBabyList');
+
+						uni.showToast({
+							title: '删除成功',
+							icon: 'success'
+						});
+					},
+					// 失败回调
+					(error) => {
+						console.error('验证失败:', error);
+						uni.showToast({
+							title: '验证失败，无法删除宝宝',
+							icon: 'none'
+						});
+					}
+				);
+			};
+
+			// 设置为当前宝宝
+			const setAsCurrentBaby = (baby) => {
+				// 记录之前的宝宝ID，用于检测变化
+				const oldBabyId = currentBabyId.value;
+				const newBabyId = baby.id;
+
+				// 只有宝宝ID发生变化时才触发更新
+				if (oldBabyId !== newBabyId) {
+					console.log(`[宝宝管理] 切换宝宝: 从[${oldBabyId}]到[${newBabyId}]`);
+
+					// 更新本地状态
+					currentBabyId.value = newBabyId;
+
+					// 同步保存到本地存储
+					uni.setStorageSync('currentBabyId', newBabyId);
+
+					// 用setTimeout确保事件在状态更新后触发
+					setTimeout(() => {
+						// 广播宝宝切换事件，传递完整宝宝信息以便其他页面更新
+						uni.$emit('babyChanged', {
+							babyId: newBabyId,
+							babyInfo: baby,
+							source: 'babyManagement',  // 标记事件来源
+							timestamp: Date.now() // 添加时间戳避免重复
+						});
+
+						// 显示切换提示
+						uni.showToast({
+							title: `已切换到"${baby.name}"`,
+							icon: 'none',
+							duration: 1500
+						});
+					}, 50);
+				}
+			};
+
+			// 添加宝宝状态检查函数
+			const checkBabyStatus = () => {
+				// 从存储中读取当前宝宝ID
 				const storedBabyId = uni.getStorageSync('currentBabyId');
-				currentBabyId.value = storedBabyId || '';
-			} catch (e) {
-				console.error('加载宝宝信息失败:', e);
-				babies.value = [];
-			}
-		};
 
-		// 加载认证设置
-		const loadAuthSettings = () => {
-			try {
-				const settings = uni.getStorageSync('authSettings');
-				if (settings) {
-					authSettings.value = JSON.parse(settings);
+				// 如果本地状态与存储不一致，更新本地状态
+				if (currentBabyId.value !== storedBabyId && storedBabyId) {
+					console.log(`[宝宝管理] 检测到宝宝状态不一致，从存储同步: ${storedBabyId}`);
+					currentBabyId.value = storedBabyId;
+					loadBabies();
 				}
-			} catch (e) {
-				console.error('加载认证设置失败:', e);
-			}
-		};
+			};
 
-		// 返回上一页
-		const goBack = () => {
-			uni.navigateBack();
-		};
+			// 更新宝宝信息
+			const updateBaby = (id, data) => {
+				try {
+					const index = babies.value.findIndex(b => b.id === id);
+					if (index !== -1) {
+						// 更新宝宝信息
+						babies.value[index] = { ...babies.value[index], ...data };
 
-		// 跳转到添加宝宝页面
-		const navigateToAddBaby = () => {
-			uni.navigateTo({
-				url: '/pages/profile/add-baby'
-			});
-		};
+						// 更新存储
+						uni.setStorageSync('babies', JSON.stringify(babies.value));
 
-		// 格式化年龄
-		const formatAge = (birthdate) => {
-			if (!birthdate) return '年龄未知';
-			
-			const birth = new Date(birthdate);
-			const now = new Date();
-			
-			let years = now.getFullYear() - birth.getFullYear();
-			let months = now.getMonth() - birth.getMonth();
-			
-			if (months < 0) {
-				years--;
-				months += 12;
-			}
-			
-			if (years > 0) {
-				return `${years}岁${months > 0 ? months + '个月' : ''}`;
-			} else {
-				return `${months}个月`;
-			}
-		};
-
-		// 编辑宝宝名称
-		const editBabyName = (baby) => {
-			editingBaby.value = baby;
-			editName.value = baby.name;
-		};
-
-		// 保存宝宝名称
-		const saveBabyName = (baby) => {
-			if (editName.value.trim()) {
-				updateBaby(baby.id, { name: editName.value.trim() });
-			}
-			editingBaby.value = null;
-		};
-
-		// 选择头像
-		const selectAvatar = (baby) => {
-			selectedBaby.value = baby;
-			showAvatarModal.value = true;
-		};
-
-		// 关闭头像选择弹窗
-		const closeAvatarModal = () => {
-			showAvatarModal.value = false;
-			selectedBaby.value = null;
-		};
-
-		// 选择默认头像
-		const selectDefaultAvatar = (avatar, baby) => {
-			if (baby) {
-				updateBaby(baby.id, { avatar: avatar });
-				closeAvatarModal();
-			}
-		};
-
-		// 上传自定义头像
-		const uploadCustomAvatar = (type) => {
-			uni.chooseImage({
-				count: 1,
-				sizeType: ['compressed'],
-				sourceType: type === 'camera' ? ['camera'] : ['album'],
-				success: (res) => {
-					const tempFilePath = res.tempFilePaths[0];
-					// 在真实应用中，这里应该上传到服务器
-					// 这里直接使用临时路径
-					if (selectedBaby.value) {
-						updateBaby(selectedBaby.value.id, { avatar: tempFilePath });
-						closeAvatarModal();
+						// 通知其他页面刷新宝宝列表
+						uni.$emit('refreshBabyList');
 					}
-				}
-			});
-		};
-
-		// 删除宝宝
-		const deleteBaby = (baby) => {
-			verifyAuth(
-				// 成功回调
-				() => {
-					// 验证通过，执行删除宝宝逻辑
-					// 从列表中移除
-					babies.value = babies.value.filter(b => b.id !== baby.id);
-					
-					// 更新存储
-					uni.setStorageSync('babies', JSON.stringify(babies.value));
-					
-					// 如果删除的是当前选中的宝宝，重置当前宝宝
-					if (currentBabyId.value === baby.id) {
-						currentBabyId.value = babies.value.length > 0 ? babies.value[0].id : '';
-						uni.setStorageSync('currentBabyId', currentBabyId.value);
-					}
-					
-					// 通知其他页面刷新宝宝列表
-					uni.$emit('refreshBabyList');
-					
+				} catch (e) {
+					console.error('更新宝宝信息失败:', e);
 					uni.showToast({
-						title: '删除成功',
-						icon: 'success'
-					});
-				},
-				// 失败回调
-				(error) => {
-					console.error('验证失败:', error);
-					uni.showToast({
-						title: '验证失败，无法删除宝宝',
+						title: '更新失败',
 						icon: 'none'
 					});
 				}
-			);
-		};
+			};
 
-		// 设置为当前宝宝
-		const setAsCurrentBaby = (baby) => {
-			// 记录之前的宝宝ID，用于检测变化
-			const oldBabyId = currentBabyId.value;
-			const newBabyId = baby.id;
-			
-			// 只有宝宝ID发生变化时才触发更新
-			if (oldBabyId !== newBabyId) {
-				console.log(`[宝宝管理] 切换宝宝: 从[${oldBabyId}]到[${newBabyId}]`);
-				
-				// 更新本地状态
-				currentBabyId.value = newBabyId;
-				
-				// 同步保存到本地存储
-				uni.setStorageSync('currentBabyId', newBabyId);
-				
-				// 用setTimeout确保事件在状态更新后触发
-				setTimeout(() => {
-					// 广播宝宝切换事件，传递完整宝宝信息以便其他页面更新
-					uni.$emit('babyChanged', {
-						babyId: newBabyId,
-						babyInfo: baby,
-						source: 'babyManagement',  // 标记事件来源
-						timestamp: Date.now() // 添加时间戳避免重复
-					});
-					
-					// 显示切换提示
-					uni.showToast({
-						title: `已切换到"${baby.name}"`,
-						icon: 'none',
-						duration: 1500
-					});
-				}, 50);
-			}
-		};
-
-		// 添加宝宝状态检查函数
-		const checkBabyStatus = () => {
-			// 从存储中读取当前宝宝ID
-			const storedBabyId = uni.getStorageSync('currentBabyId');
-			
-			// 如果本地状态与存储不一致，更新本地状态
-			if (currentBabyId.value !== storedBabyId && storedBabyId) {
-				console.log(`[宝宝管理] 检测到宝宝状态不一致，从存储同步: ${storedBabyId}`);
-				currentBabyId.value = storedBabyId;
+			onMounted(() => {
+				isDarkMode.value = isDarkTheme();
 				loadBabies();
-			}
-		};
+				loadAuthSettings();
 
-		// 更新宝宝信息
-		const updateBaby = (id, data) => {
-			try {
-				const index = babies.value.findIndex(b => b.id === id);
-				if (index !== -1) {
-					// 更新宝宝信息
-					babies.value[index] = { ...babies.value[index], ...data };
-					
-					// 更新存储
-					uni.setStorageSync('babies', JSON.stringify(babies.value));
-					
-					// 通知其他页面刷新宝宝列表
-					uni.$emit('refreshBabyList');
-				}
-			} catch (e) {
-				console.error('更新宝宝信息失败:', e);
-				uni.showToast({
-					title: '更新失败',
-					icon: 'none'
+				// 添加宝宝列表更新事件监听
+				uni.$on('refreshBabyList', loadBabies);
+
+				// 添加宝宝切换事件监听
+				uni.$on('babyChanged', (data) => {
+					// 检查是否为对象(新格式)或字符串(旧格式)
+					const babyId = typeof data === 'object' ? data.babyId : data;
+					const source = typeof data === 'object' ? (data.source || 'unknown') : 'unknown';
+
+					// 避免自己触发的事件导致循环
+					if (source === 'babyManagement') {
+						console.log('[宝宝管理] 忽略自己触发的宝宝变更事件');
+						return;
+					}
+
+					// 只有当ID变化时才更新
+					if (currentBabyId.value !== babyId) {
+						console.log(`[宝宝管理] 接收到来自[${source}]的宝宝变更事件: ${babyId}`);
+						currentBabyId.value = babyId;
+
+						// 强制刷新处理
+						loadBabies();
+
+						// 延迟确认
+						setTimeout(() => {
+							console.log('[宝宝管理] 完成宝宝变更响应');
+						}, 200);
+					}
 				});
-			}
-		};
 
-		onMounted(() => {
-			isDarkMode.value = isDarkTheme();
-			loadBabies();
-			loadAuthSettings();
-			
-			// 添加宝宝列表更新事件监听
-			uni.$on('refreshBabyList', loadBabies);
-			
-			// 添加宝宝切换事件监听
-			uni.$on('babyChanged', (data) => {
-				// 检查是否为对象(新格式)或字符串(旧格式)
-				const babyId = typeof data === 'object' ? data.babyId : data;
-				const source = typeof data === 'object' ? (data.source || 'unknown') : 'unknown';
-				
-				// 避免自己触发的事件导致循环
-				if (source === 'babyManagement') {
-					console.log('[宝宝管理] 忽略自己触发的宝宝变更事件');
-					return;
-				}
-				
-				// 只有当ID变化时才更新
-				if (currentBabyId.value !== babyId) {
-					console.log(`[宝宝管理] 接收到来自[${source}]的宝宝变更事件: ${babyId}`);
-					currentBabyId.value = babyId;
-					
-					// 强制刷新处理
-					loadBabies();
-					
-					// 延迟确认
-					setTimeout(() => {
-						console.log('[宝宝管理] 完成宝宝变更响应');
-					}, 200);
+				// 页面加载时主动检查宝宝状态
+				checkBabyStatus();
+
+				if (pointsStore.init) {
+					pointsStore.init();
 				}
 			});
-			
-			// 页面加载时主动检查宝宝状态
-			checkBabyStatus();
 
-			if (pointsStore.init) {
-				pointsStore.init();
-			}
-		});
+			// 在onUnmounted中移除事件监听
+			onUnmounted(() => {
+				uni.$off('refreshBabyList');
+				uni.$off('babyChanged');
+			});
 
-		// 在onUnmounted中移除事件监听
-		onUnmounted(() => {
-			uni.$off('refreshBabyList');
-			uni.$off('babyChanged');
-		});
-
-		return {
-			isDarkMode,
-			babies,
-			currentBabyId,
-			editingBaby,
-			editName,
-			showAvatarModal,
-			selectedBaby,
-			defaultAvatars,
-			goBack,
-			loadBabies,
-			navigateToAddBaby,
-			formatAge,
-			editBabyName,
-			saveBabyName,
-			selectAvatar,
-			closeAvatarModal,
-			selectDefaultAvatar,
-			uploadCustomAvatar,
-			deleteBaby,
-			setAsCurrentBaby,
-			pointsStore,
-			checkBabyStatus
-		};
-	},
-	// uni-app生命周期方法作为组件选项
-	onShow() {
-		// 每次页面显示时检查宝宝状态
-		this.checkBabyStatus();
-	}
-};
+			return {
+				isDarkMode,
+				babies,
+				currentBabyId,
+				editingBaby,
+				editName,
+				showAvatarModal,
+				selectedBaby,
+				defaultAvatars,
+				goBack,
+				loadBabies,
+				navigateToAddBaby,
+				formatAge,
+				editBabyName,
+				saveBabyName,
+				selectAvatar,
+				closeAvatarModal,
+				selectDefaultAvatar,
+				uploadCustomAvatar,
+				deleteBaby,
+				setAsCurrentBaby,
+				pointsStore,
+				checkBabyStatus
+			};
+		},
+		// uni-app生命周期方法作为组件选项
+		onShow() {
+			// 每次页面显示时检查宝宝状态
+			this.checkBabyStatus();
+		}
+	};
 </script>
 
 <style>
-.page-container {
-	min-height: 100vh;
-	background-color: #f5f5f5;
-	padding-bottom: 50px;
-}
+	.page-container {
+		min-height: 100vh;
+		background-color: #f5f5f5;
+		padding-bottom: 50px;
+	}
 
-.dark-mode {
-	background-color: #1a1a1a;
-	color: #ffffff;
-}
+	.dark-mode {
+		background-color: #1a1a1a;
+		color: #ffffff;
+	}
 
-.nav-bar {
-	display: flex;
-	align-items: center;
-	height: 88rpx;
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	padding: 75rpx 40rpx 60rpx 40rpx;
-	position: relative;
-}
+	.nav-bar {
+		display: flex;
+		align-items: center;
+		height: 88rpx;
+		background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+		padding: 90rpx 40rpx 60rpx 40rpx;
+		position: relative;
+	}
 
-.nav-left {
-	position: absolute;
-	left: 30rpx;
-	z-index: 1;
-}
+	.nav-left {
+		position: absolute;
+		left: 30rpx;
+		z-index: 1;
+	}
 
-.icon {
-	color: white;
-	font-size: 48rpx;
-	font-weight: bold;
-}
+	.icon {
+		color: white;
+		font-size: 48rpx;
+		font-weight: bold;
+	}
 
-.nav-title {
-	flex: 1;
-	text-align: center;
-	color: white;
-	font-size: 48rpx;
-	font-weight: bold;
-}
+	.nav-title {
+		flex: 1;
+		text-align: center;
+		color: white;
+		font-size: 48rpx;
+		font-weight: bold;
+	}
 
-.baby-list {
-	padding: 20rpx;
-}
+	.baby-list {
+		padding: 20rpx;
+	}
 
-.empty-state {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	height: 300rpx;
-	gap: 30rpx;
-}
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		height: 300rpx;
+		gap: 30rpx;
+	}
 
-.empty-text {
-	color: #999;
-	font-size: 28rpx;
-}
+	.empty-text {
+		color: #999;
+		font-size: 28rpx;
+	}
 
-.dark-mode .empty-text {
-	color: #666;
-}
+	.dark-mode .empty-text {
+		color: #666;
+	}
 
-.add-baby-btn {
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	color: white;
-	font-size: 28rpx;
-	padding: 16rpx 30rpx;
-	border-radius: 30rpx;
-	border: none;
-}
+	.add-baby-btn {
+		background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+		color: white;
+		font-size: 28rpx;
+		padding: 16rpx 30rpx;
+		border-radius: 30rpx;
+		border: none;
+	}
 
-.baby-item {
-	background-color: white;
-	border-radius: 16rpx;
-	margin-bottom: 20rpx;
-	padding: 20rpx;
-	display: flex;
-	align-items: center;
-	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-}
+	.baby-item {
+		background-color: white;
+		border-radius: 16rpx;
+		margin-bottom: 20rpx;
+		padding: 20rpx;
+		display: flex;
+		align-items: center;
+		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+	}
 
-.dark-mode .baby-item {
-	background-color: #2a2a2a;
-	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
-}
+	.dark-mode .baby-item {
+		background-color: #2a2a2a;
+		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+	}
 
-.baby-avatar-container {
-	position: relative;
-	margin-right: 20rpx;
-}
+	.baby-avatar-container {
+		position: relative;
+		margin-right: 20rpx;
+	}
 
-.baby-avatar {
-	width: 120rpx;
-	height: 120rpx;
-	border-radius: 60rpx;
-	border: 4rpx solid rgba(139, 92, 246, 0.2);
-}
+	.baby-avatar {
+		width: 120rpx;
+		height: 120rpx;
+		border-radius: 60rpx;
+		border: 4rpx solid rgba(139, 92, 246, 0.2);
+	}
 
-.avatar-edit-overlay {
-	position: absolute;
-	bottom: 0;
-	right: 0;
-	background-color: rgba(139, 92, 246, 0.8);
-	width: 40rpx;
-	height: 40rpx;
-	border-radius: 20rpx;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
+	.avatar-edit-overlay {
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		background-color: rgba(139, 92, 246, 0.8);
+		width: 40rpx;
+		height: 40rpx;
+		border-radius: 20rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
 
-.edit-icon {
-	color: white;
-	font-size: 20rpx;
-}
+	.edit-icon {
+		color: white;
+		font-size: 20rpx;
+	}
 
-.baby-info {
-	flex: 1;
-}
+	.baby-info {
+		flex: 1;
+	}
 
-.baby-name-container {
-	display: flex;
-	align-items: center;
-	margin-bottom: 8rpx;
-}
+	.baby-name-container {
+		display: flex;
+		align-items: center;
+		margin-bottom: 8rpx;
+	}
 
-.baby-name {
-	font-size: 32rpx;
-	font-weight: bold;
-	margin-right: 10rpx;
-}
+	.baby-name {
+		font-size: 32rpx;
+		font-weight: bold;
+		margin-right: 10rpx;
+	}
 
-.baby-name-input {
-	font-size: 32rpx;
-	font-weight: bold;
-	border-bottom: 2rpx solid #8B5CF6;
-	margin-right: 10rpx;
-	padding: 4rpx 0;
-	min-width: 120rpx;
-}
+	.baby-name-input {
+		font-size: 32rpx;
+		font-weight: bold;
+		border-bottom: 2rpx solid #8B5CF6;
+		margin-right: 10rpx;
+		padding: 4rpx 0;
+		min-width: 120rpx;
+	}
 
-.edit-name-btn {
-	font-size: 24rpx;
-	color: #999;
-}
+	.edit-name-btn {
+		font-size: 24rpx;
+		color: #999;
+	}
 
-.baby-age {
-	font-size: 24rpx;
-	color: #666;
-	margin-bottom: 8rpx;
-}
+	.baby-age {
+		font-size: 24rpx;
+		color: #666;
+		margin-bottom: 8rpx;
+	}
 
-.dark-mode .baby-age {
-	color: #999;
-}
+	.dark-mode .baby-age {
+		color: #999;
+	}
 
-.baby-points {
-	font-size: 24rpx;
-	color: #8B5CF6;
-	font-weight: 500;
-}
+	.baby-points {
+		font-size: 24rpx;
+		color: #8B5CF6;
+		font-weight: 500;
+	}
 
-.baby-actions {
-	display: flex;
-	flex-direction: column;
-	gap: 10rpx;
-}
+	.baby-actions {
+		display: flex;
+		flex-direction: column;
+		gap: 10rpx;
+	}
 
-.action-btn {
-	width: 60rpx;
-	height: 60rpx;
-	border-radius: 30rpx;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
+	.action-btn {
+		width: 60rpx;
+		height: 60rpx;
+		border-radius: 30rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
 
-.primary-btn {
-	background-color: rgba(139, 92, 246, 0.1);
-}
+	.primary-btn {
+		background-color: rgba(139, 92, 246, 0.1);
+	}
 
-.delete-btn {
-	background-color: rgba(255, 77, 79, 0.1);
-}
+	.delete-btn {
+		background-color: rgba(255, 77, 79, 0.1);
+	}
 
-.action-icon {
-	font-size: 28rpx;
-}
+	.action-icon {
+		font-size: 28rpx;
+	}
 
-.float-btn {
-	position: fixed;
-	right: 40rpx;
-	bottom: 120rpx;
-	width: 100rpx;
-	height: 100rpx;
-	background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: white;
-	font-size: 48rpx;
-	box-shadow: 0 4rpx 16rpx rgba(139, 92, 246, 0.3);
-	z-index: 100;
-}
+	.float-btn {
+		position: fixed;
+		right: 40rpx;
+		bottom: 120rpx;
+		width: 100rpx;
+		height: 100rpx;
+		background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: white;
+		font-size: 48rpx;
+		box-shadow: 0 4rpx 16rpx rgba(139, 92, 246, 0.3);
+		z-index: 100;
+	}
 
-.modal-mask {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: rgba(0, 0, 0, 0.6);
-	display: flex;
-	align-items: flex-end;
-	justify-content: center;
-	z-index: 999;
-}
+	.modal-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.6);
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
+		z-index: 999;
+	}
 
-.modal-content {
-	width: 100%;
-	background-color: white;
-	border-radius: 20rpx 20rpx 0 0;
-	overflow: hidden;
-}
+	.modal-content {
+		width: 100%;
+		background-color: white;
+		border-radius: 20rpx 20rpx 0 0;
+		overflow: hidden;
+	}
 
-.dark-mode .modal-content {
-	background-color: #2a2a2a;
-}
+	.dark-mode .modal-content {
+		background-color: #2a2a2a;
+	}
 
-.modal-title {
-	font-size: 32rpx;
-	text-align: center;
-	padding: 30rpx 0;
-	font-weight: bold;
-	border-bottom: 1px solid #eee;
-}
+	.modal-title {
+		font-size: 32rpx;
+		text-align: center;
+		padding: 30rpx 0;
+		font-weight: bold;
+		border-bottom: 1px solid #eee;
+	}
 
-.dark-mode .modal-header {
-	border-bottom-color: #333;
-}
+	.dark-mode .modal-header {
+		border-bottom-color: #333;
+	}
 
-.modal-option {
-	padding: 30rpx 0;
-	font-size: 28rpx;
-	text-align: center;
-	border-bottom: 1px solid #eee;
-}
+	.modal-option {
+		padding: 30rpx 0;
+		font-size: 28rpx;
+		text-align: center;
+		border-bottom: 1px solid #eee;
+	}
 
-.modal-footer {
-	padding: 20rpx;
-}
+	.modal-footer {
+		padding: 20rpx;
+	}
 
-.modal-btn {
-	width: 100%;
-	height: 88rpx;
-	line-height: 88rpx;
-	text-align: center;
-	font-size: 28rpx;
-	border: none;
-	background: #fff;
-	border-radius: 0;
-}
+	.modal-btn {
+		width: 100%;
+		height: 88rpx;
+		line-height: 88rpx;
+		text-align: center;
+		font-size: 28rpx;
+		border: none;
+		background: #fff;
+		border-radius: 0;
+	}
 
-.cancel {
-	color: #666;
-}
+	.cancel {
+		color: #666;
+	}
 
-.dark-mode .cancel {
-	color: #999;
-}
-</style> 
+	.dark-mode .cancel {
+		color: #999;
+	}
+</style>
