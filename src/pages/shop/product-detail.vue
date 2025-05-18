@@ -70,11 +70,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { onLoad, onShow } from '@dcloudio/uni-app';
 import { isDarkTheme } from '@/utils/themeUtils.js';
-import { getBabyPoints, deductBabyPoints } from '@/utils/pointsManager';
 import { useShopStore } from '@/stores/shopStore';
+import { usePointsStore } from '@/stores/pointsStore';
 
 // 暗黑模式
 const isDarkMode = ref(false);
@@ -92,6 +92,8 @@ const shopStore = useShopStore();
 const userPoints = ref(0);
 // 当前宝宝ID
 const currentBabyId = ref('');
+// 积分Store
+const pointsStore = usePointsStore();
 
 // 返回上一页
 function goBack() {
@@ -118,7 +120,7 @@ function exchangeProduct() {
         const babyId = currentBabyId.value;
         
         // 调用积分管理工具扣除积分
-        const success = deductBabyPoints(babyId, product.value.points);
+        const success = pointsStore.deductBabyPoints(babyId, product.value.points, product.value.description);
         
         if (success) {
           // 找到商品在商品库中的索引
@@ -158,7 +160,7 @@ function exchangeProduct() {
             uni.setStorageSync('exchangeHistory', JSON.stringify(history));
             
             // 更新UI显示
-            userPoints.value = getBabyPoints(babyId);
+            userPoints.value = pointsStore.getBabyPoints(babyId);
             
             // 通知商品列表更新
             uni.$emit('refreshProductList');
@@ -198,11 +200,16 @@ onLoad(() => {
   currentBabyId.value = uni.getStorageSync('currentBabyId') || '';
   
   // 获取用户积分
-  userPoints.value = getBabyPoints(currentBabyId.value);
+  userPoints.value = pointsStore.getBabyPoints(currentBabyId.value);
   
   // 确保商品Store已加载
   if (!shopStore.isLoaded) {
     shopStore.loadProducts();
+  }
+
+  // 初始化积分Store
+  if (pointsStore.init) {
+    pointsStore.init();
   }
 });
 
@@ -210,7 +217,7 @@ onLoad(() => {
 onShow(() => {
   isDarkMode.value = isDarkTheme();
   // 更新用户积分
-  userPoints.value = getBabyPoints(currentBabyId.value);
+  userPoints.value = pointsStore.getBabyPoints(currentBabyId.value);
 });
 </script>
 

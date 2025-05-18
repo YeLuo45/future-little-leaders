@@ -34,6 +34,11 @@
 				<text class="label">任务记录</text>
 				<text class="arrow">></text>
 			</view>
+			<view class="function-item" @tap="navigateTo('profile/points-records')">
+				<text class="icon">💰</text>
+				<text class="label">积分记录</text>
+				<text class="arrow">></text>
+			</view>
 			<view class="function-item" @tap="navigateTo('task/recurring-tasks')">
 				<text class="icon">🔄</text>
 				<text class="label">任务管理</text>
@@ -78,7 +83,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { isDarkTheme } from '@/utils/themeUtils.js';
 import { useThemeStore } from '@/stores/theme';
-import { getBabyPoints } from '@/utils/pointsManager';
+import { usePointsStore } from '@/stores/pointsStore';
 import { verifyAuth } from '@/utils/authUtils';
 
 export default {
@@ -93,6 +98,7 @@ export default {
 		const isDark = ref(false);
 		const isDarkMode = ref(false);
 		const themeStore = useThemeStore();
+		const pointsStore = usePointsStore();
 		const taskRecords = ref([]);
 		const exchangeRecords = ref([]);
 		const authSettings = ref({
@@ -154,9 +160,9 @@ export default {
 		const updatePoints = (babyId) => {
 			const id = babyId || currentBabyId.value;
 			if (id) {
-				totalScore.value = getBabyPoints(id);
+				totalScore.value = pointsStore.getBabyPoints(id);
 			} else {
-				totalScore.value = getBabyPoints();
+				totalScore.value = 0;
 			}
 		};
 
@@ -339,6 +345,11 @@ export default {
 			// 初始化主题
 			if (themeStore.initTheme) {
 				themeStore.initTheme();
+			}
+			
+			// 初始化积分Store
+			if (pointsStore.init) {
+				pointsStore.init();
 			}
 
 			// 添加积分更新事件监听

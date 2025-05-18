@@ -10,6 +10,7 @@ export const usePointsStore = defineStore('points', () => {
   // 状态
   const pointsRecords = ref([])   // 积分记录列表
   const exchangeRecords = ref([]) // 兑换记录列表
+  const babyPoints = ref({})      // 宝宝积分映射表 {babyId: points}
   
   // 获取宝宝Store
   const babyStore = useBabyStore()
@@ -82,17 +83,76 @@ export const usePointsStore = defineStore('points', () => {
     }
   }
   
+  // 加载宝宝积分数据
+  const loadBabyPoints = () => {
+    try {
+      const pointsData = uni.getStorageSync('babyPointsRecords')
+      if (pointsData) {
+        babyPoints.value = JSON.parse(pointsData)
+      }
+    } catch (e) {
+      console.error('加载宝宝积分失败:', e)
+      babyPoints.value = {}
+    }
+    
+    // 从积分记录中重新计算宝宝积分总额
+    recalculateBabyPoints()
+  }
+  
+  // 保存宝宝积分数据
+  const saveBabyPoints = () => {
+    try {
+      console.log('saveBabyPoints', babyPoints.value)
+      uni.setStorageSync('babyPointsRecords', JSON.stringify(babyPoints.value))
+      return true
+    } catch (e) {
+      console.error('保存宝宝积分失败:', e)
+      return false
+    }
+  }
+  
+  // 重新计算所有宝宝的积分总额
+  const recalculateBabyPoints = () => {
+    // 清空当前积分数据
+    babyPoints.value = {}
+    
+    // 从所有积分记录中重新计算
+    pointsRecords.value.forEach(record => {
+      const { babyId, points, type } = record
+
+      const pointsInt = parseInt(points)
+      if (!babyId) return
+      
+      // 初始化宝宝积分
+      if (babyPoints.value[babyId] === undefined) {
+        babyPoints.value[babyId] = 0
+      }
+
+      babyPoints.value[babyId] = parseInt(babyPoints.value[babyId])
+
+      console.log('recalculateBabyPoints', babyId, babyPoints.value[babyId], pointsInt)
+      
+      // 收入加积分，支出减积分
+      if (type === 'income') {
+        babyPoints.value[babyId] += pointsInt
+      } else if (type === 'expense') {
+        babyPoints.value[babyId] -= pointsInt
+      }
+    })
+    
+    // 保存更新后的积分数据
+    saveBabyPoints()
+  }
+  
   // 获取宝宝积分
   const getBabyPoints = (babyId) => {
     if (!babyId) return 0
     
-    // 获取宝宝的积分记录
-    const records = pointsRecords.value.filter(record => record.babyId === babyId)
-    
-    // 计算总积分（收入-支出）
-    return records.reduce((total, record) => {
-      return total + (record.type === 'income' ? record.points : -record.points)
-    }, 0)
+    // 从内存中获取,将其转换为整型
+    const points = babyPoints.value[babyId] || 0
+
+    console.log('getBabyPoints', babyId, points)
+    return parseInt(points)
   }
   
   // 添加积分记录
@@ -115,6 +175,22 @@ export const usePointsStore = defineStore('points', () => {
     // 保存记录
     savePointsRecords()
     
+    // 更新宝宝积分
+    if (type === 'income') {
+      // 初始化宝宝积分
+      if (babyPoints.value[babyId] === undefined) {
+        babyPoints.value[babyId] = 0
+      }
+      babyPoints.value[babyId] += points
+    } else if (type === 'expense') {
+      // 初始化宝宝积分
+      if (babyPoints.value[babyId] === undefined) {
+        babyPoints.value[babyId] = 0
+      }
+      babyPoints.value[babyId] -= points
+    }
+    saveBabyPoints()
+    
     // 广播积分更新事件
     uni.$emit('pointsUpdated', babyId)
     uni.$emit('babyPointsUpdated', { babyId, points: getBabyPoints(babyId) })
@@ -124,19 +200,23 @@ export const usePointsStore = defineStore('points', () => {
   
   // 添加宝宝积分
   const addBabyPoints = (babyId, points, desc = '完成任务') => {
-    return addPointsRecord(babyId, points, desc, 'income')
+    if (!babyId || points <= 0) return false
+
+    return addPointsRecord(babyId, parseInt(points), desc, 'income')
   }
   
   // 扣除宝宝积分
   const deductBabyPoints = (babyId, points, desc = '兑换商品') => {
-    const currentPoints = getBabyPoints(babyId)
+    if (!babyId || points <= 0) return false
     
     // 检查积分余额
-    if (currentPoints < points) {
+    const currentPoints = getBabyPoints(babyId)
+    const deductPoints = parseInt(points)
+    if (currentPoints < deductPoints) {
       return false
     }
-    
-    return addPointsRecord(babyId, points, desc, 'expense')
+
+    return addPointsRecord(babyId, deductPoints, desc, 'expense')
   }
   
   // 添加兑换记录
@@ -201,12 +281,14 @@ export const usePointsStore = defineStore('points', () => {
   const init = () => {
     loadPointsRecords()
     loadExchangeRecords()
+    loadBabyPoints()
   }
   
   return {
     // 状态
     pointsRecords,
     exchangeRecords,
+    babyPoints,
     
     // 计算属性
     currentBabyPoints,
@@ -216,10 +298,12 @@ export const usePointsStore = defineStore('points', () => {
     // 方法
     loadPointsRecords,
     loadExchangeRecords,
+    loadBabyPoints,
     getBabyPoints,
     addBabyPoints,
     deductBabyPoints,
     exchangeProduct,
+    recalculateBabyPoints,
     init
   }
 }) 

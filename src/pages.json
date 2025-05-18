@@ -77,9 +77,9 @@
 			}
 		},
 		{
-			"path": "pages/profile/baby-management",
+			"path": "pages/profile/points-records",
 			"style": {
-				"navigationBarTitleText": "宝宝管理",
+				"navigationBarTitleText": "积分记录",
 				"navigationStyle": "custom"
 			}
 		},

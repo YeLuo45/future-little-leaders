@@ -80,7 +80,7 @@
 	import { ref, onMounted, onUnmounted, computed } from 'vue';
 	import { useThemeStore } from '@/stores/theme';
 	import { useShopStore } from '@/stores/shopStore';
-	import { getBabyPoints, deductBabyPoints } from '@/utils/pointsManager';
+	import { usePointsStore } from '@/stores/pointsStore';
 	import { isDarkTheme } from '@/utils/themeUtils.js';
 	import { verifyAuth } from '@/utils/authUtils';
 
@@ -88,6 +88,7 @@
 		setup() {
 			const themeStore = useThemeStore();
 			const shopStore = useShopStore();
+			const pointsStore = usePointsStore();
 			const isDarkMode = ref(false);
 			const totalScore = ref(0);
 			const products = ref([]);
@@ -238,8 +239,9 @@
 								return;
 							}
 							
-							// 扣除积分
-							const success = await deductBabyPoints(currentBabyId.value, product.points);
+							// 扣除积分 - 添加更详细的描述
+							const description = `兑换商品：${product.name}`;
+							const success = await pointsStore.deductBabyPoints(currentBabyId.value, product.points, description);
 							if (success) {
 								// 减少商品库存
 								const exchangeSuccess = shopStore.exchangeProduct(productIndex);
@@ -380,9 +382,9 @@
 			// 更新积分显示
 			const updatePoints = () => {
 				if (currentBabyId.value) {
-					totalScore.value = getBabyPoints(currentBabyId.value);
+					totalScore.value = pointsStore.getBabyPoints(currentBabyId.value);
 				} else {
-					totalScore.value = getBabyPoints();
+					totalScore.value = 0;
 				}
 			};
 
@@ -404,6 +406,11 @@
 				// 初始化主题
 				if (themeStore.initTheme) {
 					themeStore.initTheme();
+				}
+				
+				// 初始化积分Store
+				if (pointsStore.init) {
+					pointsStore.init();
 				}
 
 				// 加载宝宝信息

@@ -35,7 +35,7 @@
 						<text class="edit-name-btn" @tap="editBabyName(baby)">✏️</text>
 					</view>
 					<text class="baby-age">{{ formatAge(baby.birthdate) }}</text>
-					<view class="baby-points">积分: {{ getBabyPoints(baby.id) }}</view>
+					<view class="baby-points">积分: {{ pointsStore.getBabyPoints(baby.id) }}</view>
 				</view>
 				<view class="baby-actions">
 					<view class="action-btn delete-btn" @tap="deleteBaby(baby)">
@@ -70,7 +70,7 @@
 <script>
 import { ref, reactive, onMounted, computed, onUnmounted } from 'vue';
 import { isDarkTheme } from '@/utils/themeUtils.js';
-import { getBabyPoints } from '@/utils/pointsManager';
+import { usePointsStore } from '@/stores/pointsStore';
 import { verifyAuth } from '@/utils/authUtils';
 
 export default {
@@ -88,6 +88,7 @@ export default {
 			hasPassword: false,
 			hasBiometric: false
 		});
+		const pointsStore = usePointsStore();
 		
 		// 默认头像列表
 		const defaultAvatars = [
@@ -357,6 +358,10 @@ export default {
 			
 			// 页面加载时主动检查宝宝状态
 			checkBabyStatus();
+
+			if (pointsStore.init) {
+				pointsStore.init();
+			}
 		});
 
 		// 在onUnmounted中移除事件监听
@@ -386,7 +391,7 @@ export default {
 			uploadCustomAvatar,
 			deleteBaby,
 			setAsCurrentBaby,
-			getBabyPoints,
+			pointsStore,
 			checkBabyStatus
 		};
 	},

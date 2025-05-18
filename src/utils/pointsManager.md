@@ -1,69 +1,56 @@
-# 积分管理工具说明
+# 积分管理说明
 
-`pointsManager.js` 模块提供了用于管理应用中宝宝积分系统的一系列工具函数。
+## 重要更新 (2023-10-16)
 
-## 主要功能
+pointsManager.js 已被移除，所有积分管理功能现在由 Pinia store (pointsStore.js) 统一管理。
 
-1. **宝宝积分管理**：为每个宝宝单独管理积分
-2. **积分增减操作**：提供添加和扣除积分的功能
-3. **事件通知**：当积分变更时，通过事件系统通知应用其他部分
+### 迁移指南
 
-## API 说明
+原来使用 pointsManager.js 的代码需要做以下修改：
 
-### 宝宝积分相关
-
-- `getBabyPoints(babyId)`: 获取特定宝宝的积分
-- `updateBabyPoints(babyId, points)`: 更新特定宝宝的积分
-- `addBabyPoints(babyId, points)`: 为特定宝宝添加积分
-- `deductBabyPoints(babyId, points)`: 从特定宝宝扣除积分
-
-## 数据存储
-
-积分数据存储在本地存储中：
-
-- 宝宝积分: `babyPointsRecords` 键，存储为JSON对象，格式为 `{ babyId: points }`
-
-## 事件系统
-
-模块通过 uni.$emit 触发以下事件：
-
-- `babyPointsUpdated`: 宝宝积分更新时触发，参数为 `{ babyId, points }`
-
-## 使用示例
-
-```javascript
-import { addBabyPoints, deductBabyPoints, getBabyPoints } from '@/utils/pointsManager';
-
-// 添加积分到特定宝宝
-const addPointsToCurrentBaby = (points) => {
-  const currentBabyId = uni.getStorageSync('currentBabyId');
-  if (currentBabyId) {
-    addBabyPoints(currentBabyId, points);
-  }
-};
-
-// 完成任务后奖励积分
-const completeTask = (task) => {
-  const babyId = uni.getStorageSync('currentBabyId');
-  addBabyPoints(babyId, task.points);
-};
-
-// 兑换奖品
-const exchangeReward = (reward) => {
-  const babyId = uni.getStorageSync('currentBabyId');
-  const babyPoints = getBabyPoints(babyId);
-  
-  if (babyPoints >= reward.points) {
-    deductBabyPoints(babyId, reward.points);
-    return true;
-  }
-  return false;
-};
+1. 将导入语句从:
+```js
+import { getBabyPoints, addBabyPoints, deductBabyPoints } from '@/utils/pointsManager';
+```
+修改为:
+```js
+import { usePointsStore } from '@/stores/pointsStore';
 ```
 
-## 注意事项
+2. 在 setup 函数中初始化 pointsStore:
+```js
+const pointsStore = usePointsStore();
 
-1. 所有操作都会返回一个布尔值表示成功或失败
-2. 扣除积分时会检查积分是否足够，不足则返回false
-3. 操作失败时会在控制台输出错误信息
-4. 如果不传入babyId，`getBabyPoints`将返回0 
+// 在 onMounted 中初始化
+onMounted(() => {
+  if (pointsStore.init) {
+    pointsStore.init();
+  }
+});
+```
+
+3. 将方法调用修改为:
+```js
+// 旧代码
+const points = getBabyPoints(babyId);
+addBabyPoints(babyId, 10, '完成任务');
+deductBabyPoints(babyId, 50, '兑换商品');
+
+// 新代码
+const points = pointsStore.getBabyPoints(babyId);
+pointsStore.addBabyPoints(babyId, 10, '完成任务');
+pointsStore.deductBabyPoints(babyId, 50, '兑换商品');
+```
+
+### 优势
+
+1. **状态集中管理**: 所有积分数据统一由 Pinia 管理
+2. **响应式更新**: 数据变化自动触发 UI 更新
+3. **便于调试**: 可以使用 Vue DevTools 查看积分状态
+4. **完整的积分记录**: 所有积分变更都会被记录，包含详细信息
+
+### 注意事项
+
+- 确保在使用 pointsStore 前已调用其 init 方法
+- 对积分的所有修改都应该通过 pointsStore 的方法进行
+- 积分记录含有详细的描述信息，请在调用方法时提供准确的描述 

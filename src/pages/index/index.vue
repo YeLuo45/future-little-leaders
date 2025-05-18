@@ -166,12 +166,13 @@
 <script>
   import { ref, computed, onMounted, onUnmounted } from 'vue';
   import { useThemeStore } from '@/stores/theme';
-  import { getBabyPoints, addBabyPoints } from '@/utils/pointsManager';
+  import { usePointsStore } from '@/stores/pointsStore';
   import { verifyAuth } from '@/utils/authUtils';
 
   export default {
     setup() {
       const themeStore = useThemeStore();
+      const pointsStore = usePointsStore();
       const isDarkMode = computed(() => themeStore.isDarkMode);
 
       // 搜索相关
@@ -547,9 +548,9 @@
       // 更新积分显示
       const updateShowPoints = () => {
         if (currentBabyId.value) {
-          totalScore.value = getBabyPoints(currentBabyId.value);
+          totalScore.value = pointsStore.getBabyPoints(currentBabyId.value);
         } else {
-          totalScore.value = getBabyPoints();
+          totalScore.value = 0;
         }
       };
 
@@ -595,7 +596,9 @@
           const taskPoints = task.points || 10;
           // 使用宝宝ID增加积分
           if (currentBabyId.value) {
-            addBabyPoints(currentBabyId.value, taskPoints);
+            // 添加更详细的描述信息
+            const description = `完成任务：${task.title}`;
+            pointsStore.addBabyPoints(currentBabyId.value, taskPoints, description);
           } else {
             console.warn('未找到当前宝宝ID，无法添加积分');
           }
@@ -784,6 +787,11 @@
         // 初始化主题
         if (themeStore.initTheme) {
           themeStore.initTheme();
+        }
+        
+        // 初始化积分Store
+        if (pointsStore.init) {
+          pointsStore.init();
         }
 
         // 加载宝宝信息
