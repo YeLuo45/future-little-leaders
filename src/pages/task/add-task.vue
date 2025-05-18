@@ -416,6 +416,18 @@
         try {
           let taskList = uni.getStorageSync('taskList') || '[]';
           taskList = JSON.parse(taskList);
+          // 获取当前宝宝的任务数量
+          const currentBabyTaskList = taskList.filter(task => task.babyId === currentBabyId);
+          console.log("currentBabyTaskCount:", currentBabyTaskList.length);
+
+          const maxTaskCount = 100;
+          if (currentBabyTaskList.length >= maxTaskCount) {
+            uni.showToast({
+              title: `宝宝任务数量已达上限，不能超过 ${maxTaskCount} 个`,
+              icon: 'none'
+            });
+            return;
+          }
 
           // 生成新任务ID
           const newId = taskList.length > 0 ? Math.max(...taskList.map(t => t.id)) + 1 : 1;
@@ -434,7 +446,7 @@
               if (weekday === 0) {
                 weekday = 7
               }
-             
+
               for (let i = 1; i <= 7; i++) {
                 let nextWeekday = (weekday + i) % 7;
                 // 检测是否包含该星期几
@@ -444,8 +456,8 @@
                   break;
                 }
               }
-            } 
-           
+            }
+
             resetTime = new Date(now.getTime() + interval * 1000);
             // 设置时、分、秒、毫秒为 0
             resetTime.setHours(0, 0, 0, 0);
@@ -462,6 +474,14 @@
           };
 
           taskList.push(newTask);
+
+          // 移除已完成的普通任务
+          for (let i = 0; i < taskList.length; i++) {
+            if (taskList[i].type === 'normal' && taskList[i].status === 'completed') {
+              taskList.splice(i, 1);
+              console.log("remove normal completed task:", taskList[i])
+            }
+          }
 
           // 保存更新后的任务列表
           uni.setStorageSync('taskList', JSON.stringify(taskList));

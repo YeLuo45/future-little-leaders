@@ -705,6 +705,16 @@
             // 注意：这里不过滤taskList本身，只在computed中过滤显示
             taskList.value = parsedTasks;
 
+            // 移除已完成的普通任务
+            let updateFlag = false;
+            for (let i = 0; i < taskList.value.length; i++) {
+              if (taskList.value[i].type === 'normal' && taskList.value[i].status === 'completed') {
+                updateFlag = true;
+                taskList.value.splice(i, 1);
+                console.log("remove normal completed task:", taskList.value)  
+              }
+            }
+
             // 转换日期字符串为Date对象
             taskList.value.forEach(task => {
               if (typeof task.createdAt === 'string') {
@@ -720,6 +730,10 @@
                 console.log('周任务，将weekdays按照升序排序:', task.title, task.weekdays);
               }
             });
+
+            if (updateFlag) {
+              uni.setStorageSync('taskList', JSON.stringify(taskList.value));
+            }
 
             // 添加调试日志，检查当前宝宝的任务数量
             const babyTasks = parsedTasks.filter(t => !t.babyId || t.babyId === currentBabyId.value);
