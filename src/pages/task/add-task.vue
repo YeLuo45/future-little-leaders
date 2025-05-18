@@ -86,10 +86,10 @@
             @tap="taskForm.recurringType = 'weekly'">
             每周
           </view>
-          <view class="recurring-item" :class="{ 'selected': taskForm.recurringType === 'monthly' }"
+          <!-- <view class="recurring-item" :class="{ 'selected': taskForm.recurringType === 'monthly' }"
             @tap="taskForm.recurringType = 'monthly'">
             每月
-          </view>
+          </view> -->
           <view class="recurring-item" :class="{ 'selected': taskForm.recurringType === 'custom' }"
             @tap="taskForm.recurringType = 'custom'">
             自定义
@@ -105,12 +105,12 @@
         </view>
 
         <!-- 每月选择 -->
-        <view class="monthday-selector" v-if="taskForm.recurringType === 'monthly'">
+        <!-- <view class="monthday-selector" v-if="taskForm.recurringType === 'monthly'">
           <view v-for="day in 31" :key="day" class="monthday-item"
             :class="{ 'selected': taskForm.monthDays.includes(day) }" @tap="toggleMonthDay(day)">
             {{ day }}日
           </view>
-        </view>
+        </view> -->
 
         <!-- 自定义时间点 -->
         <view class="custom-time" v-if="taskForm.recurringType === 'custom'">
@@ -422,19 +422,30 @@
           taskForm.value.id = newId;
 
           let resetTime = 0;
+          const now = new Date();
           if (taskForm.value.type === 'recurring') {
+            // 周任务，将weekdays按照升序排序
+            taskForm.value.weekdays = taskForm.value.weekdays.sort((a, b) => a - b);
             // 周期性任务，默认24小时
             let interval = 24 * 3600;
             if (taskForm.value.recurringType === 'weekly') {
-              interval = 7 * 24 * 3600;
-            } else if (taskForm.value.recurringType === 'monthly') {
-              interval = 30 * 24 * 3600;
-            }
-            // else if (taskForm.value.recurringType === 'custom') {
-            //   interval = taskForm.value.customEndTime - taskForm.value.customStartTime;
-            // }
-
-            const now = new Date();
+              // 获取周任务的下一个重置时间
+              let weekday = now.getDay();
+              if (weekday === 0) {
+                weekday = 7
+              }
+             
+              for (let i = 1; i <= 7; i++) {
+                let nextWeekday = (weekday + i) % 7;
+                // 检测是否包含该星期几
+                if (taskForm.value.weekdays.includes(nextWeekday)) {
+                  interval = i * 24 * 3600;
+                  console.log('下一次重置间隔:', i, interval);
+                  break;
+                }
+              }
+            } 
+           
             resetTime = new Date(now.getTime() + interval * 1000);
             // 设置时、分、秒、毫秒为 0
             resetTime.setHours(0, 0, 0, 0);

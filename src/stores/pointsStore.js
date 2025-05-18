@@ -129,8 +129,6 @@ export const usePointsStore = defineStore('points', () => {
       }
 
       babyPoints.value[babyId] = parseInt(babyPoints.value[babyId])
-
-      console.log('recalculateBabyPoints', babyId, babyPoints.value[babyId], pointsInt)
       
       // 收入加积分，支出减积分
       if (type === 'income') {
@@ -151,7 +149,6 @@ export const usePointsStore = defineStore('points', () => {
     // 从内存中获取,将其转换为整型
     const points = babyPoints.value[babyId] || 0
 
-    console.log('getBabyPoints', babyId, points)
     return parseInt(points)
   }
   

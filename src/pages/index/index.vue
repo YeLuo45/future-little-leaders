@@ -143,11 +143,6 @@
       <text>＋</text>
     </view>
 
-    <!-- 测试按钮 -->
-    <!-- <view class="test-btn" @tap="testTaskList">
-      <text>测试</text>
-    </view> -->
-
     <!-- 删除确认模态框 -->
     <view class="modal-mask" v-if="showDeleteModal" @tap="cancelDelete"></view>
     <view class="delete-modal" v-if="showDeleteModal">
@@ -309,15 +304,15 @@
           currentBabyId.value = storedCurrentBabyId || (babies.value[0]?.id || '');
 
           // 打印更详细的宝宝信息
-          console.log('加载宝宝信息:', babies.value.length, '个宝宝', 
-            '当前选中:', currentBabyId.value);
+          // console.log('加载宝宝信息:', babies.value.length, '个宝宝',
+          //   '当前选中:', currentBabyId.value);
 
           // 检查是否有宝宝没有头像
           const babiesWithoutAvatar = babies.value.filter(b => !b.avatar);
           if (babiesWithoutAvatar.length > 0) {
             console.log('警告: 有', babiesWithoutAvatar.length, '个宝宝没有头像');
           }
-          
+
           // 更新积分显示
           updateShowPoints();
         } catch (e) {
@@ -332,17 +327,17 @@
           // 记录之前的宝宝ID，用于检测变化
           const oldBabyId = currentBabyId.value;
           const newBabyId = babies.value[idx].id;
-          
+
           // 只有宝宝ID发生变化时才触发更新
           if (oldBabyId !== newBabyId) {
             console.log(`[首页] 切换宝宝: 从[${oldBabyId}]到[${newBabyId}]`);
-            
+
             // 更新本地状态
             currentBabyId.value = newBabyId;
-            
+
             // 同步保存到本地存储
             uni.setStorageSync('currentBabyId', newBabyId);
-            
+
             // 用setTimeout确保事件在状态更新后触发
             setTimeout(() => {
               // 广播宝宝切换事件，传递完整宝宝信息
@@ -352,7 +347,7 @@
                 source: 'index',  // 标记事件来源
                 timestamp: Date.now() // 添加时间戳避免重复
               });
-              
+
               // 强制发送通知给其他页面
               uni.showToast({
                 title: `已切换到"${babies.value[idx].name}"`,
@@ -360,12 +355,12 @@
                 duration: 1500
               });
             }, 50);
-            
+
             // 强制重新加载本页面数据
             loadTasksAndPointsFromStorage();
             updateShowPoints();
             refreshTasks(); // 刷新任务状态
-            
+
             // 强制刷新UI
             setTimeout(() => {
               const temp = [...taskList.value];
@@ -400,27 +395,35 @@
           // 周期性任务且已完成任务、resetTime小于当前时间
           if (task.resetTime < now || task.resetTime === undefined) {
             // 这里可以执行重置任务的逻辑
-            console.log(`重置任务: ${task.title}`);
-            let resetTime = 0;
-            if (task.type === 'recurring') {
-              // 周期性任务，默认24小时
-              let interval = 24 * 3600;
-              if (task.recurringType === 'weekly') {
-                interval = 7 * 24 * 3600;
-              } else if (task.recurringType === 'monthly') {
-                interval = 30 * 24 * 3600;
+            let nextResetTime = 0;
+            // 周期性任务，默认24小时
+            let interval = 24 * 3600;
+            if (task.recurringType === 'weekly') {
+              // 获取当前星期几
+              let weekday = now.getDay();
+              if (weekday === 0) {
+                weekday = 7
               }
+              for (let i = 1; i <= 7; i++) {
+                let nextWeekday = (weekday + i) % 7;
+                if (task.weekdays.includes(nextWeekday)) {
+                  interval = i * 24 * 3600;
+                  break;
+                }
+              }
+              console.log(`重置任务: ${task.title}, 周设置: ${task.weekdays}, 间隔: ${interval}秒`);
 
-              resetTime = new Date(now.getTime() + interval * 1000);
-              // 设置时、分、秒、毫秒为 0
-              resetTime.setHours(0, 0, 0, 0);
-
-              // 更新下一次重置时间和状态、进度
-              task.resetTime = resetTime;
-              task.status = 'ongoing';
-              task.completed = '0';
-              task.completedAt = null;
             }
+
+            nextResetTime = new Date(now.getTime() + interval * 1000);
+            // 设置时、分、秒、毫秒为 0
+            nextResetTime.setHours(0, 0, 0, 0);
+
+            // 更新下一次重置时间和状态、进度
+            task.resetTime = nextResetTime;
+            task.status = 'ongoing';
+            task.completed = '0';
+            task.completedAt = null;
 
             updateFlag = true;
           }
@@ -478,22 +481,42 @@
             if (task.babyId === undefined) {
               return false;
             }
-            // 如果当前没有宝宝，则过滤
-            if (!babyId) {
+            // 如果不是当前宝宝的任务，则过滤
+            if (task.babyId !== babyId) {
+              return false;
+            }
+            // 不是周期性任务，则过滤
+            if (task.type !== 'recurring') {
+              return false;
+            }
+            // 不是进行中任务，则过滤
+            if (task.status !== 'ongoing') {
               return false;
             }
 
-            // 周期性任务 
-            const isRecurring = task.type === 'recurring';
-            // 进行中任务
-            const isOngoing = task.status === 'ongoing';
             // 搜索关键字
             const matchesSearch = !searchKeyword.value || task.title.includes(searchKeyword.value);
-            // 当前宝宝的任务
-            const isBabyTask = task.babyId === babyId;
+            if (!matchesSearch) {
+              return false;
+            }
+
+            let curdayTask = false;
+            if (task.recurringType === 'weekly') {
+              const now = new Date();
+              let weekday = now.getDay();
+              if (weekday === 0) {
+                weekday = 7;
+              }
+              // 检查是否在weekdays中
+              curdayTask = task.weekdays.includes(weekday);
+            } else {
+              curdayTask = true;
+            }
+
+            console.log('curdayTask:', task.title, task.weekdays, curdayTask);
 
             // 返回符合条件的任务
-            return isRecurring && isOngoing && matchesSearch && isBabyTask;
+            return curdayTask;
           })
           // 按创建时间排序
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -677,7 +700,7 @@
           const storedTasks = uni.getStorageSync('taskList');
           if (storedTasks) {
             const parsedTasks = JSON.parse(storedTasks);
-            console.log('加载的任务列表:', parsedTasks);
+            // console.log('从本地加载的任务列表:', parsedTasks);
             // 过滤非当前宝宝的任务
             // 注意：这里不过滤taskList本身，只在computed中过滤显示
             taskList.value = parsedTasks;
@@ -690,6 +713,12 @@
               // 确保任务类型和状态正确
               if (!task.type) task.type = 'normal';
               if (!task.status) task.status = 'ongoing';
+
+              // 当检测是周任务，将weekdays按照升序排序
+              if (task.recurringType === 'weekly') {
+                task.weekdays = task.weekdays.sort((a, b) => a - b);
+                console.log('周任务，将weekdays按照升序排序:', task.title, task.weekdays);
+              }
             });
 
             // 添加调试日志，检查当前宝宝的任务数量
@@ -701,7 +730,7 @@
           const storedCompletedTasks = uni.getStorageSync('completedTaskList');
           if (storedCompletedTasks) {
             const parsedCompletedTasks = JSON.parse(storedCompletedTasks);
-            console.log('加载的已完成任务列表:', parsedCompletedTasks);
+            // console.log('加载的已完成任务列表:', parsedCompletedTasks);
             completedTasks.value = parsedCompletedTasks;
           }
 
@@ -710,18 +739,6 @@
         } catch (e) {
           console.error('读取任务列表失败', e);
         }
-      };
-
-      // 测试任务列表
-      const testTaskList = () => {
-        console.log('=== 测试任务列表 ===');
-        console.log('所有任务:', taskList.value);
-        console.log('周期性任务:', recurringTasks.value);
-        console.log('进行中任务:', ongoingTasks.value);
-
-        // 检查本地存储
-        const storedTasks = uni.getStorageSync('taskList');
-        console.log('本地存储的任务:', storedTasks ? JSON.parse(storedTasks) : []);
       };
 
       // 处理滚动事件
@@ -772,7 +789,7 @@
       const checkBabyStatus = () => {
         // 从存储中读取当前宝宝ID
         const storedBabyId = uni.getStorageSync('currentBabyId');
-        
+
         // 如果本地状态与存储不一致，更新本地状态
         if (currentBabyId.value !== storedBabyId && storedBabyId) {
           console.log(`[首页] 检测到宝宝状态不一致，从存储同步: ${storedBabyId}`);
@@ -788,7 +805,7 @@
         if (themeStore.initTheme) {
           themeStore.initTheme();
         }
-        
+
         // 初始化积分Store
         if (pointsStore.init) {
           pointsStore.init();
@@ -829,23 +846,23 @@
           // 检查是否为对象(新格式)或字符串(旧格式)
           const babyId = typeof data === 'object' ? data.babyId : data;
           const source = typeof data === 'object' ? (data.source || 'unknown') : 'unknown';
-          
+
           // 避免自己触发的事件导致循环
           if (source === 'index') {
             console.log('[首页] 忽略自己触发的宝宝变更事件');
             return;
           }
-          
+
           // 只有当ID变化时才更新
           if (currentBabyId.value !== babyId) {
             console.log(`[首页] 接收到来自[${source}]的宝宝变更事件: ${babyId}`);
             currentBabyId.value = babyId;
-            
+
             // 强制刷新处理
             loadBabies();
             loadTasksAndPointsFromStorage();
             updateShowPoints();
-            
+
             // 延迟刷新UI
             setTimeout(() => {
               console.log('[首页] 完成宝宝变更响应');
@@ -871,7 +888,7 @@
           isScrollReady.value = true;
           resetScroll();
         }, 300);
-        
+
         // 页面加载时主动检查宝宝状态
         checkBabyStatus();
       });
@@ -919,7 +936,6 @@
         cancelDelete,
         showAddTaskModal,
         navigateToFeature,
-        testTaskList,
         scrollTop,
         handleScroll,
         resetScroll,
@@ -932,7 +948,7 @@
     onShow() {
       // 每次页面显示时检查宝宝状态
       this.checkBabyStatus();
-      
+
       // 重新加载任务列表
       this.loadTasksAndPointsFromStorage();
     }
