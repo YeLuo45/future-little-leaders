@@ -10,11 +10,12 @@
 
 		<!-- 宝宝选择器 -->
 		<view class="baby-selector" v-if="babies.length > 0">
-			<picker :range="babies" range-key="name" @change="onBabyChange">
+			<!-- <picker :range="babies" range-key="name" @change="onBabyChange"> -->
+			<picker :range="babies" range-key="name">
 				<view class="baby-select-view">
 					<text class="baby-select-text">当前宝宝：</text>
 					<text class="baby-name">{{ currentBabyName }}</text>
-					<text class="baby-arrow">▼</text>
+					<!-- <text class="baby-arrow">▼</text> -->
 				</view>
 			</picker>
 		</view>
@@ -339,6 +340,8 @@
 		background-color: white;
 		border-radius: 12rpx;
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+		display: flex;
+		justify-content: center;
 	}
 
 	.dark-mode .baby-selector {

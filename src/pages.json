@@ -8,26 +8,6 @@
 			}
 		},
 		{
-			"path": "pages/login/login",
-			"style": {
-				"navigationBarTitleText": "登录",
-				"navigationStyle": "custom",
-				"app-plus": {
-					"titleNView": false
-				}
-			}
-		},
-		{
-			"path": "pages/register/register",
-			"style": {
-				"navigationBarTitleText": "注册",
-				"navigationStyle": "custom",
-				"app-plus": {
-					"titleNView": false
-				}
-			}
-		},
-		{
 			"path": "pages/shop/shop",
 			"style": {
 				"navigationBarTitleText": "积分商城",
@@ -169,6 +149,16 @@
 			"style": {
 				"navigationBarTitleText": "任务管理",
 				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/task/edit-recurring-task",
+			"style": {
+				"navigationBarTitleText": "编辑任务",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
 			}
 		},
 		{

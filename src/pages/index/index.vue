@@ -1062,7 +1062,7 @@
   /* 内容列表 */
   .content-list {
     height: calc(100vh - 50rpx);
-    padding: 0 30rpx 10rpx;
+    padding: 0rpx 30rpx;
     box-sizing: border-box;
     overflow: hidden;
     position: relative;

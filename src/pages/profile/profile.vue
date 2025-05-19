@@ -29,19 +29,14 @@
 
 		<!-- 功能列表 -->
 		<view class="function-list">
-			<view class="function-item" @tap="navigateTo('task/task-records')">
-				<text class="icon">📋</text>
-				<text class="label">任务记录</text>
-				<text class="arrow">></text>
-			</view>
 			<view class="function-item" @tap="navigateTo('profile/points-records')">
 				<text class="icon">💰</text>
 				<text class="label">积分记录</text>
 				<text class="arrow">></text>
 			</view>
-			<view class="function-item" @tap="navigateTo('task/recurring-tasks')">
-				<text class="icon">🔄</text>
-				<text class="label">任务管理</text>
+			<view class="function-item" @tap="navigateTo('task/task-records')">
+				<text class="icon">📋</text>
+				<text class="label">任务记录</text>
 				<text class="arrow">></text>
 			</view>
 			<view class="function-item" @tap="navigateTo('shop/exchange-records')">
@@ -49,12 +44,17 @@
 				<text class="label">兑换记录</text>
 				<text class="arrow">></text>
 			</view>
-			<view class="function-item" @tap="navigateTo('profile/baby-management')">
+			<view class="function-item" @tap="navigateToWithAuth('profile/baby-management', '宝宝管理')">
 				<text class="icon">👶</text>
 				<text class="label">宝宝管理</text>
 				<text class="arrow">></text>
 			</view>
-			<view class="function-item" @tap="navigateToProductManagement">
+			<view class="function-item" @tap="navigateToWithAuth('task/recurring-tasks', '任务管理')">
+				<text class="icon">🔄</text>
+				<text class="label">任务管理</text>
+				<text class="arrow">></text>
+			</view>
+			<view class="function-item" @tap="navigateToWithAuth('profile/product-management', '商品管理')">
 				<text class="icon">🛒</text>
 				<text class="label">商品管理</text>
 				<text class="arrow">></text>
@@ -313,20 +313,20 @@ export default {
 		};
 
 		// 添加商品管理页面入口
-		const navigateToProductManagement = () => {
+		const navigateToWithAuth = (page, functionName) => {
 			// 先验证身份，认证通过后才能进入商品管理页面
 			verifyAuth(
 				// 验证成功回调
 				() => {
 					uni.navigateTo({
-						url: '/pages/profile/product-management'
+						url: `/pages/${page}`
 					});
 				},
 				// 验证失败回调
 				(error) => {
 					console.error('验证失败:', error);
 					uni.showToast({
-						title: '验证失败，无法进入商品管理',
+						title: `验证失败，无法进入${functionName}`,
 						icon: 'none'
 					});
 				}
@@ -431,7 +431,7 @@ export default {
 			authSettings,
 			navigateToEditProfile,
 			checkBabyStatus,
-			navigateToProductManagement
+			navigateToWithAuth
 		};
 	},
 	// uni-app生命周期方法作为组件选项
