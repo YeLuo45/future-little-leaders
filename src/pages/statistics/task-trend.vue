@@ -685,7 +685,7 @@
   };
 </script>
 
-<script>
+<!-- <script>
   export default {
     // uni-app生命周期方法
     onShow() {
@@ -699,7 +699,7 @@
       }, 200);
     }
   };
-</script>
+</script> -->
 
 <style lang="scss" scoped>
 
