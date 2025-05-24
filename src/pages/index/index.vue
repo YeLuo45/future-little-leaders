@@ -393,9 +393,11 @@
             return;
           }
 
-          console.log('检查任务:', task.title, task.resetTime, now, task.resetTime < now);
+          // 将ISO字符串转换为Date对象再获取时间戳
+          let resettimestammp = new Date(task.resetTime).getTime();
+          console.log('检查任务:', task.title, resettimestammp, now.getTime());
           // 周期性任务且已完成任务、resetTime小于当前时间
-          if (task.resetTime < now || task.resetTime === undefined) {
+          if (resettimestammp < now.getTime()) {
             // 这里可以执行重置任务的逻辑
             let nextResetTime = 0;
             // 周期性任务，默认24小时
