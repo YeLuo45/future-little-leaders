@@ -12,7 +12,7 @@
 		<view class="content-area" :class="{ 'dark-mode': isDarkMode }">
 			<!-- 应用logo -->
 			<view class="logo-container">
-				<image class="app-logo" src="/static/logo.png" mode="aspectFit"></image>
+				<image class="app-logo" src="/static/logo/share-logo.png" mode="aspectFit"></image>
 				<view class="app-name">亲子任务宝</view>
 				<view class="app-version">版本 1.0.0</view>
 			</view>

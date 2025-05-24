@@ -715,7 +715,7 @@
               if (taskList.value[i].type === 'normal' && taskList.value[i].status === 'completed') {
                 updateFlag = true;
                 taskList.value.splice(i, 1);
-                console.log("remove normal completed task:", taskList.value)  
+                console.log("remove normal completed task:", taskList.value)
               }
             }
 
@@ -818,8 +818,8 @@
         }
       };
 
-            // 分享给朋友
-            const onShareAppMessage = (res) => {
+      // 分享给朋友
+      const onShareAppMessage = (res) => {
         return getShareConfig({
           page: 'index',
           data: {
