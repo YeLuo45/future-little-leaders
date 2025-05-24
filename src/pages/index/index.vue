@@ -163,6 +163,8 @@
   import { useThemeStore } from '@/stores/theme';
   import { usePointsStore } from '@/stores/pointsStore';
   import { verifyAuth } from '@/utils/authUtils';
+  import { getShareConfig } from '@/utils/shareUtils';
+  import { useShare } from '@/utils/useShare';
 
   export default {
     setup() {
@@ -813,6 +815,14 @@
           updateShowPoints();
         }
       };
+
+      // 注册分享功能
+      useShare('index', () => ({
+        currentBabyId: currentBabyId.value,
+        babies: babies.value,
+        totalScore: totalScore.value,
+        ongoingTasks: ongoingTasks.value
+      }));
 
       onMounted(() => {
         // 初始化主题

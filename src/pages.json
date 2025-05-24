@@ -17,7 +17,7 @@
 		{
 			"path": "pages/shop/shop",
 			"style": {
-				"navigationBarTitleText": "积分商城",
+				"navigationBarTitleText": "亲子商城",
 				"navigationStyle": "custom"
 			}
 		},
@@ -257,8 +257,20 @@
 	},
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "亲子任务宝",
 		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
+		"backgroundColor": "#F8F8F8",
+		"mp-weixin": {
+			"showShareMenu": true,
+			"shareTimeline": true
+		}
 	},
-	"lazyCodeLoading": "requiredComponents"
+	"usingComponents": {},
+	"lazyCodeLoading": "requiredComponents",
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"qiun-data-charts": "uni_modules/qiun-data-charts/components/qiun-data-charts/qiun-data-charts"
+		}
+	}
 }
