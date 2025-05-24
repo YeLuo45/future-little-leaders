@@ -16,6 +16,45 @@ export default {
     console.log('App Hide')
   },
   
+  // 全局分享配置
+  onShareAppMessage(res) {
+    // 获取当前页面路径
+    const pages = getCurrentPages();
+    const currentPage = pages[pages.length - 1];
+    const route = currentPage.route;
+    
+    // 如果当前页面已经实现了自己的分享，则使用页面的分享配置
+    if (currentPage.$vm && currentPage.$vm.onShareAppMessage) {
+      return;
+    }
+    
+    // 默认分享配置
+    return {
+      title: '亲子任务宝 - 驱动宝宝更好的成长',
+      path: '/pages/index/index',
+      imageUrl: '/static/logo/share-logo.png'
+    }
+  },
+  
+  // 分享到朋友圈
+  onShareTimeline() {
+    // 获取当前页面路径
+    const pages = getCurrentPages();
+    const currentPage = pages[pages.length - 1];
+    
+    // 如果当前页面已经实现了自己的分享到朋友圈，则使用页面的配置
+    if (currentPage.$vm && currentPage.$vm.onShareTimeline) {
+      return;
+    }
+    
+    // 默认朋友圈分享配置
+    return {
+      title: '亲子任务宝 - 记录宝宝的每一步成长',
+      query: '',
+      imageUrl: '/static/logo/share-logo.png'
+    }
+  },
+  
   methods: {
     // 设置全局事件代理，增强跨页面通信
     setupGlobalEventProxy() {

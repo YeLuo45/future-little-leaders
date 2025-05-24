@@ -38,13 +38,23 @@
           placeholder-class="placeholder"></textarea>
       </view>
 
-      <!-- 商品图标 -->
+      <!-- 商品图片/图标选择 -->
       <view class="form-item">
-        <text class="form-label">商品图标</text>
-        <view class="icon-picker">
-          <view v-for="(icon, index) in availableIcons" :key="index"
-            :class="['icon-option', productForm.icon === icon ? 'selected' : '']" @tap="selectIcon(icon)">
-            {{ icon }}
+        <text class="form-label">商品图片/图标</text>
+        <view class="image-icon-picker">
+          <!-- 图片上传 -->
+          <view v-if="!productForm.image" class="image-upload-btn" @tap="chooseImage">
+            <text class="upload-icon">📷</text>
+            <text class="upload-text">上传</text>
+          </view>
+          <image v-if="productForm.image" :src="productForm.image" class="product-image-preview" mode="aspectFill"
+            @tap="removeImage" />
+          <!-- 图标选择 -->
+          <view class="icon-picker" v-if="!productForm.image">
+            <view v-for="(icon, index) in availableIcons" :key="index"
+              :class="['icon-option', productForm.icon === icon ? 'selected' : '']" @tap="selectIcon(icon)">
+              {{ icon }}
+            </view>
           </view>
         </view>
       </view>
@@ -78,6 +88,7 @@
         points: '',
         stock: '',
         icon: '🎁',
+        image: '',
         description: ''
       });
 
@@ -85,12 +96,34 @@
       const isFormValid = computed(() => {
         return productForm.value.name &&
           productForm.value.points > 0 &&
-          productForm.value.stock;
+          productForm.value.stock &&
+          (productForm.value.icon || productForm.value.image);
       });
+
+      // 选择图片
+      const chooseImage = () => {
+        uni.chooseImage({
+          count: 1,
+          sizeType: ['compressed'],
+          sourceType: ['album', 'camera'],
+          success: (res) => {
+            if (res.tempFilePaths && res.tempFilePaths.length > 0) {
+              productForm.value.image = res.tempFilePaths[0];
+              productForm.value.icon = '';
+            }
+          }
+        });
+      };
+
+      // 移除图片
+      const removeImage = () => {
+        productForm.value.image = '';
+      };
 
       // 选择图标
       const selectIcon = (icon) => {
         productForm.value.icon = icon;
+        productForm.value.image = '';
       };
 
       // 返回上一页
@@ -119,6 +152,7 @@
                 points: Number(productForm.value.points),
                 stock: productForm.value.stock,
                 icon: productForm.value.icon,
+                image: productForm.value.image,
                 description: productForm.value.description,
                 createdAt: new Date().toISOString() // 添加创建时间
               };
@@ -168,6 +202,8 @@
         productForm,
         availableIcons,
         isFormValid,
+        chooseImage,
+        removeImage,
         selectIcon,
         goBack,
         submitProduct
@@ -312,5 +348,45 @@
     background: linear-gradient(135deg, #9f8eff, #8477fa);
     box-shadow: none;
     color: #666;
+  }
+
+  /* 新增样式 */
+  .image-icon-picker {
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+    margin-bottom: 20rpx;
+  }
+
+  .image-upload-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 120rpx;
+    height: 120rpx;
+    border: 2rpx dashed #8477fa;
+    border-radius: 20rpx;
+    color: #8477fa;
+    cursor: pointer;
+    background: #f9f9f9;
+  }
+
+  .upload-icon {
+    font-size: 48rpx;
+  }
+
+  .upload-text {
+    font-size: 24rpx;
+    margin-top: 8rpx;
+  }
+
+  .product-image-preview {
+    width: 120rpx;
+    height: 120rpx;
+    border-radius: 20rpx;
+    object-fit: cover;
+    border: 2rpx solid #8477fa;
+    margin-right: 20rpx;
   }
 </style>

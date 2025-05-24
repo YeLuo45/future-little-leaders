@@ -13,7 +13,8 @@
     <view class="product-detail" :class="{ 'dark-mode': isDarkMode }">
       <!-- 商品图标区域 -->
       <view class="product-icon-container">
-        <view class="product-icon" :class="{ 'dark-mode': isDarkMode }">
+        <image v-if="product.image" :src="product.image" class="product-image-detail" mode="aspectFill" @tap="previewImage(product.image)" />
+        <view v-else class="product-icon" :class="{ 'dark-mode': isDarkMode }">
           {{ product.icon }}
         </view>
       </view>
@@ -217,6 +218,8 @@
     // 更新用户积分
     userPoints.value = pointsStore.getBabyPoints(currentBabyId.value);
   });
+
+  const previewImage = (img) => { uni.previewImage({ urls: [img] }); };
 </script>
 
 <style>
@@ -484,4 +487,6 @@
   .exchange-btn:active {
     transform: scale(0.98);
   }
+
+  .product-image-detail { width: 260rpx; height: 260rpx; border-radius: 40rpx; object-fit: cover; box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.1); margin-bottom: 10rpx; }
 </style>

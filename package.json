@@ -1,5 +1,5 @@
 {
-  "name": "future-little-leaders",
+  "name": "亲子任务宝",
   "version": "1.0.0",
   "description": "亲子任务宝",
   "main": "main.js",
@@ -40,9 +40,11 @@
     "@dcloudio/uni-stat": "^3.0.0-3090720230310001",
     "@dcloudio/uni-ui": "^1.5.7",
     "@vant/weapp": "^1.11.7",
+    "@visactor/vchart": "^1.13.10",
     "@vue/runtime-core": "^3.4.21",
     "@vue/shared": "^3.4.21",
     "echarts": "^5.6.0",
+    "echarts-for-uniapp": "^1.1.0",
     "pinia": "^3.0.2",
     "playwright": "^1.51.1",
     "uuid": "^11.1.0",

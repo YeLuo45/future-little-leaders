@@ -59,7 +59,9 @@
     </view>
 
     <view class="chart-container">
-      <view class="chart-wrapper" id="taskTrendChart"></view>
+      <view class="chart-wrapper">
+        <canvas canvas-id="taskChart" id="taskChart" class="chart-canvas"></canvas>
+      </view>
     </view>
 
     <view class="statistics-info">
@@ -75,630 +77,473 @@
       </view>
     </view>
 
-    <view class="empty-state" v-if="totalTasks === 0">
+    <!-- <view class="empty-state" v-if="totalTasks === 0">
       <text class="empty-text">暂无任务数据</text>
       <view class="empty-action">
         <button class="refresh-button" @tap="refreshData">刷新数据</button>
       </view>
-    </view>
+    </view> -->
   </view>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
-  import { useThemeStore } from '@/stores/theme';
-  import { usePointsStore } from '@/stores/pointsStore';
-  import * as echarts from 'echarts/core';
-  import { LineChart } from 'echarts/charts';
-  import {
-    TitleComponent,
-    TooltipComponent,
-    GridComponent,
-    LegendComponent
-  } from 'echarts/components';
-  import { CanvasRenderer } from 'echarts/renderers';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useThemeStore } from '@/stores/theme';
+import { usePointsStore } from '@/stores/pointsStore';
+import uCharts from '@/uni_modules/u-charts/components/u-charts/u-charts.js';
+import { getShareConfig } from '@/utils/shareUtils';
+import { useShare } from '@/utils/useShare';
 
-  // 注册必需的组件
-  echarts.use([
-    TitleComponent,
-    TooltipComponent,
-    GridComponent,
-    LegendComponent,
-    LineChart,
-    CanvasRenderer
-  ]);
+let chartInstance = null;
 
-  // 初始化主题和积分Store
-  const themeStore = useThemeStore();
-  const pointsStore = usePointsStore();
-  const isDarkMode = computed(() => themeStore.isDarkMode);
+// 初始化主题和积分Store
+const themeStore = useThemeStore();
+const pointsStore = usePointsStore();
+const isDarkMode = computed(() => themeStore.isDarkMode);
 
-  // 响应式数据
-  const activeTimeRange = ref('7');
-  const totalTasks = ref(0);
-  const completionRate = ref(0);
-  // 总积分
-  const totalScore = ref(0);
-  let chartInstance = null;
+// 响应式数据
+const activeTimeRange = ref('7');
+const totalTasks = ref(0);
+const completionRate = ref(0);
+const totalScore = ref(0);
 
-  // 宝宝相关
-  const babies = ref([]);
-  const currentBabyId = ref('');
-  const currentBabyName = computed(() => {
-    const baby = babies.value.find(b => b.id === currentBabyId.value);
-    return baby ? baby.name : (babies.value.length > 0 ? '选择宝宝' : '暂无宝宝');
-  });
-  const currentBabyIndex = computed(() => {
-    return babies.value.findIndex(b => b.id === currentBabyId.value);
-  });
-  const currentBabyAvatar = computed(() => {
-    const baby = babies.value.find(b => b.id === currentBabyId.value);
-    let avatar = baby ? baby.avatar : '';
-
-    // 检查是否为Blob URL，可能是无效的
-    if (avatar && avatar.startsWith('blob:')) {
-      console.log('检测到Blob类型头像，可能无效，改用emoji表情代替');
-      // Blob URL可能已失效，返回null表示没有有效头像
-      return null;
+// 图表配置
+const chartConfig = {
+  type: 'line',
+  canvasId: 'taskChart',
+  canvas2d: true,
+  background: '#FFFFFF',
+  animation: true,
+  timing: 'easeOut',
+  duration: 1000,
+  width: 340,
+  height: 280,
+  padding: [40, 20, 80, 50],
+  categories: [],
+  series: [],
+  xAxis: {
+    disableGrid: true,
+    fontColor: '#666666',
+    fontSize: 12,
+    rotateLabel: true,
+    rotateAngle: 35,
+    marginBottom: 28,
+    format: (text) => {
+      const parts = text.split('/');
+      return `${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}`;
     }
-
-    // 非Blob URL的普通URL头像
-    if (avatar && !avatar.startsWith('blob:')) {
-      return avatar;
-    }
-
-    // 无头像或头像无效
-    return null;
-  });
-
-  // 获取宝宝默认头像
-  const getDefaultAvatar = (babyId) => {
-    // 基于宝宝ID返回一个默认表情头像
-    // 使用宝宝ID的最后一个字符作为随机种子
-    const lastChar = babyId ? babyId.charAt(babyId.length - 1) : '0';
-    const lastDigit = parseInt(lastChar, 16) % 5; // 获取0-4的值
-
-    // 定义几个可爱的表情作为默认头像
-    const defaultAvatars = ['👶', '👼', '🧒', '👦', '👧'];
-    return defaultAvatars[lastDigit];
-  };
-
-  // 加载宝宝信息
-  const loadBabies = () => {
-    try {
-      // 加载宝宝列表
-      const storedBabies = uni.getStorageSync('babies') || '[]';
-      babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
-
-      // 加载当前选中宝宝
-      const storedCurrentBabyId = uni.getStorageSync('currentBabyId');
-      currentBabyId.value = storedCurrentBabyId || (babies.value[0]?.id || '');
-
-      // 更新积分显示
-      updateShowPoints();
-    } catch (e) {
-      console.error('加载宝宝信息失败:', e);
-    }
-  };
-
-  // 切换宝宝
-  const onBabyChange = (e) => {
-    const idx = e.detail.value;
-    if (babies.value[idx]) {
-      // 记录之前的宝宝ID，用于检测变化
-      const oldBabyId = currentBabyId.value;
-      const newBabyId = babies.value[idx].id;
-
-      // 只有宝宝ID发生变化时才触发更新
-      if (oldBabyId !== newBabyId) {
-        console.log(`[趋势页] 切换宝宝: 从[${oldBabyId}]到[${newBabyId}]`);
-
-        // 更新本地状态
-        currentBabyId.value = newBabyId;
-
-        // 同步保存到本地存储
-        uni.setStorageSync('currentBabyId', newBabyId);
-
-        // 用setTimeout确保事件在状态更新后触发
-        setTimeout(() => {
-          // 广播宝宝切换事件，传递完整宝宝信息
-          uni.$emit('babyChanged', {
-            babyId: newBabyId,
-            babyInfo: babies.value[idx],
-            source: 'statistics',  // 标记事件来源
-            timestamp: Date.now() // 添加时间戳避免重复
-          });
-
-          // 强制发送通知给其他页面
-          uni.showToast({
-            title: `已切换到"${babies.value[idx].name}"`,
-            icon: 'none',
-            duration: 1500
-          });
-        }, 50);
-
-        // 强制重新加载数据并更新图表
-        updateShowPoints();
-        loadTaskData();
+  },
+  yAxis: {
+    gridType: 'dash',
+    dashLength: 4,
+    splitNumber: 3,
+    data: [{
+      min: 0,
+      max: (max) => {
+        if (max <= 0) return 2;
+        if (max <= 1) return 3;
+        return Math.ceil(max * 1.5);
+      },
+      fontColor: '#666666',
+      fontSize: 12,
+      textAlign: 'right',
+      width: 40,
+      format: (val) => {
+        if (val === 0) return '0';
+        if (val >= 1000) return (val/1000).toFixed(1) + 'k';
+        return val.toFixed(0);
       }
+    }]
+  },
+  legend: {
+    show: true,
+    position: 'bottom',
+    float: 'center',
+    padding: 10,
+    margin: 18,
+    fontSize: 13,
+    lineHeight: 13,
+    itemGap: 40,
+    itemWidth: 18,
+    itemHeight: 18,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 6
+  },
+  extra: {
+    line: {
+      type: 'straight',
+      width: 2.5,
+      activeType: 'hollow',
+      linearType: 'custom',
+      onShadow: true,
+      addPoint: true,
+      activeOpacity: 0.1,
+      lineCap: 'round'
     }
-  };
+  }
+};
 
-  // 更新积分显示
-  const updateShowPoints = () => {
+// 宝宝相关
+const babies = ref([]);
+const currentBabyId = ref('');
+const currentBabyName = computed(() => {
+  const baby = babies.value.find(b => b.id === currentBabyId.value);
+  return baby ? baby.name : (babies.value.length > 0 ? '选择宝宝' : '暂无宝宝');
+});
+const currentBabyIndex = computed(() => {
+  return babies.value.findIndex(b => b.id === currentBabyId.value);
+});
+const currentBabyAvatar = computed(() => {
+  const baby = babies.value.find(b => b.id === currentBabyId.value);
+  let avatar = baby ? baby.avatar : '';
+  if (avatar && avatar.startsWith('blob:')) return null;
+  if (avatar && !avatar.startsWith('blob:')) return avatar;
+  return null;
+});
+
+// 获取宝宝默认头像
+const getDefaultAvatar = (babyId) => {
+  const lastChar = babyId ? babyId.charAt(babyId.length - 1) : '0';
+  const lastDigit = parseInt(lastChar, 16) % 5;
+  const defaultAvatars = ['👶', '👼', '🧒', '👦', '👧'];
+  return defaultAvatars[lastDigit];
+};
+
+// 更新积分显示
+const updateShowPoints = () => {
+  if (currentBabyId.value) {
+    totalScore.value = pointsStore.getBabyPoints(currentBabyId.value);
+  } else {
+    totalScore.value = 0;
+  }
+};
+
+// 切换时间范围
+const changeTimeRange = (range) => {
+  activeTimeRange.value = range;
+  loadTaskData();
+};
+
+// 检查宝宝状态
+const checkBabyStatus = () => {
+  const storedBabyId = uni.getStorageSync('currentBabyId');
+  if (currentBabyId.value !== storedBabyId && storedBabyId) {
+    console.log(`[趋势页] 检测到宝宝状态不一致，从存储同步: ${storedBabyId}`);
+    currentBabyId.value = storedBabyId;
+    loadBabies();
+    updateShowPoints();
+    loadTaskData();
+  }
+};
+
+// 加载任务数据
+const loadTaskData = async () => {
+  try {
+    const storedCompletedTasks = uni.getStorageSync('completedTaskList');
+    let completedTasks = [];
+    
+    if (storedCompletedTasks) {
+      completedTasks = JSON.parse(storedCompletedTasks);
+      console.log('加载到已完成任务:', completedTasks.length);
+    }
+
+    const storedTasks = uni.getStorageSync('taskList');
+    let allTasks = [];
+    
+    if (storedTasks) {
+      allTasks = JSON.parse(storedTasks);
+      console.log('加载到所有任务:', allTasks.length);
+    }
+
     if (currentBabyId.value) {
-      totalScore.value = pointsStore.getBabyPoints(currentBabyId.value);
+      completedTasks = completedTasks.filter(task => task.babyId === currentBabyId.value);
+      allTasks = allTasks.filter(task => task.babyId === currentBabyId.value);
     } else {
-      totalScore.value = 0;
+      completedTasks = [];
+      allTasks = [];
     }
+
+    const days = parseInt(activeTimeRange.value);
+    const data = await generateDataFromTasks(completedTasks, allTasks, days);
+    
+    updateChartWithData(data);
+  } catch (e) {
+    console.error('加载任务数据失败:', e);
+    updateChartWithData({
+      categories: [],
+      completed: [],
+      total: []
+    });
+  }
+};
+
+// 从任务数据生成图表数据
+const generateDataFromTasks = (completedTasks, allTasks, days) => {
+  return new Promise((resolve) => {
+    const data = {
+      categories: [],
+      completed: [],
+      total: []
+    };
+    
+    const now = new Date();
+    let totalTaskCount = 0;
+    let completedTaskCount = 0;
+    
+    const minPoints = Math.max(3, days);
+    
+    for (let i = minPoints - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(now.getDate() - i);
+      
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      const dateStr = `${month}/${day}`;
+      data.categories.push(dateStr);
+      
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const dayCompletedTasks = completedTasks.filter(task => {
+        const completedAt = new Date(task.completedAt);
+        return completedAt >= startOfDay && completedAt <= endOfDay;
+      });
+      
+      const dayAllTasksCount = allTasks.filter(task => {
+        const createdAt = new Date(task.createdAt);
+        return createdAt <= endOfDay;
+      }).length;
+      
+      const dayCompletedCount = dayCompletedTasks.length;
+      
+      data.completed.push(dayCompletedCount);
+      data.total.push(dayAllTasksCount);
+      
+      totalTaskCount = Math.max(totalTaskCount, dayAllTasksCount);
+      completedTaskCount += dayCompletedCount;
+    }
+    
+    totalTasks.value = totalTaskCount;
+    completionRate.value = totalTaskCount > 0 ? Math.round((completedTaskCount / totalTaskCount) * 100) : 0;
+    
+    resolve(data);
+  });
+};
+
+// 更新图表数据
+const updateChartWithData = (data) => {
+  const config = {
+    ...chartConfig,
+    categories: data.categories,
+    series: [
+      {
+        name: '完成任务',
+        data: data.completed,
+        color: '#8477fa',
+        pointStyle: 'circle',
+        pointColor: '#8477fa',
+        pointSelectedColor: '#8477fa'
+      },
+      {
+        name: '总任务',
+        data: data.total,
+        color: '#ff9c6e',
+        pointStyle: 'circle',
+        pointColor: '#ff9c6e',
+        pointSelectedColor: '#ff9c6e'
+      }
+    ]
   };
 
-  // 切换时间范围
-  const changeTimeRange = (range) => {
-    activeTimeRange.value = range;
-    loadTaskData();
-  };
+  if (!chartInstance) {
+    chartInstance = new uCharts(config);
+  } else {
+    chartInstance.updateData(config);
+  }
+};
 
-  // 检查宝宝状态
-  const checkBabyStatus = () => {
-    // 从存储中读取当前宝宝ID
-    const storedBabyId = uni.getStorageSync('currentBabyId');
+// 手动刷新数据
+const refreshData = () => {
+  if (uni.vibrateShort) {
+    uni.vibrateShort({
+      success: function () {
+        console.log('振动成功');
+      }
+    });
+  }
 
-    // 如果本地状态与存储不一致，更新本地状态
-    if (currentBabyId.value !== storedBabyId && storedBabyId) {
-      console.log(`[趋势页] 检测到宝宝状态不一致，从存储同步: ${storedBabyId}`);
-      currentBabyId.value = storedBabyId;
-      loadBabies();
+  loadBabies();
+  loadTaskData();
+
+  uni.showToast({
+    title: '数据已刷新',
+    icon: 'success',
+    duration: 1500
+  });
+};
+
+// 补全loadBabies
+const loadBabies = () => {
+  try {
+    const storedBabies = uni.getStorageSync('babies') || '[]';
+    babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
+    const storedCurrentBabyId = uni.getStorageSync('currentBabyId');
+    currentBabyId.value = storedCurrentBabyId || (babies.value[0]?.id || '');
+    updateShowPoints();
+  } catch (e) {
+    console.error('加载宝宝信息失败:', e);
+  }
+};
+
+// 补全onBabyChange
+const onBabyChange = (e) => {
+  const idx = e.detail.value;
+  if (babies.value[idx]) {
+    const oldBabyId = currentBabyId.value;
+    const newBabyId = babies.value[idx].id;
+    if (oldBabyId !== newBabyId) {
+      currentBabyId.value = newBabyId;
+      uni.setStorageSync('currentBabyId', newBabyId);
+      setTimeout(() => {
+        uni.$emit('babyChanged', {
+          babyId: newBabyId,
+          babyInfo: babies.value[idx],
+          source: 'statistics',
+          timestamp: Date.now()
+        });
+        uni.showToast({ title: `已切换到"${babies.value[idx].name}"`, icon: 'none', duration: 1500 });
+      }, 50);
       updateShowPoints();
       loadTaskData();
     }
-  };
+  }
+};
 
-  // 加载任务数据
-  const loadTaskData = async () => {
-    try {
-      // 从本地存储加载已完成的任务列表
-      const storedCompletedTasks = uni.getStorageSync('completedTaskList');
-      let completedTasks = [];
+// 组件挂载时
+onMounted(() => {
+  console.log('组件挂载');
+  
+  if (themeStore.initTheme) {
+    themeStore.initTheme();
+  }
 
-      if (storedCompletedTasks) {
-        completedTasks = JSON.parse(storedCompletedTasks);
-        console.log('加载到已完成任务:', completedTasks.length);
-      }
-
-      // 从本地存储加载所有任务列表
-      const storedTasks = uni.getStorageSync('taskList');
-      let allTasks = [];
-
-      if (storedTasks) {
-        allTasks = JSON.parse(storedTasks);
-        console.log('加载到所有任务:', allTasks.length);
-      }
-
-      // 筛选当前宝宝的任务
-      if (currentBabyId.value) {
-        completedTasks = completedTasks.filter(task => task.babyId === currentBabyId.value);
-        allTasks = allTasks.filter(task => task.babyId === currentBabyId.value);
-      } else {
-        completedTasks = [];
-        allTasks = [];
-      }
-
-      // 根据选择的时间范围生成图表数据
-      const days = parseInt(activeTimeRange.value);
-      const data = await generateDataFromTasks(completedTasks, allTasks, days);
-
-      // 更新图表
-      updateChartWithData(data);
-    } catch (e) {
-      console.error('加载任务数据失败:', e);
-      // 如果出错，显示一个空图表
-      updateChartWithData({
-        dates: [],
-        completed: [],
-        total: []
-      });
-    }
-  };
-
-  // 从任务数据生成图表数据
-  const generateDataFromTasks = (completedTasks, allTasks, days) => {
-    return new Promise((resolve) => {
-      const data = {
-        dates: [],
-        completed: [],
-        total: []
-      };
-
-      const now = new Date();
-      let totalTaskCount = 0;
-      let completedTaskCount = 0;
-
-      // 生成日期范围
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(now.getDate() - i);
-
-        // 日期格式化
-        const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-        data.dates.push(dateStr);
-
-        // 日期的开始时间（当天0点）
-        const startOfDay = new Date(date);
-        startOfDay.setHours(0, 0, 0, 0);
-
-        // 日期的结束时间（当天23:59:59）
-        const endOfDay = new Date(date);
-        endOfDay.setHours(23, 59, 59, 999);
-
-        // 计算当天完成的任务数量
-        const dayCompletedTasks = completedTasks.filter(task => {
-          const completedAt = new Date(task.completedAt);
-          return completedAt >= startOfDay && completedAt <= endOfDay;
-        });
-
-        // 当天的总任务数（包括所有状态的任务）
-        const dayAllTasksCount = allTasks.filter(task => {
-          const createdAt = new Date(task.createdAt);
-          return createdAt <= endOfDay; // 只统计在当天结束前创建的任务
-        }).length;
-
-        const dayCompletedCount = dayCompletedTasks.length;
-
-        data.completed.push(dayCompletedCount);
-        data.total.push(dayAllTasksCount);
-
-        totalTaskCount += dayAllTasksCount;
-        completedTaskCount += dayCompletedCount;
-      }
-
-      // 更新统计信息
-      totalTasks.value = totalTaskCount;
-      if (totalTaskCount > 0) {
-        completionRate.value = Math.round((completedTaskCount / totalTaskCount) * 100);
-      } else {
-        completionRate.value = 0;
-      }
-
-      resolve(data);
-    });
-  };
-
-  // 更新图表数据
-  const updateChartWithData = (data) => {
-    if (chartInstance) {
-      chartInstance.setOption({
-        xAxis: {
-          data: data.dates
-        },
-        series: [
-          {
-            name: '完成任务',
-            data: data.completed
-          },
-          {
-            name: '总任务',
-            data: data.total
-          }
-        ]
-      });
-    } else {
-      // 初次加载时初始化图表
-      initChart(data);
-    }
-  };
-
-  // 手动刷新数据
-  const refreshData = () => {
-    // 使用振动API反馈
-    if (uni.vibrateShort) {
-      uni.vibrateShort({
-        success: function () {
-          console.log('振动成功');
-        }
-      });
-    }
-
-    // 重新加载宝宝信息
-    loadBabies();
-
-    // 重新加载任务数据
+  if (pointsStore.init) {
+    pointsStore.init();
+  }
+  
+  loadBabies();
+  
+  setTimeout(() => {
     loadTaskData();
+  }, 300);
+  
+  checkBabyStatus();
 
-    // 显示提示
-    uni.showToast({
-      title: '数据已刷新',
-      icon: 'success',
-      duration: 1500
-    });
-  };
+  uni.$on('refreshTaskList', () => {
+    loadTaskData();
+  });
 
-  // 初始化图表
-  const initChart = (data) => {
-    // 确保DOM已经准备好
-    // #ifndef MP-WEIXIN
-    nextTick(() => {
-      const chartDom = document.getElementById('taskTrendChart');
-      if (!chartDom) {
-        console.error('找不到图表DOM元素');
-        return;
-      }
-      
-      chartInstance = echarts.init(chartDom);
-      
-      const option = {
-        title: {
-          text: '任务完成趋势',
-          left: 'center'
-        },
-        tooltip: {
-          trigger: 'axis'
-        },
-        legend: {
-          data: ['完成任务', '总任务'],
-          bottom: 0
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '15%',
-          top: '15%',
-          containLabel: true
-        },
-        xAxis: {
-          type: 'category',
-          boundaryGap: false,
-          data: data.dates
-        },
-        yAxis: {
-          type: 'value',
-          minInterval: 1
-        },
-        series: [
-          {
-            name: '完成任务',
-            type: 'line',
-            data: data.completed,
-            itemStyle: {
-              color: '#8477fa'
-            },
-            areaStyle: {
-              color: {
-                type: 'linear',
-                x: 0,
-                y: 0,
-                x2: 0,
-                y2: 1,
-                colorStops: [
-                  { offset: 0, color: 'rgba(132, 119, 250, 0.5)' },
-                  { offset: 1, color: 'rgba(132, 119, 250, 0.1)' }
-                ]
-              }
-            }
-          },
-          {
-            name: '总任务',
-            type: 'line',
-            data: data.total,
-            itemStyle: {
-              color: '#ff9c6e'
-            }
-          }
-        ]
-      };
-      
-      chartInstance.setOption(option);
-    });
-    // #endif
-    
-    // #ifdef MP-WEIXIN
-    initMpChart(data);
-    // #endif
-  };
+  uni.$on('pointsUpdated', updateShowPoints);
 
-  // 处理窗口大小变化
-  const handleResize = () => {
-    if (chartInstance) {
-      chartInstance.resize();
+  uni.$on('babyPointsUpdated', (data) => {
+    if (data && data.babyId === currentBabyId.value) {
+      totalScore.value = data.points;
     }
-  };
+  });
 
-  // 组件挂载时
-  onMounted(async () => {
-    // 初始化主题
-    if (themeStore.initTheme) {
-      themeStore.initTheme();
+  uni.$on('babyChanged', (data) => {
+    const babyId = typeof data === 'object' ? data.babyId : data;
+    const source = typeof data === 'object' ? (data.source || 'unknown') : 'unknown';
+
+    if (source === 'statistics') {
+      console.log('[趋势页] 忽略自己触发的宝宝变更事件');
+      return;
     }
 
-    // 初始化积分Store
-    if (pointsStore.init) {
-      pointsStore.init();
-    }
+    if (currentBabyId.value !== babyId) {
+      console.log(`[趋势页] 接收到来自[${source}]的宝宝变更事件: ${babyId}`);
+      currentBabyId.value = babyId;
 
-    // 加载宝宝信息
-    loadBabies();
-
-    // 加载任务数据
-    await loadTaskData();
-
-    // 监听窗口大小变化
-    // #ifndef MP-WEIXIN
-    window.addEventListener('resize', handleResize);
-    // #endif
-    
-    // 添加任务列表刷新事件监听
-    uni.$on('refreshTaskList', () => {
-      loadTaskData();
-    });
-
-    // 添加积分更新事件监听
-    uni.$on('pointsUpdated', updateShowPoints);
-
-    // 添加宝宝积分更新事件监听
-    uni.$on('babyPointsUpdated', (data) => {
-      if (data && data.babyId === currentBabyId.value) {
-        totalScore.value = data.points;
-      }
-    });
-
-    // 监听宝宝变更事件
-    uni.$on('babyChanged', (data) => {
-      // 检查是否为对象(新格式)或字符串(旧格式)
-      const babyId = typeof data === 'object' ? data.babyId : data;
-      const source = typeof data === 'object' ? (data.source || 'unknown') : 'unknown';
-
-      // 避免自己触发的事件导致循环
-      if (source === 'statistics') {
-        console.log('[趋势页] 忽略自己触发的宝宝变更事件');
-        return;
-      }
-
-      // 只有当ID变化时才更新
-      if (currentBabyId.value !== babyId) {
-        console.log(`[趋势页] 接收到来自[${source}]的宝宝变更事件: ${babyId}`);
-        currentBabyId.value = babyId;
-
-        // 强制刷新处理
-        loadBabies();
-        loadTaskData();
-        updateShowPoints();
-      }
-    });
-
-    // 添加宝宝列表刷新事件监听
-    uni.$on('refreshBabyList', () => {
-      console.log('[趋势页] 接收到宝宝列表刷新事件');
       loadBabies();
       loadTaskData();
-    });
-    
-    // 页面加载时主动检查宝宝状态
-    checkBabyStatus();
-  });
-
-  // 组件卸载时
-  onUnmounted(() => {
-    // 移除事件监听
-    // #ifndef MP-WEIXIN
-    window.removeEventListener('resize', handleResize);
-    // #endif
-    
-    // 移除自定义事件监听
-    uni.$off('refreshTaskList');
-    uni.$off('pointsUpdated');
-    uni.$off('babyPointsUpdated');
-    uni.$off('babyChanged');
-    uni.$off('refreshBabyList');
-    
-    // 销毁图表实例
-    if (chartInstance) {
-      chartInstance.dispose();
-      chartInstance = null;
+      updateShowPoints();
     }
   });
 
-  // 小程序兼容代码
-  // 小程序中的初始化
-  const initMpChart = async (data) => {
-    // #ifdef MP-WEIXIN
-    // 需要等待页面渲染完成
-    const query = uni.createSelectorQuery();
-    query.select('#taskTrendChart').boundingClientRect().exec(async (res) => {
-      if (res[0]) {
-        const { width, height } = res[0];
-        
-        // 动态引入微信小程序的echarts组件
-        const mpChart = echarts.init(null, null, {
-          width: width,
-          height: height,
-          devicePixelRatio: uni.getSystemInfoSync().pixelRatio
-        });
-        
-        chartInstance = mpChart;
-        
-        // 设置图表选项
-        const option = {
-          title: {
-            text: '任务完成趋势',
-            left: 'center'
-          },
-          tooltip: {
-            trigger: 'axis'
-          },
-          legend: {
-            data: ['完成任务', '总任务'],
-            bottom: 0
-          },
-          grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '15%',
-            top: '15%',
-            containLabel: true
-          },
-          xAxis: {
-            type: 'category',
-            boundaryGap: false,
-            data: data.dates
-          },
-          yAxis: {
-            type: 'value',
-            minInterval: 1
-          },
-          series: [
-            {
-              name: '完成任务',
-              type: 'line',
-              data: data.completed,
-              itemStyle: {
-                color: '#8477fa'
-              },
-              areaStyle: {
-                color: {
-                  type: 'linear',
-                  x: 0,
-                  y: 0,
-                  x2: 0,
-                  y2: 1,
-                  colorStops: [
-                    { offset: 0, color: 'rgba(132, 119, 250, 0.5)' },
-                    { offset: 1, color: 'rgba(132, 119, 250, 0.1)' }
-                  ]
-                }
-              }
-            },
-            {
-              name: '总任务',
-              type: 'line',
-              data: data.total,
-              itemStyle: {
-                color: '#ff9c6e'
-              }
-            }
-          ]
-        };
-        
-        mpChart.setOption(option);
-      }
-    });
-    // #endif
-  };
-</script>
+  uni.$on('refreshBabyList', () => {
+    console.log('[趋势页] 接收到宝宝列表刷新事件');
+    loadBabies();
+    loadTaskData();
+  });
 
-<script>
-  export default {
-    // uni-app生命周期方法
-    onShow() {
-      // 避免在安装后直接调用
-      setTimeout(() => {
-        // 检查宝宝状态
-        checkBabyStatus();
-        
-        // 刷新数据
-        loadTaskData();
-      }, 200);
+  // 注册分享功能
+  useShare('statistics', () => ({
+    currentBabyId: currentBabyId.value,
+    babies: babies.value,
+    totalScore: totalScore.value,
+    completionRate: completionRate.value
+  }));
+});
+
+// 组件卸载时
+onUnmounted(() => {
+  console.log('组件卸载');
+  
+  uni.$off('refreshTaskList');
+  uni.$off('pointsUpdated');
+  uni.$off('babyPointsUpdated');
+  uni.$off('babyChanged');
+  uni.$off('refreshBabyList');
+
+  // 销毁图表实例
+  if (chartInstance) {
+    chartInstance.dispose();
+    chartInstance = null;
+  }
+});
+
+// 提供生命周期钩子
+const onPageShow = () => {
+  console.log('页面显示');
+  checkBabyStatus();
+  loadTaskData();
+};
+
+// 处理页面参数
+const onLoad = (options) => {
+  console.log('[趋势页] 页面加载参数:', options);
+  
+  if (options && options.babyId) {
+    const targetBabyId = options.babyId;
+    // 检查是否是有效的宝宝ID
+    const storedBabies = uni.getStorageSync('babies') || '[]';
+    const babiesList = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
+    
+    if (babiesList.some(baby => baby.id === targetBabyId)) {
+      console.log('[趋势页] 从分享链接设置宝宝:', targetBabyId);
+      currentBabyId.value = targetBabyId;
+      uni.setStorageSync('currentBabyId', targetBabyId);
+      
+      // 触发宝宝变更事件
+      uni.$emit('babyChanged', {
+        babyId: targetBabyId,
+        source: 'share',
+        timestamp: Date.now()
+      });
     }
-  };
+  }
+};
+
+// 导出供选项API使用的方法
+defineExpose({
+  checkBabyStatus,
+  loadTaskData,
+  onPageShow,
+  onLoad
+});
 </script>
 
 <style lang="scss" scoped>
@@ -710,9 +555,7 @@
     background-color: #f8f8f8;
     position: relative;
     z-index: 0;
-    /* 确保页面容器的z-index低于其他元素 */
     overflow: hidden;
-    /* 防止内容溢出 */
   }
 
   .page-header {
@@ -867,14 +710,29 @@
   .chart-container {
     background-color: #ffffff;
     margin: 0 15px 15px 15px;
-    padding: 15px;
+    padding: 0;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    height: 360px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .chart-wrapper {
-    width: 100%;
-    height: 300px;
+    width: 95%;
+    height: 90%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chart-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    margin: 0 auto;
   }
 
   /* 统计信息 */

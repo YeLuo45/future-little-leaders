@@ -85,6 +85,8 @@ import { isDarkTheme } from '@/utils/themeUtils.js';
 import { useThemeStore } from '@/stores/theme';
 import { usePointsStore } from '@/stores/pointsStore';
 import { verifyAuth } from '@/utils/authUtils';
+import { getShareConfig } from '@/utils/shareUtils';
+import { useShare } from '@/utils/useShare';
 
 export default {
 	name: 'Profile',
@@ -333,6 +335,14 @@ export default {
 			);
 		};
 
+		// 注册分享功能
+		useShare('profile', () => ({
+			userInfo: userInfo.value,
+			currentBabyId: currentBabyId.value,
+			babies: babies.value,
+			totalScore: totalScore.value
+		}));
+
 		onMounted(() => {
 			loadUserInfo();
 			loadBabies();
@@ -431,6 +441,7 @@ export default {
 			authSettings,
 			navigateToEditProfile,
 			checkBabyStatus,
+			navigateToWithAuth,
 			navigateToWithAuth
 		};
 	},

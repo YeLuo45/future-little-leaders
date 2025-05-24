@@ -32,13 +32,21 @@
 			<text class="search-clear" v-if="searchKeyword" @tap="clearSearch">✕</text>
 		</view>
 
+		<!-- 布局切换按钮优化，悬浮于商品列表上方右侧 -->
+		<view class="layout-switcher-fixed">
+			<button v-for="n in [1, 2, 3]" :key="n" :class="['layout-btn', layoutType === n ? 'active' : '']"
+				@tap="setLayoutType(n)">{{ n }}列</button>
+		</view>
+
 		<scroll-view scroll-y class="products-list">
-			<view class="product-list">
+			<view class="product-list" :class="[`layout-${layoutType}`]">
 				<view class="product-card" v-for="(item, index) in (products || [])" :key="index"
 					@tap="goToProductDetail(item, index)">
 					<view class="product-content">
 						<view class="product-left">
-							<view class="product-icon">{{ item.icon || '🎁' }}</view>
+							<image v-if="item.image" :src="item.image" class="product-image-unified" mode="aspectFill"
+								@tap.stop="previewImage(item.image)" />
+							<view v-else class="product-icon-unified">{{ item.icon || '🎁' }}</view>
 						</view>
 						<view class="product-info">
 							<view class="product-title">
@@ -83,6 +91,8 @@
 	import { usePointsStore } from '@/stores/pointsStore';
 	import { isDarkTheme } from '@/utils/themeUtils.js';
 	import { verifyAuth } from '@/utils/authUtils';
+	import { getShareConfig } from '@/utils/shareUtils';
+	import { useShare } from '@/utils/useShare';
 
 	export default {
 		setup() {
@@ -155,23 +165,23 @@
 			// 搜索商品
 			const searchProducts = () => {
 				console.log(`[商城] 执行搜索: ${searchKeyword.value}`);
-				
+
 				// 使用Pinia中的搜索方法
 				if (!searchKeyword.value.trim()) {
 					// 搜索关键词为空，加载所有商品
 					products.value = shopStore.sortedProducts;
 					return;
 				}
-				
+
 				products.value = shopStore.searchProducts(searchKeyword.value);
-				
+
 				// 显示搜索结果提示
 				uni.showToast({
 					title: `找到${products.value.length}个商品`,
 					icon: 'none',
 					duration: 1500
 				});
-				
+
 				console.log(`[商城] 搜索结果: 找到${products.value.length}个商品`);
 			};
 
@@ -197,7 +207,7 @@
 				if (!shopStore.isLoaded) {
 					shopStore.loadProducts();
 				}
-				
+
 				// 如果有搜索关键词，则使用搜索结果
 				if (searchKeyword.value.trim()) {
 					products.value = shopStore.searchProducts(searchKeyword.value);
@@ -225,11 +235,11 @@
 					async () => {
 						try {
 							// 找到商品在列表中的索引
-							const productIndex = shopStore.products.findIndex(p => 
-								p.name === product.name && 
+							const productIndex = shopStore.products.findIndex(p =>
+								p.name === product.name &&
 								p.description === product.description
 							);
-							
+
 							if (productIndex === -1) {
 								console.error('[商城] 未找到要兑换的商品');
 								uni.showToast({
@@ -238,14 +248,14 @@
 								});
 								return;
 							}
-							
+
 							// 扣除积分 - 添加更详细的描述
 							const description = `兑换商品：${product.name}`;
 							const success = await pointsStore.deductBabyPoints(currentBabyId.value, product.points, description);
 							if (success) {
 								// 减少商品库存
 								const exchangeSuccess = shopStore.exchangeProduct(productIndex);
-								
+
 								if (!exchangeSuccess && product.stock !== '无限') {
 									uni.showToast({
 										title: '库存不足',
@@ -253,7 +263,7 @@
 									});
 									return;
 								}
-								
+
 								// 创建兑换记录
 								const exchangeRecord = {
 									productName: product.name,
@@ -270,13 +280,13 @@
 
 								// 更新积分显示
 								updatePoints();
-								
+
 								// 重新加载商品列表（应用排序规则）
 								loadProducts();
-								
+
 								// 触发商品列表刷新事件
 								uni.$emit('refreshProductList');
-								
+
 								uni.showToast({
 									title: '兑换成功',
 									icon: 'success'
@@ -340,20 +350,20 @@
 					// 记录之前的宝宝ID，用于检测变化
 					const oldBabyId = currentBabyId.value;
 					const newBabyId = babies.value[idx].id;
-					
+
 					// 只有宝宝ID发生变化时才触发更新
 					if (oldBabyId !== newBabyId) {
 						console.log(`[商城] 切换宝宝: 从[${oldBabyId}]到[${newBabyId}]`);
-						
+
 						// 更新本地状态
 						currentBabyId.value = newBabyId;
-						
+
 						// 同步保存到本地存储
 						uni.setStorageSync('currentBabyId', newBabyId);
-						
+
 						// 更新积分显示
 						updatePoints();
-						
+
 						// 用setTimeout确保事件在状态更新后触发
 						setTimeout(() => {
 							// 广播宝宝切换事件，传递完整宝宝信息
@@ -363,7 +373,7 @@
 								source: 'shop',  // 标记事件来源
 								timestamp: Date.now() // 添加时间戳避免重复
 							});
-							
+
 							// 显示切换提示
 							uni.showToast({
 								title: `已切换到"${babies.value[idx].name}"`,
@@ -371,7 +381,7 @@
 								duration: 1500
 							});
 						}, 50);
-						
+
 						console.log('[商城] 已触发宝宝切换事件');
 					}
 				} else {
@@ -392,7 +402,7 @@
 			const checkBabyStatus = () => {
 				// 从存储中读取当前宝宝ID
 				const storedBabyId = uni.getStorageSync('currentBabyId');
-				
+
 				// 如果本地状态与存储不一致，更新本地状态
 				if (currentBabyId.value !== storedBabyId && storedBabyId) {
 					console.log(`[商城] 检测到宝宝状态不一致，从存储同步: ${storedBabyId}`);
@@ -402,12 +412,50 @@
 				}
 			};
 
+			// 处理页面参数
+			const onLoad = (options) => {
+				console.log('[商城] 页面加载参数:', options);
+
+				if (options && options.babyId) {
+					const targetBabyId = options.babyId;
+					// 检查是否是有效的宝宝ID
+					const storedBabies = uni.getStorageSync('babies') || '[]';
+					const babiesList = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
+
+					if (babiesList.some(baby => baby.id === targetBabyId)) {
+						console.log('[商城] 从分享链接设置宝宝:', targetBabyId);
+						currentBabyId.value = targetBabyId;
+						uni.setStorageSync('currentBabyId', targetBabyId);
+
+						// 触发宝宝变更事件
+						uni.$emit('babyChanged', {
+							babyId: targetBabyId,
+							source: 'share',
+							timestamp: Date.now()
+						});
+					}
+				}
+			};
+
+			// 注册分享功能
+			useShare('shop', () => ({
+				currentBabyId: currentBabyId.value,
+				babies: babies.value,
+				totalScore: totalScore.value,
+				products: products.value
+			}));
+
+			// 组合式API
+			const layoutType = ref(2); // 默认2列
+			const setLayoutType = (n) => { layoutType.value = n; };
+			const previewImage = (img) => { uni.previewImage({ urls: [img] }); };
+
 			onMounted(() => {
 				// 初始化主题
 				if (themeStore.initTheme) {
 					themeStore.initTheme();
 				}
-				
+
 				// 初始化积分Store
 				if (pointsStore.init) {
 					pointsStore.init();
@@ -434,22 +482,22 @@
 					// 检查是否为对象(新格式)或字符串(旧格式)
 					const babyId = typeof data === 'object' ? data.babyId : data;
 					const source = typeof data === 'object' ? (data.source || 'unknown') : 'unknown';
-					
+
 					// 避免自己触发的事件导致循环
 					if (source === 'shop') {
 						console.log('[商城] 忽略自己触发的宝宝变更事件');
 						return;
 					}
-					
+
 					// 只有当ID变化时才更新
 					if (currentBabyId.value !== babyId) {
 						console.log(`[商城] 接收到来自[${source}]的宝宝变更事件: ${babyId}`);
 						currentBabyId.value = babyId;
-						
+
 						// 强制刷新处理
 						loadBabies();
 						updatePoints();
-						
+
 						// 延迟确认
 						setTimeout(() => {
 							console.log('[商城] 完成宝宝变更响应');
@@ -465,7 +513,7 @@
 					loadBabies();
 					updatePoints();
 				});
-				
+
 				// 页面加载时主动检查宝宝状态
 				checkBabyStatus();
 			});
@@ -497,14 +545,18 @@
 				currentBabyAvatar,
 				getDefaultAvatar,
 				currentBabyId,
-				checkBabyStatus
+				checkBabyStatus,
+				onLoad,
+				layoutType,
+				setLayoutType,
+				previewImage
 			};
 		},
 		// uni-app生命周期方法作为组件选项
 		onShow() {
 			// 每次页面显示时检查宝宝状态
 			this.checkBabyStatus();
-			
+
 			// 加载最新商品数据
 			this.loadProducts();
 		}
@@ -1008,5 +1060,91 @@
 		font-size: 32rpx;
 		border: 2rpx solid #ffffff;
 		box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+	}
+
+	/* 新增样式 */
+	/* .layout-switcher { display: flex; justify-content: flex-end; margin: 10rpx 30rpx 0 0; } .layout-btn { margin-left: 10rpx; padding: 8rpx 20rpx; border-radius: 20rpx; background: #f5f5f5; color: #8477fa; border: none; font-size: 24rpx; } .layout-btn.active { background: #8477fa; color: #fff; } .product-list.layout-1 .product-card { width: 100%; } .product-list.layout-2 .product-card { width: 48%; } .product-list.layout-3 .product-card { width: 31.5%; } .product-image { width: 120rpx; height: 120rpx; border-radius: 20rpx; object-fit: cover; margin-bottom: 10rpx; } */
+
+	/* 布局切换按钮优化，悬浮于商品列表上方右侧 */
+	.layout-switcher-fixed {
+		position: sticky;
+		top: 0;
+		right: 0;
+		z-index: 10;
+		display: flex;
+		/* 水平居中 */
+		justify-content: center;
+		background: transparent;
+		padding: 10rpx 30rpx;
+	}
+
+	.layout-btn {
+		flex: 1;
+		text-align: center;
+		/* 移除间距，通过边框分隔 */
+		margin: 0 30rpx;
+		
+		padding: 8rpx 20rpx;
+		border-radius: 20rpx;
+		/* background: #f5f5f5; */
+		background: white;
+		color: #8477fa;
+		/* 添加统一边框（浅灰色，与设计风格匹配） */
+		border: 2rpx solid #e5e7eb;
+		
+		font-size: 24rpx;
+		box-shadow: 0 2rpx 8rpx rgba(132, 119, 250, 0.08);
+		/* 统一过渡效果 */
+		transition: all 0.2s;
+	}
+
+	.layout-btn.active {
+		background: #8477fa;
+		color: #fff;
+		/* 激活时边框与背景同色，避免视觉冲突 */
+		border-color: #8477fa; 
+	}
+
+	.product-list.layout-1 .product-card {
+		width: 100%;
+		margin-right: 0;
+	}
+
+	.product-list.layout-2 .product-card {
+		width: 48%;
+		margin-right: 2%;
+	}
+
+	.product-list.layout-2 .product-card:nth-child(2n) {
+		margin-right: 0;
+	}
+
+	.product-list.layout-3 .product-card {
+		width: 31.5%;
+		margin-right: 2%;
+	}
+
+	.product-list.layout-3 .product-card:nth-child(3n) {
+		margin-right: 0;
+	}
+
+	.product-image-unified,
+	.product-icon-unified {
+		width: 120rpx;
+		height: 120rpx;
+		border-radius: 20rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #f8f8f8;
+		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+		font-size: 60rpx;
+		margin: 0 auto 10rpx auto;
+		object-fit: cover;
+	}
+
+	.product-icon-unified {
+		font-size: 60rpx;
+		color: #8477fa;
 	}
 </style>
