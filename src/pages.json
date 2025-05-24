@@ -236,12 +236,6 @@
 				"selectedIconPath": "static/tarbar/home_active.png"
 			},
 			{
-				"pagePath": "pages/statistics/task-trend",
-				"text": "趋势",
-				"iconPath": "static/tarbar/trend.png",
-				"selectedIconPath": "static/tarbar/trend_active.png"
-			},
-			{
 				"pagePath": "pages/shop/shop",
 				"text": "商城",
 				"iconPath": "static/tarbar/shop.png",
