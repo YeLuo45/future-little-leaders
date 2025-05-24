@@ -4,7 +4,7 @@
     <view class="decoration decoration-1"></view>
     <view class="decoration decoration-2"></view>
     
-    <image class="logo" src="/static/logo.png" mode="aspectFill"></image>
+    <!-- <image class="logo" src="/static/logo.png" mode="aspectFill"></image> -->
     
     <view class="title">找回密码</view>
     <view class="subtitle">重置你的账号密码</view>

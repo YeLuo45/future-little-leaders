@@ -4,7 +4,7 @@
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <view class="nav-left" @tap="goBack">
-        <text class="nav-icon">←</text>
+        <text class="icon">←</text>
       </view>
       <text class="nav-title">添加任务</text>
     </view>
@@ -17,12 +17,42 @@
         <input class="form-input" v-model="taskForm.title" placeholder="请输入任务标题" placeholder-class="placeholder" />
       </view>
 
+      <!-- 任务描述 -->
+      <view class="form-item">
+        <text class="form-label">任务描述</text>
+        <textarea class="form-textarea" v-model="taskForm.description" type="string" placeholder="请输入任务描述(不超过50字)"
+          placeholder-class="placeholder" />
+      </view>
+
+
+      <!-- 宝宝选择器 -->
+      <view class="form-item">
+        <text class="form-label">选择宝宝</text>
+        <view class="baby-selector">
+          <picker :range="babies" range-key="name" @change="onBabyChange" :value="currentBabyIndex">
+            <view class="baby-picker">
+              <text class="baby-name">{{ currentBabyName || '请选择宝宝' }}</text>
+              <text class="baby-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+
       <!-- 任务标签 -->
       <view class="form-item">
         <text class="form-label">任务标签</text>
+        <!-- 标签分类选择器 -->
+        <view class="tag-categories">
+          <view v-for="(category, catIndex) in tagCategories" :key="catIndex" class="tag-category"
+            :class="{ 'active': selectedCategory === catIndex }" @tap="selectedCategory = catIndex">
+            {{ category.name }}
+          </view>
+        </view>
+
+        <!-- 当前分类下的标签 -->
         <view class="tags-container">
-          <view v-for="(tag, index) in availableTags" :key="index" class="tag-item" :class="[
-            `tag-${getTagColorClass(tag)}`,
+          <view v-for="(tag, index) in tagCategories[selectedCategory].tags" :key="index" class="tag-item" :class="[
+            `tag-${tagCategories[selectedCategory].colorClass}`,
             { 'selected': taskForm.tags.includes(tag) }
           ]" @tap="toggleTag(tag)">
             {{ tag }}
@@ -56,10 +86,10 @@
             @tap="taskForm.recurringType = 'weekly'">
             每周
           </view>
-          <view class="recurring-item" :class="{ 'selected': taskForm.recurringType === 'monthly' }"
+          <!-- <view class="recurring-item" :class="{ 'selected': taskForm.recurringType === 'monthly' }"
             @tap="taskForm.recurringType = 'monthly'">
             每月
-          </view>
+          </view> -->
           <view class="recurring-item" :class="{ 'selected': taskForm.recurringType === 'custom' }"
             @tap="taskForm.recurringType = 'custom'">
             自定义
@@ -75,12 +105,12 @@
         </view>
 
         <!-- 每月选择 -->
-        <view class="monthday-selector" v-if="taskForm.recurringType === 'monthly'">
+        <!-- <view class="monthday-selector" v-if="taskForm.recurringType === 'monthly'">
           <view v-for="day in 31" :key="day" class="monthday-item"
             :class="{ 'selected': taskForm.monthDays.includes(day) }" @tap="toggleMonthDay(day)">
             {{ day }}日
           </view>
-        </view>
+        </view> -->
 
         <!-- 自定义时间点 -->
         <view class="custom-time" v-if="taskForm.recurringType === 'custom'">
@@ -100,11 +130,11 @@
       </view>
 
       <!-- 任务时长 -->
-      <view class="form-item">
+      <!-- <view class="form-item">
         <text class="form-label">任务时长（分钟）</text>
         <input class="form-input" v-model="taskForm.total" type="number" placeholder="请输入任务时长"
           placeholder-class="placeholder" />
-      </view>
+      </view> -->
 
       <!-- 任务积分 -->
       <view class="form-item">
@@ -124,11 +154,47 @@
 </template>
 
 <script>
-  import { ref, computed } from 'vue';
+  import { ref, computed, onMounted } from 'vue';
 
   export default {
     setup() {
-      // 可选标签列表
+      // 标签分类数据
+      const selectedCategory = ref(0); // 默认选中第一个分类
+
+      const tagCategories = ref([
+        {
+          name: '生活习惯',
+          colorClass: 'lifestyle',
+          tags: ['规律作息', '健康饮食', '卫生自理', '时间管理', '物品整理']
+        },
+        {
+          name: '学习思维',
+          colorClass: 'learning',
+          tags: ['深度阅读', '专注做事', '主动提问', '抗挫能力', '创新思维']
+        },
+        {
+          name: '心理品德',
+          colorClass: 'mental',
+          tags: ['情绪管理', '同理心', '感恩意识', '责任感', '诚实待人', '界限感']
+        },
+        {
+          name: '社会适应',
+          colorClass: 'social',
+          tags: ['数字素养', '环保意识', '安全意识', '多元包容', '劳动价值观']
+        },
+        {
+          name: '社交与运动',
+          colorClass: 'activity',
+          tags: ['社交与冲突解决', '团队合作', '运动习惯', '公共秩序', '沟通表达']
+        },
+        {
+          name: '财商培养',
+          colorClass: 'finance',
+          tags: ['金钱认知', '财富管理', '财富创造', '社会责任']
+        }
+      ]);
+
+      // 原有的可选标签列表（保留用作备用）
       const availableTags = [
         '阅读', '认知', '健康', '运动', '营养',
         '睡眠', '语言', '思维', '安全', '情感', '社交'
@@ -145,9 +211,18 @@
         { label: '周日', value: 7 }
       ];
 
+      // 宝宝相关
+      const babies = ref([]);
+      const currentBabyIndex = ref(0);
+      const currentBabyName = computed(() => {
+        const selectedBaby = babies.value[currentBabyIndex.value];
+        return selectedBaby ? selectedBaby.name : '';
+      });
+
       // 表单数据
       const taskForm = ref({
         title: '',
+        description: '',
         tags: [],
         type: 'normal', // 'normal' 或 'recurring'
         recurringType: 'daily', // 只支持type为'recurring'时，支持'daily', 'weekly', 'monthly', 'custom'
@@ -159,15 +234,67 @@
         points: '',
         completed: 0,
         status: 'ongoing',
-        createdAt: null
+        createdAt: null,
+        babyId: '' // 关联的宝宝ID
       });
 
-      // 表单验证
+      // 组件挂载时获取宝宝列表和当前宝宝ID
+      onMounted(() => {
+        // 加载宝宝列表
+        try {
+          const storedBabies = uni.getStorageSync('babies') || '[]';
+          babies.value = typeof storedBabies === 'string' ? JSON.parse(storedBabies) : storedBabies;
+
+          // 加载当前选中宝宝
+          const currentBabyId = uni.getStorageSync('currentBabyId');
+          taskForm.value.babyId = currentBabyId || (babies.value.length > 0 ? babies.value[0].id : '');
+
+          // 设置初始选中的宝宝索引
+          if (taskForm.value.babyId) {
+            const index = babies.value.findIndex(baby => baby.id === taskForm.value.babyId);
+            if (index !== -1) {
+              currentBabyIndex.value = index;
+            }
+          }
+
+          console.log('加载宝宝信息:', babies.value, taskForm.value.babyId);
+
+          // 如果没有宝宝，提示用户先添加宝宝
+          if (babies.value.length === 0) {
+            uni.showModal({
+              title: '提示',
+              content: '请先在"我的"页面添加宝宝',
+              showCancel: false,
+              success: () => {
+                uni.switchTab({
+                  url: '/pages/profile/profile'
+                });
+              }
+            });
+          }
+        } catch (e) {
+          console.error('加载宝宝信息失败:', e);
+        }
+      });
+
+      // 切换宝宝
+      const onBabyChange = (e) => {
+        const idx = e.detail.value;
+        currentBabyIndex.value = idx;
+        if (babies.value[idx]) {
+          taskForm.value.babyId = babies.value[idx].id;
+          console.log('切换宝宝:', babies.value[idx].name, '宝宝ID:', taskForm.value.babyId);
+        }
+      };
+
+      // 表单验证 - 添加宝宝ID检查, 任务描述不超过50字
       const isFormValid = computed(() => {
         const baseValidation = taskForm.value.title &&
+          taskForm.value.description.length <= 50 &&
           taskForm.value.tags.length > 0 &&
-          taskForm.value.total > 0 &&
-          taskForm.value.points > 0;
+          // taskForm.value.total > 0 &&
+          taskForm.value.points > 0 &&
+          taskForm.value.babyId; // 确保选择了宝宝
 
         if (taskForm.value.type === 'recurring') {
           switch (taskForm.value.recurringType) {
@@ -231,8 +358,16 @@
         taskForm.value.customEndTime = e.detail.value;
       };
 
-      // 获取标签样式
+      // 获取标签样式 - 使用分类颜色替代个别标签颜色
       const getTagColorClass = (tag) => {
+        // 查找标签所属的分类
+        for (const category of tagCategories.value) {
+          if (category.tags.includes(tag)) {
+            return category.colorClass;
+          }
+        }
+
+        // 如果找不到，使用旧的映射（保留兼容性）
         const tagMap = {
           '阅读': 'education',
           '认知': 'cognitive',
@@ -270,30 +405,59 @@
         taskForm.value.status = 'ongoing'; // 确保设置任务状态为进行中
         taskForm.value.completed = 0; // 初始化已完成时间为0
 
+        // 确保任务关联到当前宝宝
+        const currentBabyId = uni.getStorageSync('currentBabyId');
+        if (currentBabyId && !taskForm.value.babyId) {
+          taskForm.value.babyId = currentBabyId;
+          console.log('关联任务到宝宝:', currentBabyId);
+        }
 
         // 从本地存储获取现有任务列表
         try {
           let taskList = uni.getStorageSync('taskList') || '[]';
           taskList = JSON.parse(taskList);
+          // 获取当前宝宝的任务数量
+          const currentBabyTaskList = taskList.filter(task => task.babyId === currentBabyId);
+          console.log("currentBabyTaskCount:", currentBabyTaskList.length);
+
+          const maxTaskCount = 100;
+          if (currentBabyTaskList.length >= maxTaskCount) {
+            uni.showToast({
+              title: `宝宝任务数量已达上限，不能超过 ${maxTaskCount} 个`,
+              icon: 'none'
+            });
+            return;
+          }
 
           // 生成新任务ID
           const newId = taskList.length > 0 ? Math.max(...taskList.map(t => t.id)) + 1 : 1;
           taskForm.value.id = newId;
 
           let resetTime = 0;
+          const now = new Date();
           if (taskForm.value.type === 'recurring') {
+            // 周任务，将weekdays按照升序排序
+            taskForm.value.weekdays = taskForm.value.weekdays.sort((a, b) => a - b);
             // 周期性任务，默认24小时
             let interval = 24 * 3600;
             if (taskForm.value.recurringType === 'weekly') {
-              interval = 7 * 24 * 3600;
-            } else if (taskForm.value.recurringType === 'monthly') {
-              interval = 30 * 24 * 3600;
-            }
-            // else if (taskForm.value.recurringType === 'custom') {
-            //   interval = taskForm.value.customEndTime - taskForm.value.customStartTime;
-            // }
+              // 获取周任务的下一个重置时间
+              let weekday = now.getDay();
+              if (weekday === 0) {
+                weekday = 7
+              }
 
-            const now = new Date();
+              for (let i = 1; i <= 7; i++) {
+                let nextWeekday = (weekday + i) % 7;
+                // 检测是否包含该星期几
+                if (taskForm.value.weekdays.includes(nextWeekday)) {
+                  interval = i * 24 * 3600;
+                  console.log('下一次重置间隔:', i, interval);
+                  break;
+                }
+              }
+            }
+
             resetTime = new Date(now.getTime() + interval * 1000);
             // 设置时、分、秒、毫秒为 0
             resetTime.setHours(0, 0, 0, 0);
@@ -310,6 +474,14 @@
           };
 
           taskList.push(newTask);
+
+          // 移除已完成的普通任务
+          for (let i = 0; i < taskList.length; i++) {
+            if (taskList[i].type === 'normal' && taskList[i].status === 'completed') {
+              taskList.splice(i, 1);
+              console.log("remove normal completed task:", taskList[i])
+            }
+          }
 
           // 保存更新后的任务列表
           uni.setStorageSync('taskList', JSON.stringify(taskList));
@@ -341,6 +513,8 @@
       return {
         taskForm,
         availableTags,
+        tagCategories,
+        selectedCategory,
         weekdays,
         isFormValid,
         toggleTag,
@@ -350,7 +524,11 @@
         onEndTimeChange,
         getTagColorClass,
         goBack,
-        submitTask
+        submitTask,
+        babies,
+        currentBabyIndex,
+        currentBabyName,
+        onBabyChange
       };
     }
   };
@@ -365,35 +543,34 @@
 
   /* 导航栏样式 */
   .nav-bar {
-    position: sticky;
-    top: 0;
     display: flex;
     align-items: center;
     height: 88rpx;
-    /* background-color: #fff; */
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-    padding: 10rpx 30rpx 20rpx 10rpx;
-    box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-    z-index: 100;
+    padding: 90rpx 40rpx 60rpx 40rpx;
+    position: relative;
   }
 
   .nav-left {
-    padding: 20rpx;
-    margin-left: -20rpx;
+    position: absolute;
+    left: 30rpx;
+    z-index: 1;
   }
 
-  .nav-icon {
-    font-size: 40rpx;
-    color: #333;
+  .icon {
+    color: white;
+    font-size: 48rpx;
+    font-weight: bold;
   }
 
   .nav-title {
     flex: 1;
     text-align: center;
-    font-size: 32rpx;
-    font-weight: 500;
     color: white;
+    font-size: 48rpx;
+    font-weight: bold;
   }
+
 
   /* 表单容器 */
   .form-container {
@@ -425,6 +602,16 @@
     color: #333;
   }
 
+  .form-textarea {
+    width: 100%;
+    height: 160rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    padding: 20rpx;
+    font-size: 28rpx;
+    color: #333;
+  }
+
   .placeholder {
     color: #999;
   }
@@ -433,7 +620,13 @@
   .tags-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 20rpx;
+    gap: 16rpx;
+    margin-top: 20rpx;
+    padding: 16rpx;
+    border-radius: 16rpx;
+    background-color: rgba(245, 245, 245, 0.7);
+    max-height: 360rpx;
+    overflow-y: auto;
   }
 
   .tag-item {
@@ -486,6 +679,37 @@
 
   .tag-default {
     background-color: #8477fa;
+  }
+
+  /* 新增分类颜色 */
+  .tag-lifestyle {
+    background-color: #6366F1;
+    /* 紫色系 - 生活习惯 */
+  }
+
+  .tag-learning {
+    background-color: #3B82F6;
+    /* 蓝色系 - 学习思维 */
+  }
+
+  .tag-mental {
+    background-color: #EC4899;
+    /* 粉色系 - 心理品德 */
+  }
+
+  .tag-social {
+    background-color: #10B981;
+    /* 绿色系 - 社会适应 */
+  }
+
+  .tag-activity {
+    background-color: #F59E0B;
+    /* 橙色系 - 社交与运动 */
+  }
+
+  .tag-finance {
+    background-color: #059669;
+    /* 深绿色系 - 财商培养 */
   }
 
   /* 任务类型选择器 */
@@ -626,7 +850,7 @@
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
     color: white;
     font-size: 32rpx;
-    border-radius: 44rpx; 
+    border-radius: 44rpx;
     border: none;
     box-shadow: 0 6rpx 16rpx rgba(132, 119, 250, 0.3);
   }
@@ -642,5 +866,71 @@
     background: linear-gradient(135deg, #9f8eff, #8477fa);
     box-shadow: none;
     color: #666;
+  }
+
+  /* 添加宝宝选择器样式 */
+  .baby-selector {
+    width: 100%;
+  }
+
+  .baby-picker {
+    width: 100%;
+    height: 80rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+    padding: 0 20rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .baby-name {
+    font-size: 28rpx;
+    color: #333;
+    flex: 1;
+  }
+
+  .baby-arrow {
+    font-size: 24rpx;
+    color: #999;
+    margin-left: 10rpx;
+  }
+
+  /* 标签分类选择器 */
+  .tag-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+    margin-bottom: 16rpx;
+  }
+
+  .tag-category {
+    flex: 1;
+    text-align: center;
+    padding: 16rpx 24rpx;
+    border-radius: 12rpx;
+    font-size: 26rpx;
+    color: #666;
+    background-color: #f5f5f5;
+    transition: all 0.3s;
+    min-width: 140rpx;
+  }
+
+  .tag-category.active {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 4rpx 12rpx rgba(132, 119, 250, 0.3);
+  }
+
+  /* 优化标签选择体验 - 当财商培养分类被选中时的特殊样式 */
+  .tag-categories .tag-category:nth-child(6).active {
+    background: linear-gradient(135deg, #047857, #10B981);
+  }
+
+  /* 财商培养标签样式调整，确保文字清晰显示 */
+  .tag-finance.tag-item {
+    font-size: 24rpx;
+    padding: 10rpx 20rpx;
   }
 </style>
