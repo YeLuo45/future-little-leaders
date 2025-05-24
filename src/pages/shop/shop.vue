@@ -437,13 +437,47 @@
 				}
 			};
 
+
+
+			// 分享给朋友
+			const onShareAppMessage = (res) => {
+				return getShareConfig({
+					page: 'shop',
+					data: {
+						currentBabyId: currentBabyId.value,
+						babies: babies.value,
+						totalScore: totalScore.value,
+						products: products.value
+					}
+				});
+			};
+
+			// 分享到朋友圈
+			const onShareTimeline = () => {
+				const config = getShareConfig({
+					page: 'shop',
+					data: {
+						currentBabyId: currentBabyId.value,
+						babies: babies.value,
+						totalScore: totalScore.value,
+						products: products.value
+					}
+				});
+				return {
+					title: config.title,
+					query: config.query,
+					imageUrl: config.imageUrl
+				};
+			};
+
+
 			// 注册分享功能
-			useShare('shop', () => ({
-				currentBabyId: currentBabyId.value,
-				babies: babies.value,
-				totalScore: totalScore.value,
-				products: products.value
-			}));
+			// useShare('shop', () => ({
+			// 	currentBabyId: currentBabyId.value,
+			// 	babies: babies.value,
+			// 	totalScore: totalScore.value,
+			// 	products: products.value
+			// }));
 
 			// 组合式API
 			const layoutType = ref(2); // 默认2列
@@ -549,7 +583,9 @@
 				onLoad,
 				layoutType,
 				setLayoutType,
-				previewImage
+				previewImage,
+				onShareAppMessage,
+				onShareTimeline
 			};
 		},
 		// uni-app生命周期方法作为组件选项

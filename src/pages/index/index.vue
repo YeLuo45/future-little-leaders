@@ -818,13 +818,45 @@
         }
       };
 
-      // 注册分享功能
-      useShare('index', () => ({
-        currentBabyId: currentBabyId.value,
-        babies: babies.value,
-        totalScore: totalScore.value,
-        ongoingTasks: ongoingTasks.value
-      }));
+            // 分享给朋友
+            const onShareAppMessage = (res) => {
+        return getShareConfig({
+          page: 'index',
+          data: {
+            currentBabyId: currentBabyId.value,
+            babies: babies.value,
+            totalScore: totalScore.value,
+            ongoingTasks: ongoingTasks.value
+          }
+        });
+      };
+
+      // 分享到朋友圈
+      const onShareTimeline = () => {
+        const config = getShareConfig({
+          page: 'index',
+          data: {
+            currentBabyId: currentBabyId.value,
+            babies: babies.value,
+            totalScore: totalScore.value,
+            ongoingTasks: ongoingTasks.value
+          }
+        });
+        return {
+          title: config.title,
+          query: config.query,
+          imageUrl: config.imageUrl
+        };
+      };
+
+
+      // // 注册分享功能
+      // useShare('index', () => ({
+      //   currentBabyId: currentBabyId.value,
+      //   babies: babies.value,
+      //   totalScore: totalScore.value,
+      //   ongoingTasks: ongoingTasks.value
+      // }));
 
       onMounted(() => {
         // 初始化主题
@@ -967,7 +999,9 @@
         resetScroll,
         getDefaultAvatar,
         checkBabyStatus,
-        loadTasksAndPointsFromStorage
+        loadTasksAndPointsFromStorage,
+        onShareAppMessage,
+        onShareTimeline
       };
     },
     // uni-app生命周期方法作为组件选项
