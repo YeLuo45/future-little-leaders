@@ -27,14 +27,23 @@
     </view>
 
     <!-- 语录轮播 -->
-    <swiper class="quote-swiper" autoplay circular :interval="5000" :duration="500">
-      <swiper-item v-for="(quote, index) in quotes" :key="index">
-        <view class="quote-item">
-          <text class="quote-text">{{ quote.text }}</text>
-          <text class="quote-author">—— {{ quote.author }}</text>
-        </view>
-      </swiper-item>
-    </swiper>
+    <view class="uni-margin-wrap">
+      <swiper class="quote-swiper" 
+        indicator-dots
+        indicator-color="rgba(139, 92, 246, 0.3)"
+        indicator-active-color="#8B5CF6"
+        autoplay
+        :interval="5000" 
+        :duration="500"
+        circular>
+        <swiper-item v-for="(quote, index) in quotes" :key="index">
+          <view class="quote-item">
+            <text class="quote-text">{{ quote.text }}</text>
+            <text class="quote-author">—— {{ quote.author }}</text>
+          </view>
+        </swiper-item>
+      </swiper>
+    </view>
 
     <!-- 搜索框 -->
     <view class="search-box" :class="{ 'dark-mode': isDarkMode }">
@@ -197,11 +206,13 @@
 
       // 育儿语录数据
       const quotes = ref([
-        { text: "市场先生每天都来敲门，他时而兴奋，时而沮丧，如果你能冷静思考，他是你最好的朋友。", author: "沃伦·巴菲特" },
-        { text: "在别人恐惧时贪婪，在别人贪婪时恐惧。", author: "沃伦·巴菲特" },
-        { text: "股市是一个把钱从急躁的人手里转移到耐心的人手里的装置。", author: "沃伦·巴菲特" },
-        { text: "价格是你付出的，价值是你得到的。", author: "本杰明·格雷厄姆" },
-        { text: "安全边际是投资者的最佳伙伴。", author: "本杰明·格雷厄姆" }
+        { text: "每一个好习惯，都是孩子未来的基石。", author: "育儿养成" },
+        { text: "坚持每日打卡，养成自律好习惯。", author: "习惯养成" },
+        { text: "陪伴是最好的教育，成长在点滴坚持中。", author: "亲子陪伴" },
+        { text: "小目标，大进步，每天进步一点点。", author: "成长记录" },
+        { text: "好习惯的养成，胜过千言万语的说教。", author: "家庭教育" },
+        { text: "父母的坚持，是孩子最好的榜样。", author: "榜样力量" },
+        { text: "每天坚持一件小事，未来会感谢现在努力的你。", author: "成长励志" }
       ]);
 
       // 任务数据
@@ -934,6 +945,9 @@
               console.log('[首页] 完成宝宝变更响应');
             }, 200);
           }
+
+
+          console.log('quotes:', quotes.value);
         });
 
         // 添加宝宝列表刷新事件监听
@@ -972,6 +986,7 @@
       });
 
       return {
+        quotes,
         isDarkMode,
         searchKeyword,
         features,
@@ -1504,10 +1519,16 @@
     justify-content: center;
   }
 
+  /* 语录轮播容器 */
+  .uni-margin-wrap {
+    width: 690rpx;
+    margin: 20rpx 30rpx;
+  }
+
   /* 语录轮播 */
   .quote-swiper {
-    height: 160rpx;
-    margin-bottom: 30rpx;
+    width: 100%;
+    height: 180rpx;
   }
 
   .quote-item {
@@ -1516,21 +1537,22 @@
     justify-content: center;
     background-color: #eef5ff;
     height: 100%;
-    padding: 20rpx;
-    border-radius: 10rpx;
-    border-left: 8rpx solid #1A73E8;
+    padding: 20rpx 30rpx;
+    border-radius: 16rpx;
+    border-left: 8rpx solid #8B5CF6;
+    box-shadow: 0 4rpx 12rpx rgba(139, 92, 246, 0.1);
   }
 
   .quote-text {
     font-size: 28rpx;
     color: #333;
     line-height: 1.5;
+    margin-bottom: 16rpx;
   }
 
   .quote-author {
     font-size: 24rpx;
     color: #666;
-    margin-top: 10rpx;
     text-align: right;
   }
 
