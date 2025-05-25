@@ -26,6 +26,16 @@
       </view>
     </view>
 
+    <!-- 语录轮播 -->
+    <swiper class="quote-swiper" autoplay circular :interval="5000" :duration="500">
+      <swiper-item v-for="(quote, index) in quotes" :key="index">
+        <view class="quote-item">
+          <text class="quote-text">{{ quote.text }}</text>
+          <text class="quote-author">—— {{ quote.author }}</text>
+        </view>
+      </swiper-item>
+    </swiper>
+
     <!-- 搜索框 -->
     <view class="search-box" :class="{ 'dark-mode': isDarkMode }">
       <text class="search-icon">🔍</text>
@@ -37,75 +47,27 @@
     <!-- 内容区域 -->
     <scroll-view scroll-y class="content-list" :scroll-top="scrollTop" @scroll="handleScroll" :enable-back-to-top="true"
       :show-scrollbar="true" :enhanced="true" :bounces="true" :scroll-with-animation="true" :scroll-anchoring="true">
-      <!-- 育儿功能区 -->
-      <!-- <view class="feature-section">
-        <view class="feature-list">
-          <view 
-            class="feature-item"
-            v-for="(feature, index) in features" 
-            :key="index" 
-            @tap="navigateToFeature(feature)"
-          >
-            <text class="feature-icon">{{ feature.icon }}</text>
-            <text class="feature-title">{{ feature.title }}</text>
-          </view>
-        </view>
-      </view> -->
-
+      <!-- 布局切换按钮 -->
+      <view class="layout-switcher-fixed">
+        <button v-for="n in [1, 2]" :key="n" :class="['layout-btn', layoutType === n ? 'active' : '']"
+          @tap="setLayoutType(n)">{{ n }}列</button>
+      </view>
       <!-- 进行中的任务 -->
       <view class="task-section">
         <view class="section-header" @tap="toggleOngoingCollapse">
           <text class="section-title">进行中的任务 ({{ ongoingTasks.length }})</text>
           <text class="collapse-icon" :class="{ 'up': !isOngoingCollapsed }">▲</text>
         </view>
-
         <view v-if="!isOngoingCollapsed">
-          <view class="task-item" v-for="(task, index) in ongoingTasks" :key="task.id">
-
-            <view class="task-header">
-              <view class="task-left">
-                <view class="task-icon">📝</view>
-              </view>
-              <text class="task-title">{{ task.title }}</text>
-              <view class="task-points">
-                <text class="points-icon">🔥</text>
-                <text class="points-value">{{ task.points }}积分</text>
-              </view>
-              <!-- <text class="task-status">{{ task.status }}</text> -->
-            </view>
-            <view class="task-tags">
-              <view v-for="(tag, tagIndex) in (task.tags || [])" :key="tagIndex" class="task-tag">
-                {{ tag }}
-              </view>
-            </view>
-
-            <view class="task-description">{{ task.description || '暂无描述' }}</view>
-
-            <view class="task-action">
-              <button class="complete-btn" @tap="completeTask(task)">完成打卡</button>
-            </view>
-          </view>
-
-          <!-- 无任务提示 -->
-          <view class="empty-state" v-if="!ongoingTasks || ongoingTasks.length === 0">
-            <text class="empty-text">暂无进行中的任务</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 周期性任务 -->
-      <view class="task-section">
-        <view class="section-header" @tap="toggleRecurringCollapse">
-          <text class="section-title">周期性任务 ({{ recurringTasks.length }})</text>
-          <text class="collapse-icon" :class="{ 'up': !isRecurringCollapsed }">▲</text>
-        </view>
-        <view v-show="!isRecurringCollapsed">
-
-          <template v-if="recurringTasks && recurringTasks.length > 0">
-            <view class="task-card" v-for="(task, index) in recurringTasks" :key="'recurring-' + task.id">
+          <view class="task-list" :class="[`layout-${layoutType}`]">
+            <view class="task-item" v-for="(task, index) in ongoingTasks" :key="task.id">
               <view class="task-header">
                 <view class="task-left">
-                  <view class="task-icon">📅</view>
+                  <view class="task-icon">📝</view>
+                  <!-- <view class="task-points">
+                  <text class="points-icon">🔥</text>
+                  <text class="points-value">{{ task.points }}积分</text>
+                </view> -->
                 </view>
                 <text class="task-title">{{ task.title }}</text>
                 <view class="task-points">
@@ -113,25 +75,59 @@
                   <text class="points-value">{{ task.points }}积分</text>
                 </view>
               </view>
-
               <view class="task-tags">
                 <view v-for="(tag, tagIndex) in (task.tags || [])" :key="tagIndex" class="task-tag">
                   {{ tag }}
                 </view>
               </view>
-
               <view class="task-description">{{ task.description || '暂无描述' }}</view>
-
               <view class="task-action">
+
                 <button class="complete-btn" @tap="completeTask(task)">完成打卡</button>
               </view>
             </view>
-
-          </template>
-
-          <!-- 无任务提示 -->
-          <view class="empty-state" v-else>
-            <text class="empty-text">暂无周期性任务</text>
+            <!-- 无任务提示 -->
+            <view class="empty-state" v-if="!ongoingTasks || ongoingTasks.length === 0">
+              <text class="empty-text">暂无进行中的任务</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <!-- 周期性任务 -->
+      <view class="task-section">
+        <view class="section-header" @tap="toggleRecurringCollapse">
+          <text class="section-title">周期性任务 ({{ recurringTasks.length }})</text>
+          <text class="collapse-icon" :class="{ 'up': !isRecurringCollapsed }">▲</text>
+        </view>
+        <view v-show="!isRecurringCollapsed">
+          <view class="task-list" :class="[`layout-${layoutType}`]">
+            <template v-if="recurringTasks && recurringTasks.length > 0">
+              <view class="task-card" v-for="(task, index) in recurringTasks" :key="'recurring-' + task.id">
+                <view class="task-header">
+                  <view class="task-left">
+                    <view class="task-icon">📅</view>
+                  </view>
+                  <text class="task-title">{{ task.title }}</text>
+                  <view class="task-points">
+                    <text class="points-icon">🔥</text>
+                    <text class="points-value">{{ task.points }}积分</text>
+                  </view>
+                </view>
+                <view class="task-tags">
+                  <view v-for="(tag, tagIndex) in (task.tags || [])" :key="tagIndex" class="task-tag">
+                    {{ tag }}
+                  </view>
+                </view>
+                <view class="task-description">{{ task.description || '暂无描述' }}</view>
+                <view class="task-action">
+                  <button class="complete-btn" @tap="completeTask(task)">完成打卡</button>
+                </view>
+              </view>
+            </template>
+            <!-- 无任务提示 -->
+            <view class="empty-state" v-else>
+              <text class="empty-text">暂无周期性任务</text>
+            </view>
           </view>
         </view>
       </view>
@@ -197,6 +193,15 @@
           title: '智力开发',
           path: '/pages/development/index'
         }
+      ]);
+
+      // 育儿语录数据
+      const quotes = ref([
+        { text: "市场先生每天都来敲门，他时而兴奋，时而沮丧，如果你能冷静思考，他是你最好的朋友。", author: "沃伦·巴菲特" },
+        { text: "在别人恐惧时贪婪，在别人贪婪时恐惧。", author: "沃伦·巴菲特" },
+        { text: "股市是一个把钱从急躁的人手里转移到耐心的人手里的装置。", author: "沃伦·巴菲特" },
+        { text: "价格是你付出的，价值是你得到的。", author: "本杰明·格雷厄姆" },
+        { text: "安全边际是投资者的最佳伙伴。", author: "本杰明·格雷厄姆" }
       ]);
 
       // 任务数据
@@ -858,6 +863,9 @@
       //   ongoingTasks: ongoingTasks.value
       // }));
 
+      const layoutType = ref(2); // 默认2列
+      const setLayoutType = (n) => { layoutType.value = n; };
+
       onMounted(() => {
         // 初始化主题
         if (themeStore.initTheme) {
@@ -1001,7 +1009,9 @@
         checkBabyStatus,
         loadTasksAndPointsFromStorage,
         onShareAppMessage,
-        onShareTimeline
+        onShareTimeline,
+        layoutType,
+        setLayoutType
       };
     },
     // uni-app生命周期方法作为组件选项
@@ -1239,13 +1249,17 @@
     color: #666;
     margin: 8rpx 0 16rpx 0;
     display: -webkit-box;
-    -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    /* 限制最多 2 行（根据需求调整） */
     overflow: hidden;
     text-overflow: ellipsis;
-    min-height: 36rpx;
+    -webkit-box-orient: vertical;
+    line-height: 30rpx;
+    height: 60rpx;
+    /* 2 行高度：30rpx × 2 = 60rpx，与 line-height 匹配 */
+    word-break: break-all;
+    /* 强制换行（解决连续字符/数字不换行问题） */
   }
-
 
   .task-points {
     font-size: 26rpx;
@@ -1257,7 +1271,7 @@
   .complete-btn {
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
     color: white;
-    font-size: 28rpx;
+    font-size: 22rpx;
     padding: 12rpx 30rpx;
     border-radius: 30rpx;
     border: none;
@@ -1488,5 +1502,105 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  /* 语录轮播 */
+  .quote-swiper {
+    height: 160rpx;
+    margin-bottom: 30rpx;
+  }
+
+  .quote-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #eef5ff;
+    height: 100%;
+    padding: 20rpx;
+    border-radius: 10rpx;
+    border-left: 8rpx solid #1A73E8;
+  }
+
+  .quote-text {
+    font-size: 28rpx;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  .quote-author {
+    font-size: 24rpx;
+    color: #666;
+    margin-top: 10rpx;
+    text-align: right;
+  }
+
+
+
+  /* 布局切换按钮 */
+  .layout-switcher-fixed {
+    position: sticky;
+    top: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    background: transparent;
+    padding: 10rpx 30rpx;
+  }
+
+  .layout-btn {
+    flex: 1;
+    text-align: center;
+    margin: 0 30rpx;
+    padding: 8rpx 20rpx;
+    border-radius: 20rpx;
+    background: white;
+    color: #8477fa;
+    border: 2rpx solid #e5e7eb;
+    font-size: 24rpx;
+    box-shadow: 0 2rpx 8rpx rgba(132, 119, 250, 0.08);
+    transition: all 0.2s;
+  }
+
+  .layout-btn.active {
+    background: #8477fa;
+    color: #fff;
+    border-color: #8477fa;
+  }
+
+  .task-list {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 10rpx;
+    margin-left: 20rpx;
+    margin-right: 20rpx;
+  }
+
+  .task-list.layout-1 .task-item,
+  .task-list.layout-1 .task-card {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .task-list.layout-2 .task-item,
+  .task-list.layout-2 .task-card {
+    width: 40%;
+    margin-right: 2%;
+  }
+
+  .task-list.layout-2 .task-item:nth-child(2n),
+  .task-list.layout-2 .task-card:nth-child(2n) {
+    margin-right: 0;
+  }
+
+  .task-list.layout-3 .task-item,
+  .task-list.layout-3 .task-card {
+    width: 23.5%;
+    margin-right: 2%;
+  }
+
+  .task-list.layout-3 .task-item:nth-child(3n),
+  .task-list.layout-3 .task-card:nth-child(3n) {
+    margin-right: 0;
   }
 </style>

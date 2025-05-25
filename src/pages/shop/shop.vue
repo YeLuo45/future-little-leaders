@@ -761,6 +761,7 @@
 		padding: 20rpx;
 		display: flex;
 		flex-direction: column;
+		flex: 1;
 	}
 
 	.product-left {
@@ -829,6 +830,7 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 10rpx;
+		height: 80rpx;
 	}
 
 	.product-points {
@@ -892,6 +894,7 @@
 		padding: 10rpx 20rpx 16rpx;
 		background-color: #f9f9f9;
 		border-top: 1rpx solid #f0f0f0;
+		
 	}
 
 	.dark-mode .product-action {
