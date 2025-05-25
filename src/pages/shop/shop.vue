@@ -723,7 +723,8 @@
 	.product-list {
 		display: flex;
 		flex-wrap: wrap;
-		justify-content: space-between;
+		/* justify-content: space-between; */
+		/* justify-content: center; */
 		padding: 10rpx;
 		margin-left: 20rpx;
 		margin-right: 20rpx;
@@ -760,6 +761,7 @@
 		padding: 20rpx;
 		display: flex;
 		flex-direction: column;
+		flex: 1;
 	}
 
 	.product-left {
@@ -811,12 +813,12 @@
 		margin-bottom: 10rpx;
 		line-height: 1.3;
 		width: calc(100% - 30rpx);
-		/* 文本溢出处理 */
 		overflow: hidden;
 		text-overflow: ellipsis;
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
+		height: 70rpx;
 	}
 
 	.product-name.dark-mode {
@@ -828,6 +830,7 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 10rpx;
+		height: 80rpx;
 	}
 
 	.product-points {
@@ -865,13 +868,24 @@
 	}
 
 	.product-description {
-		/* background-color: rgb(248, 248, 248); */
 		margin-bottom: 10rpx;
-
-		height: 90rpx;
-
 		font-size: 24rpx;
 		color: #666;
+		/* 多行省略核心样式 */
+		display: -webkit-box;
+		/* 启用弹性盒模型（WebKit专属） */
+		-webkit-line-clamp: 3;
+		/* 限制最多3行 */
+		overflow: hidden;
+		/* 隐藏超出内容 */
+		text-overflow: ellipsis;
+		/* 溢出时显示省略号 */
+		-webkit-box-orient: vertical;
+		/* 垂直排列文本（必须，否则line-clamp无效） */
+		line-height: 30rpx;
+		/* 行高（3行总高度90rpx，与原height匹配） */
+		height: 90rpx;
+		/* 保留原高度（确保容器高度固定，避免布局跳动） */
 	}
 
 	.product-action {
@@ -880,6 +894,7 @@
 		padding: 10rpx 20rpx 16rpx;
 		background-color: #f9f9f9;
 		border-top: 1rpx solid #f0f0f0;
+		
 	}
 
 	.dark-mode .product-action {
@@ -1099,7 +1114,6 @@
 	}
 
 	/* 新增样式 */
-	/* .layout-switcher { display: flex; justify-content: flex-end; margin: 10rpx 30rpx 0 0; } .layout-btn { margin-left: 10rpx; padding: 8rpx 20rpx; border-radius: 20rpx; background: #f5f5f5; color: #8477fa; border: none; font-size: 24rpx; } .layout-btn.active { background: #8477fa; color: #fff; } .product-list.layout-1 .product-card { width: 100%; } .product-list.layout-2 .product-card { width: 48%; } .product-list.layout-3 .product-card { width: 31.5%; } .product-image { width: 120rpx; height: 120rpx; border-radius: 20rpx; object-fit: cover; margin-bottom: 10rpx; } */
 
 	/* 布局切换按钮优化，悬浮于商品列表上方右侧 */
 	.layout-switcher-fixed {
@@ -1119,7 +1133,7 @@
 		text-align: center;
 		/* 移除间距，通过边框分隔 */
 		margin: 0 30rpx;
-		
+
 		padding: 8rpx 20rpx;
 		border-radius: 20rpx;
 		/* background: #f5f5f5; */
@@ -1127,7 +1141,7 @@
 		color: #8477fa;
 		/* 添加统一边框（浅灰色，与设计风格匹配） */
 		border: 2rpx solid #e5e7eb;
-		
+
 		font-size: 24rpx;
 		box-shadow: 0 2rpx 8rpx rgba(132, 119, 250, 0.08);
 		/* 统一过渡效果 */
@@ -1138,7 +1152,7 @@
 		background: #8477fa;
 		color: #fff;
 		/* 激活时边框与背景同色，避免视觉冲突 */
-		border-color: #8477fa; 
+		border-color: #8477fa;
 	}
 
 	.product-list.layout-1 .product-card {

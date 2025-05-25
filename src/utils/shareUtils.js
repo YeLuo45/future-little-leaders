@@ -15,7 +15,7 @@
 export function getShareConfig({ page, data = {} }) {
   // 默认分享内容
   let config = {
-    title: '亲子任务宝 - 记录宝宝成长',
+    title: '亲子任务宝 - 宝宝科学成长',
     path: '/pages/index/index',
     imageUrl: '/static/logo/share-logo.png',
     query: ''
@@ -25,7 +25,7 @@ export function getShareConfig({ page, data = {} }) {
     case 'index': {
       const { currentBabyId, babies, totalScore, ongoingTasks } = data;
       if (!currentBabyId) {
-        config.title = '快来记录宝宝的成长轨迹';
+        config.title = '快来科学培养宝宝成长';
         config.path = '/pages/index/index';
       } else {
         const baby = (babies || []).find(b => b.id === currentBabyId);
@@ -63,7 +63,7 @@ export function getShareConfig({ page, data = {} }) {
     case 'statistics': {
       const { currentBabyId, babies, totalScore, completionRate } = data;
       if (!currentBabyId) {
-        config.title = '快来记录宝宝的成长轨迹';
+        config.title = '快来科学培养宝宝成长';
         config.path = '/pages/index/index';
       } else {
         const baby = (babies || []).find(b => b.id === currentBabyId);
@@ -82,7 +82,7 @@ export function getShareConfig({ page, data = {} }) {
     case 'profile': {
       const { userInfo, currentBabyId, babies, totalScore } = data;
       if (!currentBabyId) {
-        config.title = '快来记录宝宝的成长轨迹';
+        config.title = '快来科学培养宝宝成长';
         config.path = '/pages/profile/profile';
       } else {
         const baby = (babies || []).find(b => b.id === currentBabyId);
