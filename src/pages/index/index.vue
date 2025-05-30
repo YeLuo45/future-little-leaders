@@ -27,7 +27,7 @@
     </view>
 
     <!-- 语录轮播 -->
-    <view class="uni-margin-wrap">
+    <!-- <view class="uni-margin-wrap">
       <swiper class="quote-swiper" 
         indicator-dots
         indicator-color="rgba(139, 92, 246, 0.3)"
@@ -43,7 +43,7 @@
           </view>
         </swiper-item>
       </swiper>
-    </view>
+    </view> -->
 
     <!-- 搜索框 -->
     <view class="search-box" :class="{ 'dark-mode': isDarkMode }">

@@ -1,0 +1,109 @@
+# API 规则文档
+
+## 请求验证规则
+- 所有API请求必须包含`Authorization`头部，用于身份验证（格式：Bearer <token>，token值为当前登录后保存的用户令牌）<mcreference link="d:\WS\AI\pc-task-treasure\future-little-leaders\docs\api\task.md" index="1">1</mcreference>。
+- 请求参数必须使用JSON格式传递，即使参数为空也需使用`{}`表示，禁止使用空请求体。
+- 请求参数需进行类型校验，例如数字类型参数需为整数或浮点数。
+
+## HTTP请求方式
+- API请求方式默认使用POST，若需使用其他方式（如GET、PUT、DELETE）需在接口文档中明确说明。
+
+## 响应格式规范
+后端统一返回JSON对象，格式如下：
+```json
+{
+  "error": 0,
+  "body": object,
+  "message": ""
+}
+```
+- `error`: 状态码
+  - `0`: 无异常（成功）
+  - `500`: 系统异常（需提示"系统异常，请稍后重试"）
+  - `401`: 未登录（需跳转登录页面）
+  - 其他值: 业务异常（直接显示`message`内容）
+- `body`: 业务数据对象（成功时有效）
+- `message`: 提示信息（异常时包含具体描述）<mcreference link="d:\WS\AI\pc-task-treasure\future-little-leaders-api\rule\flask.mdc" index="2">2</mcreference>。
+
+## 通用响应处理函数
+所有API调用需使用统一的响应处理函数`handleApiResponse`，功能如下：
+- 接收后端返回的JSON对象
+- 根据`error`值执行不同逻辑：
+  - `error=0`: 返回`body`数据
+  - `error=500`: 弹出系统异常提示
+  - `error=401`: 清除本地token并跳转登录页
+  - 其他值: 弹出`message`内容提示
+- 示例伪代码：
+```javascript
+function handleApiResponse(response) {
+  if (response.error === 0) {
+    return response.body;
+  } else if (response.error === 500) {
+    showToast("系统异常，请稍后重试");
+  } else if (response.error === 401) {
+    clearLocalToken();
+    redirectToLogin();
+  } else {
+    showToast(response.message);
+  }
+}
+```
+
+## 分页参数规则
+- 分页请求需包含`page`（当前页码，默认1）和`pageSize`（每页数量，默认10）参数，且均需为正整数。
+
+## 接口信息更新规范
+当接口新增或修改时，需按以下格式同步更新<mcfile name="接口文档.md" path="d:\WS\AI\pc-task-treasure\future-little-leaders\docs\api\接口文档.md"></mcfile>：
+- 接口名称
+- 接口核心功能描述（不超过200字）
+- 接口地址（示例：`/print`、`/assembly/{id}/export-pdf`）
+- 方法（示例：`GET`、`POST`）
+- 需要登录：是/否
+- 请求参数：
+| 参数名    | 类型    | 必填 | 说明                             |
+|-----------|---------|------|----------------------------------|
+| category  | string  | 否   | 商品分类                         |
+| keyword   | string  | 否   | 搜索关键词                       |
+| page      | integer | 否   | 页码，默认为1                    |
+| pageSize  | integer | 否   | 每页数量，默认为10               |
+| sortBy    | string  | 否   | 排序方式，可选值：price（价格）、popularity（热度） |
+| sortOrder | string  | 否   | 排序顺序，可选值：asc（升序）、desc（降序）|
+
+- 响应类型（示例：`json`、`blob`）
+```json
+{
+  "code": 0,
+  "message": "获取成功",
+  "data": {
+    "list": [
+      {
+        "id": 1001,
+        "name": "精美笔记本",
+        "description": "高质量硬皮笔记本，适合学习记录",
+        "price": 100,
+        "image": "https://example.com/images/notebook.jpg",
+        "category": "学习用品",
+        "stock": 50,
+        "popularity": 95
+      },
+      {
+        "id": 1002,
+        "name": "荧光笔套装",
+        "description": "6色荧光笔，标记重点更醒目",
+        "price": 50,
+        "image": "https://example.com/images/highlighter.jpg",
+        "category": "学习用品",
+        "stock": 100,
+        "popularity": 87
+      }
+    ],
+    "pagination": {
+      "total": 25,
+      "page": 1,
+      "pageSize": 10,
+      "totalPages": 3
+    }
+  }
+}
+```
+- 同步更新：修改原因（可选）
