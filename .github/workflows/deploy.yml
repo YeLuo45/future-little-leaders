@@ -18,14 +18,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: gh-pages
+          ref: master
+          
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: '20'
+          cache: 'npm'
+          
       - run: npm ci
-      - run: npm run build:h5
+      
+      - name: Build H5
+        run: npm run build:h5
+        
+      - name: Setup Pages
+        run: |
+          echo "::group::Dist contents"
+          ls -la dist/build/h5/
+          echo "::endgroup::"
+          
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist/build/h5
-      - uses: actions/deploy-pages@v4
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
