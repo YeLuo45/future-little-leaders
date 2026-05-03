@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -38,28 +38,18 @@ jobs:
           cd ${{ github.workspace }}/src
           npm run build:h5
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: dist
           path: src/dist/build/h5
-          retention-days: 1
 
   deploy:
     needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: .
-
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions/gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          publish_branch: gh-pages
-          user_name: 'Hermes Agent'
-          user_email: 'hermes@agent.local'
+        id: deployment
+        uses: actions/deploy-pages@v4
