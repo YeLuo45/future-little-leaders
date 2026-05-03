@@ -47,7 +47,8 @@
     "pinia": "^3.0.2",
     "playwright": "^1.51.1",
     "uuid": "^11.1.0",
-    "vue": "^3.4.21"
+    "vue": "^3.4.21",
+    "@vue/shared": "^3.4.21"
   },
   "devDependencies": {
     "@dcloudio/types": "^3.3.2",
@@ -62,8 +63,5 @@
     "sharp": "^0.34.1",
     "typescript": "^5.2.2",
     "vite": "^5.4.19"
-  },
-  "overrides": {
-    "@vue/shared": "3.3.13"
   }
 }
