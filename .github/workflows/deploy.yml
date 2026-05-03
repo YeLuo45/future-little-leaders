@@ -23,12 +23,21 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install and build
+      - name: Configure npm mirror
         run: |
           cd ${{ github.workspace }}/src
-          npm ci
+          npm config set registry https://registry.npmmirror.com
+
+      - name: Install dependencies
+        run: |
+          cd ${{ github.workspace }}/src
+          npm install --legacy-peer-deps
+
+      - name: Build H5
+        run: |
+          cd ${{ github.workspace }}/src
           npm run build:h5
-          
+
       - name: Deploy to gh-pages
         run: |
           cd ${{ github.workspace }}/src/dist/build/h5
@@ -40,7 +49,6 @@ jobs:
           git fetch origin gh-pages:refs/heads/gh-pages || true
           git checkout -b gh-pages FETCH_HEAD 2>/dev/null || git checkout --orphan gh-pages
           rm -rf assets index.html static 2>/dev/null || true
-          cp -r . ${{ github.workspace }}/src/dist/build/h5_tmp/ 2>/dev/null || true
           git add .
           git commit -m "Deploy $(date +%Y%m%d%H%M%S)"
           git push origin gh-pages --force
