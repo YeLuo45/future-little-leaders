@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,21 +38,28 @@ jobs:
           cd ${{ github.workspace }}/src
           npm run build:h5
 
-      - name: Deploy to gh-pages
-        run: |
-          set -x
-          cd ${{ github.workspace }}/src/dist/build/h5
-          touch .nojekyll
-          git config --local user.email "hermes@agent.local"
-          git config --local user.name "Hermes Agent"
-          git init
-          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/YeLuo45/future-little-leaders.git
-          git fetch origin gh-pages:refs/heads/gh-pages || echo "No existing gh-pages, creating new"
-          git checkout -b gh-pages FETCH_HEAD 2>/dev/null || git checkout --orphan gh-pages
-          rm -rf assets index.html static 2>/dev/null || true
-          git add .
-          git status
-          git commit -m "Deploy $(date +%Y%m%d%H%M%S)" || echo "Nothing to commit"
-          git push origin gh-pages --force || echo "Push failed, retrying..."
-          sleep 5
-          git push origin gh-pages --force || echo "Retry also failed"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: src/dist/build/h5
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: .
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions/gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          user_name: 'Hermes Agent'
+          user_email: 'hermes@agent.local'
