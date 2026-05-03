@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- 设置字符编码为UTF-8 -->
+    <meta charset="UTF-8" />
+    <!-- 检测是否支持CSS env()和constant()函数，用于适配刘海屏 -->
+    <script>
+      var coverSupport = 'CSS' in window && typeof CSS.supports === 'function' && (CSS.supports('top: env(a)') ||
+        CSS.supports('top: constant(a)'))
+      document.write(
+        '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' +
+        (coverSupport ? ', viewport-fit=cover' : '') + '" />')
+    </script>
+    <title></title>
+    <!-- 预加载资源链接占位符 -->
+    <!--preload-links-->
+    <!-- 应用上下文占位符 -->
+    <!--app-context-->
+  </head>
+  <body>
+    <!-- Vue应用挂载点 -->
+    <div id="app"><!--app-html--></div>
+    <!-- 引入Vue应用入口文件 -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>登录页面原型设计</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f7f9fc;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 40px;
+        }
+        
+        /* 原型区域 */
+        .prototype-container {
+            width: 375px;
+            height: 667px;
+            background-color: white;
+            border-radius: 30px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+            border: 10px solid #2a2a2a;
+            border-top-width: 50px;
+            border-bottom-width: 50px;
+            position: relative;
+        }
+        
+        .prototype-container::before {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 20px;
+            background-color: #2a2a2a;
+            border-radius: 10px;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .prototype-container::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid #444;
+            border-radius: 50%;
+            bottom: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* 登录页面样式 */
+        .login-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 30px;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            overflow: hidden;
+        }
+        
+        .login-header {
+            margin-bottom: 40px;
+            color: white;
+            position: relative;
+        }
+        
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .login-subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+            max-width: 80%;
+        }
+        
+        .login-form {
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .input-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 14px;
+            color: #aaa;
+        }
+        
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 12px 12px 42px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+            outline: none;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 14px;
+            color: #aaa;
+            cursor: pointer;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .remember-me input {
+            margin-right: 8px;
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+        
+        .login-footer {
+            color: white;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .login-footer a {
+            color: white;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+        
+        /* 设计说明区域 */
+        .design-notes {
+            flex: 1;
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .notes-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2a2a2a;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .notes-section {
+            margin-bottom: 25px;
+        }
+        
+        .notes-section h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .notes-section p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .color-palette {
+            display: flex;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .color-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            margin-right: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 12px;
+            position: relative;
+        }
+        
+        .color-box span {
+            margin-top: 5px;
+        }
+        
+        .responsive-note {
+            background-color: #f0f7ff;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        .interaction-note {
+            background-color: #fff8e6;
+            border-left: 4px solid #f1c40f;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        /* 装饰元素 */
+        .decorator {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .decorator-1 {
+            width: 150px;
+            height: 150px;
+            top: -75px;
+            right: -75px;
+        }
+        
+        .decorator-2 {
+            width: 100px;
+            height: 100px;
+            bottom: 50px;
+            left: -50px;
+        }
+        
+        /* 按键动画效果 */
+        .login-button:active {
+            transform: scale(0.98);
+        }
+        
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+            color: #6c5ce7;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .modal-text {
+            margin-bottom: 20px;
+            color: #666;
+        }
+        
+        .modal-button {
+            padding: 10px 20px;
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .design-notes {
+                width: 100%;
+                margin-top: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 原型设计部分 -->
+        <div class="prototype-container">
+            <div class="login-container">
+                <!-- 装饰元素 -->
+                <div class="decorator decorator-1"></div>
+                <div class="decorator decorator-2"></div>
+                
+                <div class="login-header">
+                    <h1 class="login-title">欢迎登录</h1>
+                    <p class="login-subtitle">请输入您的账号和密码</p>
+                </div>
+                
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="username">账号</label>
+                        <div class="input-container">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </span>
+                            <input type="text" id="username" placeholder="请输入账号">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <div class="input-container">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                            <input type="password" id="password" placeholder="请输入密码">
+                            <span class="toggle-password" onclick="togglePasswordVisibility()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </span>
+                        </div>
+                        
+                        <div class="remember-me">
+                            <input type="checkbox" id="remember">
+                            <label for="remember">记住我</label>
+                        </div>
+                    </div>
+                    
+                    <button class="login-button" onclick="showLoginModal()">登录</button>
+                </div>
+                
+                <div class="login-footer">
+                    <a href="#">忘记密码？</a> | <a href="#">注册账号</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 设计说明部分 -->
+        <div class="design-notes">
+            <h2 class="notes-title">登录页面设计说明</h2>
+            
+            <div class="notes-section">
+                <h3>设计理念</h3>
+                <p>此登录页面设计遵循简洁美观的原则，使用渐变色背景创造出现代感和深度，同时确保用户体验流畅直观。整体设计符合当前移动应用的设计趋势，注重色彩和空间的运用。</p>
+            </div>
+            
+            <div class="notes-section">
+                <h3>色彩方案</h3>
+                <p>主色调采用紫色系，给用户传递科技感和信任感，同时保持视觉上的舒适度。</p>
+                
+                <div class="color-palette">
+                    <div class="color-box" style="background: #6c5ce7;">
+                        #6c5ce7
+                        <span>主色</span>
+                    </div>
+                    <div class="color-box" style="background: #a29bfe;">
+                        #a29bfe
+                        <span>辅色</span>
+                    </div>
+                    <div class="color-box" style="background: white; color: #333;">
+                        #FFFFFF
+                        <span>背景色</span>
+                    </div>
+                    <div class="color-box" style="background: #2a2a2a;">
+                        #2a2a2a
+                        <span>文字色</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="notes-section">
+                <h3>交互设计</h3>
+                <p>页面包含多项交互元素，提升用户体验：</p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li>输入框焦点状态有边框变色效果</li>
+                    <li>密码可见性切换按钮</li>
+                    <li>"记住我"选项</li>
+                    <li>登录按钮点击效果和反馈</li>
+                    <li>链接悬停效果</li>
+                </ul>
+                
+                <div class="interaction-note">
+                    <strong>交互提示：</strong> 点击"登录"按钮查看登录反馈模态框。
+                </div>
+            </div>
+            
+            <div class="notes-section">
+                <h3>用户体验考虑</h3>
+                <p>设计关注以下用户体验要点：</p>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li>表单元素大小适合手指点击</li>
+                    <li>对比度适中，确保文字清晰可读</li>
+                    <li>表单验证和反馈</li>
+                    <li>图标辅助理解输入内容</li>
+                    <li>渐变色和阴影增强层次感</li>
+                </ul>
+                
+                <div class="responsive-note">
+                    <strong>适配性说明：</strong> 设计以 375x667px（iPhone 8）为基准，同时兼容其他移动设备尺寸。
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 登录模态框 -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-icon">✓</div>
+            <h3 class="modal-title">登录成功</h3>
+            <p class="modal-text">欢迎回来，正在进入系统...</p>
+            <button class="modal-button" onclick="closeModal()">确定</button>
+        </div>
+    </div>
+    
+    <script>
+        // 密码可见性切换
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.toggle-password svg');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.innerHTML = `
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                `;
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.innerHTML = `
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                `;
+            }
+        }
+        
+        // 显示登录模态框
+        function showLoginModal() {
+            // 简单校验
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                alert('请输入账号和密码');
+                return;
+            }
+            
+            const modal = document.getElementById('loginModal');
+            modal.style.display = 'flex';
+        }
+        
+        // 关闭模态框
+        function closeModal() {
+            const modal = document.getElementById('loginModal');
+            modal.style.display = 'none';
+        }
+        
+        // 输入框焦点效果
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.style.boxShadow = '0 0 0 2px rgba(108, 92, 231, 0.2)';
+            });
+            
+            input.addEventListener('blur', () => {
+                input.parentElement.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body>
+</html> 
