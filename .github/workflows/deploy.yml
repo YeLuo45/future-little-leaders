@@ -28,10 +28,10 @@ jobs:
           cd $GITHUB_WORKSPACE/src
           npm config set registry https://registry.npmmirror.com
 
-      - name: Install dependencies
+      - name: Install dependencies (with lock file)
         run: |
           cd $GITHUB_WORKSPACE/src
-          npm install --legacy-peer-deps
+          npm ci --legacy-peer-deps
 
       - name: Build H5
         run: |
