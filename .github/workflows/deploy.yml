@@ -21,22 +21,22 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
 
       - name: Configure npm mirror
         run: |
-          cd ${{ github.workspace }}/src
+          cd $GITHUB_WORKSPACE/src
           npm config set registry https://registry.npmmirror.com
 
       - name: Install dependencies
         run: |
-          cd ${{ github.workspace }}/src
+          cd $GITHUB_WORKSPACE/src
           npm install --legacy-peer-deps
 
       - name: Build H5
         run: |
-          cd ${{ github.workspace }}/src
-          npm run build:h5
+          cd $GITHUB_WORKSPACE/src
+          UNI_PLATFORM=h5 npm run build:h5
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -53,4 +53,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
