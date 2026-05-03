@@ -11,6 +11,31 @@
 
     <!-- 表单内容 -->
     <view class="form-container">
+      <!-- 模板快速添加区域 -->
+      <view class="template-quick-section">
+        <view class="template-quick-header">
+          <text class="form-label">快速添加</text>
+          <view class="template-btn" @tap="openTemplatePicker">
+            <text class="template-btn-icon">📋</text>
+            <text>选择模板</text>
+          </view>
+        </view>
+        <scroll-view scroll-x class="template-quick-scroll" v-if="templateStore.allTemplates.length > 0">
+          <view class="template-quick-list">
+            <view 
+              v-for="template in templateStore.allTemplates.slice(0, 10)" 
+              :key="template.id"
+              class="template-quick-item"
+              @tap="applyTemplate(template)"
+            >
+              <text class="template-quick-icon">{{ template.icon }}</text>
+              <text class="template-quick-title">{{ template.title }}</text>
+              <text class="template-quick-points">+{{ template.points }}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
       <!-- 任务标题 -->
       <view class="form-item">
         <text class="form-label">任务标题</text>
@@ -155,6 +180,11 @@
 
 <script>
   import { ref, computed, onMounted } from 'vue';
+  import { useTaskTemplateStore } from '@/stores/taskTemplateStore';
+
+  // 初始化模板store
+  const templateStore = useTaskTemplateStore();
+  templateStore.init();
 
   export default {
     setup() {
@@ -358,6 +388,48 @@
         taskForm.value.customEndTime = e.detail.value;
       };
 
+      // 打开模板选择器
+      const openTemplatePicker = () => {
+        uni.navigateTo({
+          url: '/pages/task/template-picker'
+        });
+      };
+
+      // 应用模板到表单
+      const applyTemplate = (template) => {
+        taskForm.value.title = template.title;
+        taskForm.value.description = template.description || '';
+        taskForm.value.points = template.points;
+        
+        // 根据模板标签自动选择对应的分类和标签
+        if (template.tags && template.tags.length > 0) {
+          const templateTag = template.tags[0];
+          
+          // 尝试匹配分类
+          for (let i = 0; i < tagCategories.value.length; i++) {
+            const category = tagCategories.value[i];
+            if (category.tags.includes(templateTag)) {
+              selectedCategory.value = i;
+              break;
+            }
+          }
+          
+          // 设置标签
+          taskForm.value.tags = [...template.tags];
+        }
+        
+        // 设置为周期性任务
+        taskForm.value.type = 'recurring';
+        if (template.recurringType) {
+          taskForm.value.recurringType = template.recurringType;
+        }
+        
+        uni.showToast({
+          title: '已应用模板',
+          icon: 'success'
+        });
+      };
+
       // 获取标签样式 - 使用分类颜色替代个别标签颜色
       const getTagColorClass = (tag) => {
         // 查找标签所属的分类
@@ -528,7 +600,10 @@
         babies,
         currentBabyIndex,
         currentBabyName,
-        onBabyChange
+        onBabyChange,
+        templateStore,
+        openTemplatePicker,
+        applyTemplate
       };
     }
   };
@@ -932,5 +1007,78 @@
   .tag-finance.tag-item {
     font-size: 24rpx;
     padding: 10rpx 20rpx;
+  }
+
+  /* 模板快速添加区域 */
+  .template-quick-section {
+    margin-bottom: 30rpx;
+    padding-bottom: 20rpx;
+    border-bottom: 1rpx solid #eee;
+  }
+
+  .template-quick-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16rpx;
+  }
+
+  .template-btn {
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+    padding: 10rpx 20rpx;
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    border-radius: 30rpx;
+    color: #fff;
+    font-size: 24rpx;
+  }
+
+  .template-btn-icon {
+    font-size: 24rpx;
+  }
+
+  .template-quick-scroll {
+    white-space: nowrap;
+  }
+
+  .template-quick-list {
+    display: inline-flex;
+    gap: 16rpx;
+    padding: 4rpx;
+  }
+
+  .template-quick-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120rpx;
+    padding: 16rpx 20rpx;
+    background-color: #f8f8f8;
+    border-radius: 12rpx;
+    transition: all 0.3s;
+  }
+
+  .template-quick-item:active {
+    background-color: #f0f0f0;
+    transform: scale(0.95);
+  }
+
+  .template-quick-icon {
+    font-size: 36rpx;
+    margin-bottom: 8rpx;
+  }
+
+  .template-quick-title {
+    font-size: 22rpx;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 4rpx;
+    white-space: nowrap;
+  }
+
+  .template-quick-points {
+    font-size: 20rpx;
+    color: #8B5CF6;
   }
 </style>
