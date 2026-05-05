@@ -1,193 +1,315 @@
 <template>
 	<view class="page-container" :class="{ 'dark-mode': isDarkMode }">
-		<!-- 顶部导航栏 -->
 		<view class="nav-bar">
 			<view class="nav-left" @tap="goBack">
 				<text class="icon">←</text>
 			</view>
 			<view class="nav-title">我的收藏</view>
+			<view class="nav-right" v-if="favorites.length > 0" @tap="clearAll">
+				<text class="clear-btn">清空</text>
+			</view>
 		</view>
 
-		<!-- 收藏列表 -->
-		<view class="favorites-list">
-			<view v-if="favorites.length === 0" class="empty-state">
-				<text class="empty-text">暂无收藏内容</text>
-			</view>
-			<view v-else class="favorite-item" v-for="(item, index) in favorites" :key="index">
-				<view class="favorite-content">
-					<text class="favorite-title">{{ item.title }}</text>
-					<text class="favorite-desc">{{ item.description }}</text>
+		<view class="favorites-list" v-if="favorites.length > 0">
+			<view class="favorite-item" v-for="item in favorites" :key="item.id">
+				<view class="item-left">
+					<image v-if="item.image" :src="item.image" class="item-image" mode="aspectFill"></image>
+					<view v-else class="item-icon">{{ item.icon || '🎁' }}</view>
 				</view>
-				<view class="favorite-actions">
-					<button class="action-btn" @tap="removeFavorite(index)">取消收藏</button>
+				<view class="item-info">
+					<view class="item-name">{{ item.name }}</view>
+					<view class="item-desc">{{ item.description || '暂无描述' }}</view>
+					<view class="item-points">
+						<text class="points-icon">🔥</text>
+						<text class="points-value">{{ item.points || 0 }}积分</text>
+					</view>
+				</view>
+				<view class="item-actions">
+					<button class="exchange-btn" @tap="exchangeItem(item)">兑换</button>
+					<view class="remove-btn" @tap="removeItem(item.id)">取消收藏</view>
 				</view>
 			</view>
+		</view>
+
+		<view class="empty-state" v-else>
+			<text class="empty-icon">🤍</text>
+			<text class="empty-text">暂无收藏商品</text>
+			<text class="empty-hint">去商城看看吧~</text>
+			<button class="go-shop-btn" @tap="goToShop">前往商城</button>
 		</view>
 	</view>
 </template>
 
 <script>
-	import { ref, onMounted } from 'vue';
-	import { isDarkTheme } from '@/utils/themeUtils.js';
+import { ref, onMounted } from 'vue'
+import { useFavoritesStore } from '@/stores/favoritesStore'
+import { useShopStore } from '@/stores/shopStore'
+import { usePointsStore } from '@/stores/pointsStore'
 
-	export default {
-		name: 'Favorites',
-		setup() {
-			const favorites = ref([]);
-			const isDarkMode = ref(false);
+export default {
+	setup() {
+		const favoritesStore = useFavoritesStore()
+		const shopStore = useShopStore()
+		const pointsStore = usePointsStore()
+		const isDarkMode = ref(false)
 
-			// 加载收藏列表
-			const loadFavorites = () => {
-				try {
-					const storedFavorites = uni.getStorageSync('favorites') || '[]';
-					favorites.value = JSON.parse(storedFavorites);
-				} catch (e) {
-					console.error('加载收藏失败', e);
-				}
-			};
+		const favorites = ref([])
 
-			// 取消收藏
-			const removeFavorite = (index) => {
-				uni.showModal({
-					title: '提示',
-					content: '确定要取消收藏吗？',
-					success: (res) => {
-						if (res.confirm) {
-							favorites.value.splice(index, 1);
-							uni.setStorageSync('favorites', JSON.stringify(favorites.value));
-							uni.showToast({
-								title: '已取消收藏',
-								icon: 'success'
-							});
-						}
-					}
-				});
-			};
-
-			// 返回上一页
-			const goBack = () => {
-				uni.navigateBack();
-			};
-
-			onMounted(() => {
-				loadFavorites();
-				isDarkMode.value = isDarkTheme();
-			});
-
-			return {
-				favorites,
-				isDarkMode,
-				removeFavorite,
-				goBack
-			};
+		const loadFavorites = () => {
+			favoritesStore.init()
+			if (!shopStore.isLoaded) {
+				shopStore.loadProducts()
+			}
+			const favoriteIds = favoritesStore.sortedFavoriteIds
+			favorites.value = shopStore.products.filter(p => favoriteIds.includes(p.id))
 		}
-	};
+
+		const removeItem = (productId) => {
+			favoritesStore.removeFavorite(productId)
+			uni.showToast({ title: '已取消收藏', icon: 'none' })
+			loadFavorites()
+		}
+
+		const clearAll = () => {
+			uni.showModal({
+				title: '提示',
+				content: '确定清空所有收藏吗？',
+				success: (res) => {
+					if (res.confirm) {
+						favoritesStore.clearAll()
+						loadFavorites()
+						uni.showToast({ title: '已清空', icon: 'none' })
+					}
+				}
+			})
+		}
+
+		const exchangeItem = (item) => {
+			const totalScore = pointsStore.totalScore || 0
+			if (item.points > totalScore) {
+				uni.showToast({ title: '积分不足', icon: 'none' })
+				return
+			}
+			uni.showModal({
+				title: '确认兑换',
+				content: `确定兑换「${item.name}」吗？`,
+				success: (res) => {
+					if (res.confirm) {
+						pointsStore.addPoints(-item.points, '商城兑换')
+						uni.showToast({ title: '兑换成功！', icon: 'success' })
+						removeItem(item.id)
+					}
+				}
+			})
+		}
+
+		const goBack = () => uni.navigateBack()
+		const goToShop = () => uni.switchTab({ url: '/pages/shop/shop' })
+
+		onMounted(() => {
+			loadFavorites()
+		})
+
+		return {
+			isDarkMode,
+			favorites,
+			removeItem,
+			clearAll,
+			exchangeItem,
+			goBack,
+			goToShop
+		}
+	}
+}
 </script>
 
-<style>
-	.page-container {
-		min-height: 100vh;
-		background-color: #f5f5f5;
-		padding-bottom: 50px;
-	}
+<style scoped>
+.page-container {
+	min-height: 100vh;
+	background: #f5f5f5;
+}
 
-	.dark-mode {
-		background-color: #1a1a1a;
-		color: #ffffff;
-	}
+.dark-mode {
+	background: #1a1a1a;
+}
 
-	.nav-bar {
-		display: flex;
-		align-items: center;
-		height: 88rpx;
-		background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-		padding: 90rpx 40rpx 60rpx 40rpx;
-		position: relative;
-	}
+.nav-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 88rpx;
+	padding: 0 30rpx;
+	background: #fff;
+	border-bottom: 1rpx solid #eee;
+}
 
-	.nav-left {
-		position: absolute;
-		left: 30rpx;
-		z-index: 1;
-	}
+.dark-mode .nav-bar {
+	background: #252525;
+	border-color: #333;
+}
 
-	.nav-title {
-		flex: 1;
-		text-align: center;
-		color: white;
-		font-size: 32rpx;
-		font-weight: bold;
-	}
+.nav-left, .nav-right {
+	width: 100rpx;
+}
 
-	.favorites-list {
-		padding: 20rpx;
-	}
+.nav-title {
+	flex: 1;
+	text-align: center;
+	font-size: 32rpx;
+	font-weight: bold;
+}
 
-	.empty-state {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 300rpx;
-	}
+.clear-btn {
+	color: #8477fa;
+	font-size: 28rpx;
+}
 
-	.empty-text {
-		color: #999;
-		font-size: 28rpx;
-	}
+.icon {
+	font-size: 40rpx;
+}
 
-	.dark-mode .empty-text {
-		color: #666;
-	}
+.favorites-list {
+	padding: 20rpx;
+}
 
-	.favorite-item {
-		background-color: white;
-		border-radius: 12rpx;
-		padding: 20rpx;
-		margin-bottom: 20rpx;
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-	}
+.favorite-item {
+	display: flex;
+	background: #fff;
+	border-radius: 16rpx;
+	padding: 20rpx;
+	margin-bottom: 20rpx;
+	box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
 
-	.dark-mode .favorite-item {
-		background-color: #2a2a2a;
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.2);
-	}
+.dark-mode .favorite-item {
+	background: #252525;
+}
 
-	.favorite-content {
-		margin-bottom: 20rpx;
-	}
+.item-left {
+	flex-shrink: 0;
+}
 
-	.favorite-title {
-		font-size: 30rpx;
-		font-weight: bold;
-		margin-bottom: 10rpx;
-		display: block;
-	}
+.item-image {
+	width: 140rpx;
+	height: 140rpx;
+	border-radius: 12rpx;
+}
 
-	.favorite-desc {
-		font-size: 26rpx;
-		color: #666;
-	}
+.item-icon {
+	width: 140rpx;
+	height: 140rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 60rpx;
+	background: #f5f5f5;
+	border-radius: 12rpx;
+}
 
-	.dark-mode .favorite-desc {
-		color: #aaa;
-	}
+.dark-mode .item-icon {
+	background: #333;
+}
 
-	.favorite-actions {
-		display: flex;
-		justify-content: flex-end;
-	}
+.item-info {
+	flex: 1;
+	margin-left: 20rpx;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
 
-	.action-btn {
-		background-color: #f5f5f5;
-		color: #666;
-		font-size: 24rpx;
-		padding: 10rpx 20rpx;
-		border-radius: 30rpx;
-		border: none;
-	}
+.item-name {
+	font-size: 28rpx;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 8rpx;
+}
 
-	.dark-mode .action-btn {
-		background-color: #3a3a3a;
-		color: #aaa;
-	}
+.dark-mode .item-name {
+	color: #fff;
+}
+
+.item-desc {
+	font-size: 24rpx;
+	color: #999;
+	margin-bottom: 8rpx;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.item-points {
+	display: flex;
+	align-items: center;
+}
+
+.points-icon {
+	font-size: 24rpx;
+}
+
+.points-value {
+	font-size: 26rpx;
+	color: #ff6b6b;
+	font-weight: bold;
+}
+
+.item-actions {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	justify-content: center;
+}
+
+.exchange-btn {
+	width: 140rpx;
+	height: 60rpx;
+	line-height: 60rpx;
+	background: linear-gradient(135deg, #8477fa, #9b95ff);
+	color: #fff;
+	font-size: 24rpx;
+	border: none;
+	border-radius: 30rpx;
+}
+
+.remove-btn {
+	font-size: 22rpx;
+	color: #999;
+	margin-top: 10rpx;
+}
+
+.empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 200rpx 0;
+}
+
+.empty-icon {
+	font-size: 120rpx;
+	margin-bottom: 30rpx;
+}
+
+.empty-text {
+	font-size: 32rpx;
+	color: #666;
+	margin-bottom: 16rpx;
+}
+
+.empty-hint {
+	font-size: 26rpx;
+	color: #999;
+	margin-bottom: 40rpx;
+}
+
+.go-shop-btn {
+	width: 240rpx;
+	height: 80rpx;
+	line-height: 80rpx;
+	background: linear-gradient(135deg, #8477fa, #9b95ff);
+	color: #fff;
+	font-size: 28rpx;
+	border: none;
+	border-radius: 40rpx;
+}
 </style>

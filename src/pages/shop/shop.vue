@@ -32,6 +32,17 @@
 			<text class="search-clear" v-if="searchKeyword" @tap="clearSearch">✕</text>
 		</view>
 
+		<!-- 分类Tab -->
+		<scroll-view scroll-x class="category-tabs">
+			<view class="category-tab" :class="{ active: selectedCategory === 'all' }" @tap="selectCategory('all')">全部</view>
+			<view class="category-tab" :class="{ active: selectedCategory === 'food' }" @tap="selectCategory('food')">🍪 零食</view>
+			<view class="category-tab" :class="{ active: selectedCategory === 'toy' }" @tap="selectCategory('toy')">🎮 玩具</view>
+			<view class="category-tab" :class="{ active: selectedCategory === 'book' }" @tap="selectCategory('book')">📚 图书</view>
+			<view class="category-tab" :class="{ active: selectedCategory === 'clothes' }" @tap="selectCategory('clothes')">👕 服饰</view>
+			<view class="category-tab" :class="{ active: selectedCategory === 'activity' }" @tap="selectCategory('activity')">🎯 活动</view>
+			<view class="category-tab" :class="{ active: selectedCategory === 'other' }" @tap="selectCategory('other')">📦 其他</view>
+		</scroll-view>
+
 		<!-- 布局切换按钮优化，悬浮于商品列表上方右侧 -->
 		<view class="layout-switcher-fixed">
 			<button v-for="n in [1, 2, 3]" :key="n" :class="['layout-btn', layoutType === n ? 'active' : '']"
@@ -48,10 +59,13 @@
 								@tap.stop="previewImage(item.image)" />
 							<view v-else class="product-icon-unified">{{ item.icon || '🎁' }}</view>
 						</view>
-						<view class="product-info">
-							<view class="product-title">
-								<view class="product-name">{{ item.name }}</view>
+					<view class="product-info">
+						<view class="product-title">
+							<view class="product-name">{{ item.name }}</view>
+							<view class="favorite-btn" @tap.stop="toggleFavorite(item)">
+								<text>{{ isFavorited(item.id) ? '❤️' : '🤍' }}</text>
 							</view>
+						</view>
 							<view class="product-tags">
 								<view class="product-points">
 									<text class="points-icon">🔥</text>
@@ -85,24 +99,43 @@
 </template>
 
 <script>
-	import { ref, onMounted, onUnmounted, computed } from 'vue';
-	import { useThemeStore } from '@/stores/theme';
-	import { useShopStore } from '@/stores/shopStore';
-	import { usePointsStore } from '@/stores/pointsStore';
-	import { isDarkTheme } from '@/utils/themeUtils.js';
-	import { verifyAuth } from '@/utils/authUtils';
-	import { getShareConfig } from '@/utils/shareUtils';
-	import { useShare } from '@/utils/useShare';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useThemeStore } from '@/stores/theme';
+import { useShopStore } from '@/stores/shopStore';
+import { usePointsStore } from '@/stores/pointsStore';
+import { useFavoritesStore } from '@/stores/favoritesStore';
+import { isDarkTheme } from '@/utils/themeUtils.js';
+import { verifyAuth } from '@/utils/authUtils';
+import { getShareConfig } from '@/utils/shareUtils';
+import { useShare } from '@/utils/useShare';
 
-	export default {
-		setup() {
+export default {
+	setup() {
 			const themeStore = useThemeStore();
 			const shopStore = useShopStore();
+			const favoritesStore = useFavoritesStore();
 			const pointsStore = usePointsStore();
 			const isDarkMode = ref(false);
 			const totalScore = ref(0);
 			const products = ref([]);
 			const searchKeyword = ref('');
+			const selectedCategory = ref('all');
+
+			// 收藏相关
+			const isFavorited = (productId) => favoritesStore.isFavorited(productId);
+
+			const toggleFavorite = (item) => {
+				const added = favoritesStore.toggleFavorite(item.id);
+				uni.showToast({
+					title: added ? '已添加收藏' : '已取消收藏',
+					icon: 'none'
+				});
+			};
+
+			const selectCategory = (category) => {
+				selectedCategory.value = category;
+				loadProducts();
+			};
 
 			// 宝宝相关
 			const babies = ref([]);
@@ -216,6 +249,12 @@
 					// 否则使用排序后的结果
 					products.value = shopStore.sortedProducts;
 					console.log(`[商城] 加载所有商品: ${products.value.length}个`);
+				}
+
+				// 分类筛选
+				if (selectedCategory.value !== 'all') {
+					products.value = products.value.filter(p => p.category === selectedCategory.value);
+					console.log(`[商城] 分类筛选: ${selectedCategory.value}, 结果: ${products.value.length}个`);
 				}
 			};
 
@@ -900,6 +939,52 @@
 	.dark-mode .product-action {
 		background-color: #252525;
 		border-top: 1rpx solid #333;
+	}
+
+	/* 分类Tab样式 */
+	.category-tabs {
+		display: flex;
+		white-space: nowrap;
+		padding: 0 20rpx 20rpx;
+		background: #fff;
+	}
+
+	.dark-mode .category-tabs {
+		background: #1a1a1a;
+	}
+
+	.category-tab {
+		display: inline-block;
+		padding: 12rpx 24rpx;
+		margin-right: 16rpx;
+		font-size: 26rpx;
+		color: #666;
+		background: #f5f5f5;
+		border-radius: 30rpx;
+	}
+
+	.dark-mode .category-tab {
+		color: #aaa;
+		background: #2a2a2a;
+	}
+
+	.category-tab.active {
+		color: #fff;
+		background: linear-gradient(135deg, #8477fa, #9b95ff);
+	}
+
+	/* 收藏按钮 */
+	.favorite-btn {
+		position: absolute;
+		right: 0;
+		top: 0;
+		padding: 8rpx;
+		font-size: 32rpx;
+	}
+
+	.product-title {
+		position: relative;
+		padding-right: 60rpx;
 	}
 
 	.exchange-btn {

@@ -60,11 +60,16 @@
 				<text class="label">商品管理</text>
 				<text class="arrow">></text>
 			</view>
-			<!-- <view class="function-item" @tap="navigateTo('favorites')">
-				<text class="icon">⭐</text>
+			<view class="function-item" @tap="navigateTo('favorites/favorites')">
+				<text class="icon">❤️</text>
 				<text class="label">我的收藏</text>
 				<text class="arrow">></text>
-			</view> -->
+			</view>
+			<view class="function-item" @tap="showRedeemDialog">
+				<text class="icon">🎫</text>
+				<text class="label">兑换码</text>
+				<text class="arrow">></text>
+			</view>
 			<view class="function-item" @tap="navigateTo('settings/auth-settings')">
 				<text class="icon">🔒</text>
 				<text class="label">认证模式</text>
@@ -336,6 +341,55 @@
 				);
 			};
 
+			// 兑换码功能
+			const showRedeemDialog = () => {
+				uni.showModal({
+					title: '输入兑换码',
+					editable: true,
+					placeholderText: '请输入8-12位兑换码',
+					success: (res) => {
+						if (res.confirm && res.content) {
+							const code = res.content.trim().toUpperCase()
+							processRedeemCode(code)
+						}
+					}
+				})
+			}
+
+			// 预定义兑换码
+			const redeemCodes = {
+				'FLL2026': { type: 'POINTS', value: 100, desc: '测试积分码' },
+				'WELCOME': { type: 'POINTS', value: 50, desc: '欢迎新用户' },
+				'VIP123': { type: 'POINTS', value: 200, desc: 'VIP专属福利' }
+			}
+
+			const usedCodes = {} // 已使用的兑换码记录
+
+			const processRedeemCode = (code) => {
+				if (!code || code.length < 8 || code.length > 12) {
+					uni.showToast({ title: '兑换码格式错误', icon: 'none' })
+					return
+				}
+				if (usedCodes[code]) {
+					uni.showToast({ title: '兑换码已使用', icon: 'none' })
+					return
+				}
+				const reward = redeemCodes[code]
+				if (!reward) {
+					uni.showToast({ title: '无效的兑换码', icon: 'none' })
+					return
+				}
+				// 兑换成功
+				usedCodes[code] = true
+				if (reward.type === 'POINTS') {
+					pointsStore.addPoints(reward.value, `兑换码 ${code} 奖励`)
+					uni.showModal({
+						title: '兑换成功',
+						content: `恭喜获得 ${reward.value} 积分！${reward.desc}`,
+						showCancel: false
+					})
+				}
+			}
 
 			// 分享功能
 			const onShareAppMessage = (res) => {
