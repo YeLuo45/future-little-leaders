@@ -231,6 +231,16 @@
 					"titleNView": false
 				}
 			}
+		},
+		{
+			"path": "pages/achievement/achievement-list",
+			"style": {
+				"navigationBarTitleText": "成就中心",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
 		}
 	],
 	"tabBar": {

@@ -14,7 +14,7 @@
 				<text class="empty-text">暂无宝宝信息</text>
 				<button class="add-baby-btn" @tap="navigateToAddBaby">添加宝宝</button>
 			</view>
-			<view v-else class="baby-item" v-for="(baby, index) in babies" :key="baby.id">
+<view v-else class="baby-item" v-for="(baby, index) in babies" :key="baby.id">
 				<view class="baby-avatar-container" @tap="selectAvatar(baby)">
 					<image class="baby-avatar" :src="baby.avatar || '/static/avatar.svg'" mode="aspectFill"></image>
 					<view class="avatar-edit-overlay">
@@ -32,6 +32,9 @@
 					<view class="baby-points">积分: {{ pointsStore.getBabyPoints(baby.id) }}</view>
 				</view>
 				<view class="baby-actions">
+					<view class="action-btn achievement-btn" @tap="goToAchievements(baby)">
+						<text class="action-icon">🏆</text>
+					</view>
 					<view class="action-btn delete-btn" @tap="deleteBaby(baby)">
 						<text class="action-icon">🗑️</text>
 					</view>
@@ -129,6 +132,25 @@
 			const navigateToAddBaby = () => {
 				uni.navigateTo({
 					url: '/pages/profile/add-baby'
+				});
+			};
+
+			// 跳转到成就页面
+			const goToAchievements = (baby) => {
+				// 先切换到该宝宝
+				if (currentBabyId.value !== baby.id) {
+					currentBabyId.value = baby.id;
+					uni.setStorageSync('currentBabyId', baby.id);
+					uni.$emit('babyChanged', {
+						babyId: baby.id,
+						babyInfo: baby,
+						source: 'babyManagement',
+						timestamp: Date.now()
+					});
+				}
+				// 跳转到成就页面
+				uni.navigateTo({
+					url: '/pages/achievement/achievement-list'
 				});
 			};
 
@@ -376,6 +398,7 @@
 				goBack,
 				loadBabies,
 				navigateToAddBaby,
+				goToAchievements,
 				formatAge,
 				editBabyName,
 				saveBabyName,
@@ -581,6 +604,10 @@
 
 	.delete-btn {
 		background-color: rgba(255, 77, 79, 0.1);
+	}
+
+	.achievement-btn {
+		background-color: rgba(245, 158, 11, 0.1);
 	}
 
 	.action-icon {

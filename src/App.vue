@@ -6,6 +6,20 @@ export default {
     
     // 初始化全局事件代理
     this.setupGlobalEventProxy();
+    
+    // 初始化成就Store
+    this.initAchievementStore();
+  },
+  
+  // 初始化成就Store
+  initAchievementStore: function() {
+    // 延迟导入避免循环依赖
+    setTimeout(() => {
+      const { useAchievementStore } = require('@/stores/achievementStore.js');
+      const achievementStore = useAchievementStore();
+      achievementStore.init();
+      console.log('[成就系统] 初始化完成');
+    }, 100);
   },
   // 当应用启动，或从后台进入前台显示时触发
   onShow: function () {
