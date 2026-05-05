@@ -50,6 +50,11 @@
 				<text class="label">宝宝管理</text>
 				<text class="arrow">></text>
 			</view>
+			<view class="function-item" @tap="navigateTo('family/family-members')">
+				<text class="icon">👨‍👩‍👧‍👦</text>
+				<text class="label">家庭成员</text>
+				<text class="arrow">></text>
+			</view>
 			<view class="function-item" @tap="navigateToWithAuth('task/recurring-tasks', '任务管理')">
 				<text class="icon">🔄</text>
 				<text class="label">任务管理</text>

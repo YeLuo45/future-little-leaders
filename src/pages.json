@@ -77,14 +77,35 @@
 				"navigationStyle": "custom"
 			}
 		},
-		{
-			"path": "pages/profile/product-management",
-			"style": {
-				"navigationBarTitleText": "商品管理",
-				"navigationStyle": "custom"
-			}
-		},
-		{
+	{
+      "path": "pages/profile/product-management",
+      "style": {
+        "navigationBarTitleText": "商品管理",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family/family-setup",
+      "style": {
+        "navigationBarTitleText": "创建家庭",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family/family-members",
+      "style": {
+        "navigationBarTitleText": "家庭成员",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family/invite-join",
+      "style": {
+        "navigationBarTitleText": "加入家庭",
+        "navigationStyle": "custom"
+      }
+    },
+    {
 			"path": "pages/settings/settings",
 			"style": {
 				"navigationBarTitleText": "设置",
