@@ -65,6 +65,11 @@
 				<text class="label">我的收藏</text>
 				<text class="arrow">></text>
 			</view>
+			<view class="function-item" @tap="navigateToWithAuth('level/level', '我的等级')">
+				<text class="icon">⭐</text>
+				<text class="label">我的等级</text>
+				<text class="arrow">></text>
+			</view>
 			<view class="function-item" @tap="showRedeemDialog">
 				<text class="icon">🎫</text>
 				<text class="label">兑换码</text>
