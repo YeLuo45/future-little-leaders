@@ -161,6 +161,27 @@
           placeholder-class="placeholder" />
       </view> -->
 
+      <!-- 提醒时间 -->
+      <view class="form-item">
+        <text class="form-label">提醒时间</text>
+        <view class="reminder-selector">
+          <view 
+            v-for="option in reminderOptions" 
+            :key="option.value"
+            class="reminder-option"
+            :class="{ 'selected': reminderMinutes === option.value }"
+            @tap="reminderMinutes = option.value"
+          >
+            {{ option.label }}
+          </view>
+        </view>
+        <view class="reminder-custom" v-if="reminderMinutes === -1">
+          <picker mode="time" :value="customReminderTime" @change="onCustomReminderChange">
+            <view class="picker-value">{{ customReminderTime || '请选择具体时间' }}</view>
+          </picker>
+        </view>
+      </view>
+
       <!-- 任务积分 -->
       <view class="form-item">
         <text class="form-label">任务积分</text>
@@ -181,6 +202,7 @@
 <script>
   import { ref, computed, onMounted } from 'vue';
   import { useTaskTemplateStore } from '@/stores/taskTemplateStore';
+  import { useReminderStore } from '@/stores/reminderStore';
 
   // 初始化模板store
   const templateStore = useTaskTemplateStore();
@@ -267,6 +289,23 @@
         createdAt: null,
         babyId: '' // 关联的宝宝ID
       });
+
+      // 提醒选项
+      const reminderOptions = [
+        { label: '不提醒', value: 0 },
+        { label: '5分钟前', value: 5 },
+        { label: '15分钟前', value: 15 },
+        { label: '30分钟前', value: 30 },
+        { label: '1小时前', value: 60 },
+        { label: '自定义', value: -1 }
+      ]
+      
+      const reminderMinutes = ref(0)
+      const customReminderTime = ref('')
+
+      const onCustomReminderChange = (e) => {
+        customReminderTime.value = e.detail.value
+      }
 
       // 组件挂载时获取宝宝列表和当前宝宝ID
       onMounted(() => {
@@ -547,6 +586,29 @@
 
           taskList.push(newTask);
 
+          // 设置任务提醒（M6）
+          if (reminderMinutes.value > 0 || customReminderTime.value) {
+            try {
+              const reminderStore = useReminderStore()
+              reminderStore.init()
+              
+              let reminderTime
+              if (customReminderTime.value) {
+                // 自定义时间：每天该时间提醒
+                reminderTime = customReminderTime.value
+              } else {
+                // 提前提醒：计算具体时间
+                const now = new Date()
+                reminderTime = new Date(now.getTime() + reminderMinutes.value * 60 * 1000)
+              }
+              
+              reminderStore.setReminder(newId, newTask, reminderTime, newTask.babyId)
+              console.log('已设置任务提醒:', reminderTime)
+            } catch (e) {
+              console.error('设置提醒失败:', e)
+            }
+          }
+
           // 移除已完成的普通任务
           for (let i = 0; i < taskList.length; i++) {
             if (taskList[i].type === 'normal' && taskList[i].status === 'completed') {
@@ -603,7 +665,11 @@
         onBabyChange,
         templateStore,
         openTemplatePicker,
-        applyTemplate
+        applyTemplate,
+        reminderOptions,
+        reminderMinutes,
+        customReminderTime,
+        onCustomReminderChange
       };
     }
   };
@@ -1080,5 +1146,38 @@
   .template-quick-points {
     font-size: 20rpx;
     color: #8B5CF6;
+  }
+
+  /* 提醒样式 */
+  .reminder-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+  }
+
+  .reminder-option {
+    padding: 12rpx 24rpx;
+    background-color: #f5f5f5;
+    border-radius: 30rpx;
+    font-size: 26rpx;
+    color: #333;
+    transition: all 0.3s;
+  }
+
+  .reminder-option.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+  }
+
+  .reminder-custom {
+    margin-top: 16rpx;
+    padding: 16rpx;
+    background-color: #f5f5f5;
+    border-radius: 12rpx;
+  }
+
+  .reminder-custom .picker-value {
+    font-size: 28rpx;
+    color: #333;
   }
 </style>

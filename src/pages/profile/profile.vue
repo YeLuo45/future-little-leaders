@@ -70,6 +70,11 @@
 				<text class="label">我的等级</text>
 				<text class="arrow">></text>
 			</view>
+			<view class="function-item" @tap="navigateTo('reminder/notification-center')">
+				<text class="icon">🔔</text>
+				<text class="label">通知中心</text>
+				<text class="arrow">></text>
+			</view>
 			<view class="function-item" @tap="showRedeemDialog">
 				<text class="icon">🎫</text>
 				<text class="label">兑换码</text>
