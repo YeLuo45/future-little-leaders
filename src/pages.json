@@ -168,18 +168,38 @@
 				}
 			}
 		},
-		{
-			"path": "pages/task/template-picker",
-			"style": {
-				"navigationBarTitleText": "选择模板",
-				"navigationStyle": "custom",
-				"app-plus": {
-					"titleNView": false
-				}
-			}
-		},
-		{
-			"path": "pages/shop/exchange-records",
+{
+      "path": "pages/task/template-picker",
+      "style": {
+        "navigationBarTitleText": "选择模板",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/achievement/achievement-list",
+      "style": {
+        "navigationBarTitleText": "成就",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/growth-report/growth-report",
+      "style": {
+        "navigationBarTitleText": "M2成长报告",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/shop/exchange-records",
 			"style": {
 				"navigationBarTitleText": "兑换记录",
 				"navigationStyle": "custom"
@@ -226,16 +246,6 @@
 			"path": "pages/settings/privacy",
 			"style": {
 				"navigationBarTitleText": "隐私政策",
-				"navigationStyle": "custom",
-				"app-plus": {
-					"titleNView": false
-				}
-			}
-		},
-		{
-			"path": "pages/achievement/achievement-list",
-			"style": {
-				"navigationBarTitleText": "成就中心",
 				"navigationStyle": "custom",
 				"app-plus": {
 					"titleNView": false
