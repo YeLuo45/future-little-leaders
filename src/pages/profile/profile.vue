@@ -28,6 +28,45 @@
 			<button class="add-baby-btn" @tap="navigateToAddBaby">添加宝宝</button>
 		</view>
 
+		<!-- 家庭数据概览 -->
+		<view class="family-overview" v-if="isInFamily">
+			<uni-collapse>
+				<uni-collapse-item title="家庭数据" :animation="true">
+					<view class="family-data-content">
+						<view class="family-data-item">
+							<text class="family-data-label">家庭成员</text>
+							<text class="family-data-value">{{ familyMemberCount }} 人</text>
+						</view>
+						<view class="family-data-item">
+							<text class="family-data-label">本周完成任务</text>
+							<text class="family-data-value">{{ familyWeeklyTasks }} 个</text>
+						</view>
+						<view class="family-data-item">
+							<text class="family-data-label">连续打卡天数</text>
+							<text class="family-data-value">{{ familyMaxStreak }} 天</text>
+						</view>
+						<view class="family-data-item">
+							<text class="family-data-label">家庭积分池</text>
+							<text class="family-data-value">{{ familyTotalPoints }} 积分</text>
+						</view>
+						<view class="family-data-item contribution-header">
+							<text class="family-data-label">成员贡献排行</text>
+						</view>
+						<view class="contribution-list">
+							<view class="contribution-item" v-for="(item, index) in contributionList" :key="index">
+								<text class="contribution-rank">{{ index + 1 }}</text>
+								<text class="contribution-name">{{ item.name }}</text>
+								<text class="contribution-count">{{ item.count }} 个任务</text>
+							</view>
+						</view>
+					</view>
+				</uni-collapse-item>
+			</uni-collapse>
+		</view>
+		<view class="family-overview family-no-data" v-else>
+			<text class="no-family-hint">加入家庭后查看家庭数据</text>
+		</view>
+
 		<!-- 功能列表 -->
 		<view class="function-list">
 			<view class="function-item" @tap="navigateTo('profile/points-records')">
@@ -108,6 +147,9 @@
 	import { verifyAuth } from '@/utils/authUtils';
 	import { getShareConfig } from '@/utils/shareUtils';
 	import { useShare } from '@/utils/useShare';
+	import { hasJoinedFamily, getFamilyMembers, getCurrentMemberId } from '@/services/familyService';
+	import { useAchievementStore } from '@/stores/achievementStore';
+	import { useBabyStore } from '@/stores/babyStore';
 
 	export default {
 		name: 'Profile',
@@ -122,6 +164,8 @@
 			const isDarkMode = ref(false);
 			const themeStore = useThemeStore();
 			const pointsStore = usePointsStore();
+			const achievementStore = useAchievementStore();
+			const babyStore = useBabyStore();
 			const taskRecords = ref([]);
 			const exchangeRecords = ref([]);
 			const authSettings = ref({
@@ -142,6 +186,81 @@
 				const baby = babies.value.find(b => b && b.id === currentBabyId.value);
 				return baby ? baby.name : '请选择宝宝';
 			});
+
+			// 家庭数据相关
+			const isInFamily = computed(() => hasJoinedFamily());
+
+			// 家庭成员数量
+			const familyMemberCount = computed(() => {
+				return getFamilyMembers().length;
+			});
+
+			// 家庭本周完成任务数（需要获取任务记录）
+			const familyWeeklyTasks = computed(() => {
+				try {
+					const records = uni.getStorageSync('task_records') || '[]';
+					const taskRecords = JSON.parse(records);
+					const now = new Date();
+					const startOfWeek = new Date(now);
+					startOfWeek.setDate(now.getDate() - now.getDay());
+					startOfWeek.setHours(0, 0, 0, 0);
+
+					return taskRecords.filter(record => {
+						const completedAt = new Date(record.completedAt);
+						return completedAt >= startOfWeek;
+					}).length;
+				} catch (e) {
+					return 0;
+				}
+			});
+
+			// 全家最长连续打卡天数
+			const familyMaxStreak = computed(() => {
+				return achievementStore.getMaxStreak();
+			});
+
+			// 家庭积分池总量
+			const familyTotalPoints = computed(() => {
+				let total = 0;
+				for (const babyId in babyStore.babies) {
+					const baby = babyStore.babies[babyId];
+					if (baby && baby.id) {
+						total += pointsStore.getBabyPoints(baby.id);
+					}
+				}
+				return total;
+			});
+
+			// 各成员贡献排行（每个成员创建的任务数）
+			const contributionList = computed(() => {
+				try {
+					const members = getFamilyMembers();
+					const tasks = uni.getStorageSync('tasks') || '[]';
+					const taskList = JSON.parse(tasks);
+
+					return members.map(member => {
+						const taskCount = taskList.filter(t => t.createdBy === member.id).length;
+						return {
+							name: member.nickname || getRoleLabel(member.role),
+							count: taskCount
+						};
+					}).sort((a, b) => b.count - a.count);
+				} catch (e) {
+					return [];
+				}
+			});
+
+			// 获取角色标签
+			const getRoleLabel = (role) => {
+				const roleMap = {
+					father: '爸爸',
+					mother: '妈妈',
+					grandpa: '爷爷',
+					grandma: '奶奶',
+					other: '其他'
+				};
+				return roleMap[role] || '其他';
+			};
 
 			// 跳转到添加宝宝页面
 			const navigateToAddBaby = () => {
@@ -547,7 +666,13 @@
 				checkBabyStatus,
 				navigateToWithAuth,
 				onShareAppMessage,
-				onShareTimeline
+				onShareTimeline,
+				isInFamily,
+				familyMemberCount,
+				familyWeeklyTasks,
+				familyMaxStreak,
+				familyTotalPoints,
+				contributionList
 			};
 		},
 		// uni-app生命周期方法作为组件选项
@@ -691,5 +816,89 @@
 		padding: 10rpx 30rpx;
 		font-size: 28rpx;
 		box-shadow: 0 2rpx 8rpx rgba(124, 58, 237, 0.15);
+	}
+
+	.family-overview {
+		margin: 20rpx 30rpx 0 30rpx;
+		background: #fff;
+		border-radius: 16rpx;
+		overflow: hidden;
+		box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+	}
+
+	.family-no-data {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 40rpx;
+	}
+
+	.no-family-hint {
+		color: #999;
+		font-size: 28rpx;
+	}
+
+	.family-data-content {
+		padding: 20rpx 30rpx;
+	}
+
+	.family-data-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20rpx 0;
+		border-bottom: 1rpx solid #f0f0f0;
+	}
+
+	.family-data-item:last-child {
+		border-bottom: none;
+	}
+
+	.family-data-label {
+		font-size: 28rpx;
+		color: #666;
+	}
+
+	.family-data-value {
+		font-size: 28rpx;
+		color: #7C3AED;
+		font-weight: bold;
+	}
+
+	.contribution-header {
+		margin-top: 10rpx;
+	}
+
+	.contribution-list {
+		padding: 10rpx 0;
+	}
+
+	.contribution-item {
+		display: flex;
+		align-items: center;
+		padding: 15rpx 0;
+	}
+
+	.contribution-rank {
+		width: 40rpx;
+		height: 40rpx;
+		line-height: 40rpx;
+		text-align: center;
+		background: #7C3AED;
+		color: #fff;
+		border-radius: 20rpx;
+		font-size: 24rpx;
+		margin-right: 20rpx;
+	}
+
+	.contribution-name {
+		flex: 1;
+		font-size: 28rpx;
+		color: #333;
+	}
+
+	.contribution-count {
+		font-size: 28rpx;
+		color: #999;
 	}
 </style>

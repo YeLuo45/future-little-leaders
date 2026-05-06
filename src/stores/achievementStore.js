@@ -541,6 +541,25 @@ export const useAchievementStore = defineStore('achievement', () => {
     return getAchievementStats(babyId)
   })
   
+  // 获取宝宝的连续打卡天数
+  const getStreak = (babyId) => {
+    if (!babyId) return 0
+    const streakData = streakByBaby.value[babyId]
+    return streakData?.count || 0
+  }
+
+  // 获取所有宝宝中最长的连续打卡天数
+  const getMaxStreak = () => {
+    let maxStreak = 0
+    for (const babyId in streakByBaby.value) {
+      const streak = streakByBaby.value[babyId]?.count || 0
+      if (streak > maxStreak) {
+        maxStreak = streak
+      }
+    }
+    return maxStreak
+  }
+
   return {
     // 状态
     achievements,
@@ -571,6 +590,8 @@ export const useAchievementStore = defineStore('achievement', () => {
     onPointsDeducted,
     onBabyAdded,
     onExchangeComplete,
-    getAchievementStats
+    getAchievementStats,
+    getStreak,
+    getMaxStreak
   }
 })
