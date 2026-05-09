@@ -126,42 +126,29 @@ export default {
     });
 
     const stats = computed(() => {
-      const now = new Date();
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
-      const babyFlows = allFlows.value.filter(f => f.childId === currentBabyId.value);
-
-      const rewardedFlows = babyFlows.filter(f => f.state === 'rewarded');
-      const weekFlows = rewardedFlows.filter(f => f.approvedAt && new Date(f.approvedAt) > weekAgo);
-
-      // 连续天数
-      let continuousDays = 0;
-      if (rewardedFlows.length > 0) {
-        const sortedFlows = [...rewardedFlows].sort((a, b) => (b.approvedAt || 0) - (a.approvedAt || 0));
-        const dates = sortedFlows.map(f => {
-          const d = new Date(f.approvedAt);
-          return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-        });
-        const uniqueDates = [...new Set(dates)];
-        continuousDays = uniqueDates.length;
+      if (!currentBabyId.value) {
+        return { completedCount: 0, pendingCount: 0, totalPoints: 0, continuousDays: 0 };
       }
-
+      const { getDashboardStats } = require('../../utils/FamilyGrowthContext');
+      const data = getDashboardStats(currentBabyId.value);
       return {
-        completedCount: weekFlows.length,
-        pendingCount: babyFlows.filter(f => f.state === 'pending_approval').length,
-        totalPoints: rewardedFlows.reduce((sum, f) => sum + (f.rewardPoints || 0), 0),
-        continuousDays,
+        completedCount: data.weekCompleted || 0,
+        pendingCount: data.pendingCount || 0,
+        inProgressCount: data.inProgressCount || 0,
+        totalPoints: data.totalPoints || 0,
+        weeklyEarned: data.weeklyEarned || 0,
+        continuousDays: data.continuousDays || 0,
+        achievementCount: data.achievementCount || 0,
+        totalAchievements: data.totalAchievements || 0,
+        _raw: data,
       };
     });
 
     const recentAchievements = computed(() => {
-      try {
-        const { useAchievementStore } = require('../../stores/achievementStore');
-        const store = useAchievementStore();
-        if (store.unlockedAchievements) {
-          return store.unlockedAchievements.slice(-3).reverse();
-        }
-      } catch (e) {}
-      return [];
+      if (!currentBabyId.value) return [];
+      const { getAchievementsSummary } = require('../../utils/FamilyGrowthContext');
+      const summary = getAchievementsSummary(currentBabyId.value);
+      return (summary.unlocked || []).slice(-3).reverse();
     });
 
     const loadFamilyMembers = () => {
