@@ -12,6 +12,14 @@ export const usePointsStore = defineStore('points', () => {
   const exchangeRecords = ref([]) // 兑换记录列表
   const babyPoints = ref({})      // 宝宝积分映射表 {babyId: points}
   
+  // 积分动画状态
+  const pointsAnimation = ref({
+    isAnimating: false,
+    lastEarned: 0,
+    lastEarnedBabyId: null,
+    lastEarnedAt: null
+  })
+  
   // 获取宝宝Store
   const babyStore = useBabyStore()
   
@@ -179,6 +187,8 @@ export const usePointsStore = defineStore('points', () => {
         babyPoints.value[babyId] = 0
       }
       babyPoints.value[babyId] += points
+      // 触发积分动画
+      triggerPointsAnimation(babyId, points)
     } else if (type === 'expense') {
       // 初始化宝宝积分
       if (babyPoints.value[babyId] === undefined) {
@@ -274,6 +284,21 @@ export const usePointsStore = defineStore('points', () => {
     return true
   }
   
+  // 触发积分动画
+  const triggerPointsAnimation = (babyId, points) => {
+    pointsAnimation.value = {
+      isAnimating: true,
+      lastEarned: points,
+      lastEarnedBabyId: babyId,
+      lastEarnedAt: Date.now()
+    }
+    
+    // 3秒后自动关闭动画状态
+    setTimeout(() => {
+      pointsAnimation.value.isAnimating = false
+    }, 3000)
+  }
+  
   // 初始化Store
   const init = () => {
     loadPointsRecords()
@@ -286,6 +311,7 @@ export const usePointsStore = defineStore('points', () => {
     pointsRecords,
     exchangeRecords,
     babyPoints,
+    pointsAnimation,
     
     // 计算属性
     currentBabyPoints,
@@ -301,6 +327,7 @@ export const usePointsStore = defineStore('points', () => {
     deductBabyPoints,
     exchangeProduct,
     recalculateBabyPoints,
+    triggerPointsAnimation,
     init
   }
 }) 

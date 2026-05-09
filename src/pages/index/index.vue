@@ -8,7 +8,13 @@
           <text class="title">亲子任务</text>
           <text class="subtitle">今日成长任务完成情况</text>
         </view>
-        <view class="points">{{ totalScore }}积分</view>
+        <view class="header-right">
+          <view class="points">{{ totalScore }}积分</view>
+          <view class="audit-badge" v-if="pendingCount > 0" @tap="goToAudit">
+            <text class="audit-icon">🔍</text>
+            <text class="audit-count">{{ pendingCount }}</text>
+          </view>
+        </view>
       </view>
 
       <!-- 宝宝选择器 -->
@@ -226,6 +232,23 @@
 
       // 总积分
       const totalScore = ref(0);
+
+      // 待审核流转（协作引擎）
+      const pendingFlows = ref([]);
+      const pendingCount = computed(() => pendingFlows.value.length);
+
+      const loadPendingFlows = () => {
+        try {
+          const { getPendingApprovalFlows } = require('../../services/collaborationService');
+          pendingFlows.value = getPendingApprovalFlows() || [];
+        } catch (e) {
+          // collaborationService 可能不存在，忽略
+        }
+      };
+
+      const goToAudit = () => {
+        uni.navigateTo({ url: '/pages/task/task-audit' });
+      };
 
       // 删除确认模态框
       const showDeleteModal = ref(false);
@@ -971,6 +994,9 @@
 
         // 页面加载时主动检查宝宝状态
         checkBabyStatus();
+
+        // 加载待审核流转
+        loadPendingFlows();
       });
 
       onUnmounted(() => {
@@ -997,6 +1023,9 @@
         isRecurringCollapsed,
         totalScore,
         showDeleteModal,
+        pendingCount,
+        goToAudit,
+        loadPendingFlows,
         taskToDelete,
         deleteIndex,
         babies,
@@ -1068,6 +1097,29 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+  }
+
+  .audit-badge {
+    display: flex;
+    align-items: center;
+    gap: 6rpx;
+    background: rgba(255,255,255,0.3);
+    padding: 10rpx 20rpx;
+    border-radius: 40rpx;
+  }
+
+  .audit-icon { font-size: 28rpx; }
+
+  .audit-count {
+    font-size: 28rpx;
+    font-weight: bold;
+    color: white;
   }
 
   .title-section {

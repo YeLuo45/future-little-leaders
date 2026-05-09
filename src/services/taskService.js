@@ -5,6 +5,14 @@
 
 import { getCurrentMemberId, getCurrentMember, getFamilyMembers, FAMILY_ROLES } from './familyService'
 
+// 动态引入 collaborationService，避免循环依赖
+let collaborationService = null
+try {
+  collaborationService = require('./collaborationService')
+} catch (e) {
+  // collaborationService 不存在，忽略
+}
+
 const TASKS_KEY = 'tasks'
 const TASK_RECORDS_KEY = 'task_records'
 
@@ -73,12 +81,29 @@ export const createTask = (taskData) => {
     createdAt: new Date().toISOString(),
     isFamilyShare: taskData.isFamilyShare || false, // 是否家庭共享
     status: 'active',
+    // 新增字段
+    assigneeId: taskData.assigneeId || null,
+    rewardPoints: taskData.rewardPoints || 0,
+    hasFlow: taskData.assigneeId ? true : false,
     ...taskData
   }
   
   const tasks = getTasks()
   tasks.push(task)
   saveTasks(tasks)
+  
+  // 如果有 assigneeId，自动创建 TaskFlow
+  if (task.assigneeId && collaborationService && collaborationService.createTaskFlow) {
+    try {
+      collaborationService.createTaskFlow({
+        taskId: task.id,
+        assigneeId: task.assigneeId,
+        rewardPoints: task.rewardPoints
+      })
+    } catch (e) {
+      console.error('创建 TaskFlow 失败:', e)
+    }
+  }
   
   return task
 }
@@ -119,9 +144,19 @@ export const completeTask = (taskId) => {
     throw new Error('任务不存在')
   }
   
-  tasks[index].status = 'completed'
-  tasks[index].completedAt = new Date().toISOString()
+  const task = tasks[index]
+  task.status = 'completed'
+  task.completedAt = new Date().toISOString()
   saveTasks(tasks)
+  
+  // 如果任务有 hasFlow，调用 completeTaskFlow
+  if (task.hasFlow && collaborationService && collaborationService.completeTaskFlow) {
+    try {
+      collaborationService.completeTaskFlow({ taskId: task.id, assigneeId: task.assigneeId })
+    } catch (e) {
+      console.error('完成 TaskFlow 失败:', e)
+    }
+  }
   
   // 记录到任务记录
   const records = uni.getStorageSync(TASK_RECORDS_KEY) || '[]'
@@ -129,16 +164,16 @@ export const completeTask = (taskId) => {
   
   recordList.unshift({
     id: 'record_' + Date.now(),
-    taskId: tasks[index].id,
-    taskTitle: tasks[index].title,
-    babyId: tasks[index].babyId,
-    completedAt: tasks[index].completedAt,
-    createdBy: tasks[index].createdBy
+    taskId: task.id,
+    taskTitle: task.title,
+    babyId: task.babyId,
+    completedAt: task.completedAt,
+    createdBy: task.createdBy
   })
   
   uni.setStorageSync(TASK_RECORDS_KEY, JSON.stringify(recordList))
   
-  return tasks[index]
+  return task
 }
 
 // 获取任务记录

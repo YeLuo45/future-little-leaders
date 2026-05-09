@@ -155,16 +155,46 @@
 				}
 			}
 		},
-		{
-			"path": "pages/task/add-task",
-			"style": {
-				"navigationBarTitleText": "添加任务",
-				"navigationStyle": "custom",
-				"app-plus": {
-					"titleNView": false
-				}
-			}
-		},
+    {
+      "path": "pages/task/add-task",
+      "style": {
+        "navigationBarTitleText": "添加任务",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/task/my-tasks",
+      "style": {
+        "navigationBarTitleText": "我的任务",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/task/task-audit",
+      "style": {
+        "navigationBarTitleText": "任务审核",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/family/family-dashboard",
+      "style": {
+        "navigationBarTitleText": "家庭仪表盘",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
 		{
 			"path": "pages/task/task-records",
 			"style": {
@@ -271,6 +301,20 @@
 				"app-plus": {
 					"titleNView": false
 				}
+			}
+		},
+		{
+			"path": "pages/level/level",
+			"style": {
+				"navigationBarTitleText": "我的等级",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/reminder/notification-center",
+			"style": {
+				"navigationBarTitleText": "通知中心",
+				"navigationStyle": "custom"
 			}
 		}
 	],

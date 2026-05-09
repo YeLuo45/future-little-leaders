@@ -620,6 +620,18 @@
           // 保存更新后的任务列表
           uni.setStorageSync('taskList', JSON.stringify(taskList));
 
+          // ========== TaskFlow 协作流程 ==========
+          // 如果选择了宝宝作为分配对象，创建协作流转
+          if (taskForm.value.babyId && taskForm.value.points) {
+            try {
+              const { createTaskFlow } = require('../../services/collaborationService');
+              const flow = createTaskFlow(newId, taskForm.value.babyId, taskForm.value.points, taskForm.value.title);
+              console.log('[add-task] TaskFlow created:', flow.id);
+            } catch (e) {
+              console.error('[add-task] TaskFlow 创建失败:', e);
+            }
+          }
+
           uni.showToast({
             title: '任务创建成功',
             icon: 'success'

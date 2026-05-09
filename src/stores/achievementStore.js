@@ -354,6 +354,14 @@ export const useAchievementStore = defineStore('achievement', () => {
     }
   }
   
+  // 检查成就是否已解锁
+  const isUnlocked = (babyId, achievementId) => {
+    if (!babyId || !achievementId) return false
+    const babyAchs = babyAchievements.value[babyId] || []
+    const existing = babyAchs.find(a => a.id === achievementId)
+    return existing && existing.unlocked
+  }
+
   // 解锁成就
   const unlockAchievement = (babyId, achievementId) => {
     if (!babyId || !achievementId) return null
@@ -584,6 +592,7 @@ export const useAchievementStore = defineStore('achievement', () => {
     loadBabyAchievements,
     getBabyAchievements,
     checkAndUnlockAchievements,
+    isUnlocked,
     unlockAchievement,
     onTaskComplete,
     onPointsEarned,
