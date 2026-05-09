@@ -89,6 +89,16 @@
       </view>
     </view>
 
+    <!-- 成长报告入口 -->
+    <view class="report-entry" @tap="goToGrowthReport">
+      <text class="report-entry-icon">📈</text>
+      <view class="report-entry-text">
+        <text class="report-entry-title">成长报告</text>
+        <text class="report-entry-hint">查看本周详细数据</text>
+      </view>
+      <text class="report-entry-arrow">→</text>
+    </view>
+
     <!-- 返回首页 -->
     <view class="float-back" @tap="goHome">🏠</view>
   </view>
@@ -216,6 +226,10 @@ export default {
       uni.switchTab({ url: '/pages/index/index' });
     };
 
+    const goToGrowthReport = () => {
+      uni.navigateTo({ url: '/pages/growth-report/growth-report' });
+    };
+
     return {
       babies,
       currentBabyIndex,
@@ -230,6 +244,7 @@ export default {
       goToAudit,
       goToMembers,
       goHome,
+      goToGrowthReport,
     };
   }
 };
@@ -359,7 +374,24 @@ export default {
 .achievement-icon { font-size: 48rpx; }
 .achievement-info { display: flex; flex-direction: column; }
 .achievement-name { font-size: 28rpx; color: #333; font-weight: bold; }
-.achievement-desc { font-size: 24rpx; color: #666; }
+/* 成长报告入口 */
+  .report-entry {
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+    background: white;
+    border-radius: 16rpx;
+    padding: 24rpx 28rpx;
+    margin: 0 40rpx 20rpx;
+    box-shadow: 0 4rpx 16rpx rgba(139, 92, 246, 0.08);
+  }
+  .report-entry-icon { font-size: 48rpx; }
+  .report-entry-text { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
+  .report-entry-title { font-size: 30rpx; font-weight: bold; color: #333; }
+  .report-entry-hint { font-size: 22rpx; color: #999; }
+  .report-entry-arrow { font-size: 36rpx; color: #8B5CF6; }
+
+/* 返回首页 */
 .float-back {
   position: fixed;
   bottom: 40rpx;
@@ -371,7 +403,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
   font-size: 36rpx;
   box-shadow: 0 4rpx 16rpx rgba(139, 92, 246, 0.4);
 }
-</style>

@@ -1,877 +1,496 @@
-<!-- src/pages/growth-report/growth-report.vue -->
+<!-- 成长报告页 -->
 <template>
   <view class="page-container">
     <!-- 顶部导航 -->
     <view class="nav-bar">
       <view class="nav-left" @tap="goBack">
-        <text class="back-icon">←</text>
+        <text class="icon">←</text>
       </view>
-      <text class="nav-title">M2成长报告</text>
-      <view class="nav-right">
-        <text class="refresh-btn" @tap="onRefresh">刷新</text>
-      </view>
+      <text class="nav-title">成长报告</text>
+      <view class="nav-right"></view>
     </view>
 
-    <!-- 宝宝选择器 -->
+    <!-- 宝宝切换 -->
     <view class="baby-selector" v-if="babies.length > 1">
-      <picker :range="babies" range-key="name" @change="onBabyChange">
-        <view class="picker-view">
-          <text class="picker-label">当前宝宝：</text>
-          <text class="picker-value">{{ currentBabyName }}</text>
-          <text class="picker-arrow">▼</text>
-        </view>
-      </picker>
+      <view
+        v-for="baby in babies"
+        :key="baby.id"
+        class="baby-chip"
+        :class="{ active: currentBabyId === baby.id }"
+        @tap="switchBaby(baby.id)"
+      >
+        {{ baby.name }}
+      </view>
     </view>
 
-    <scroll-view scroll-y class="report-content" @scrolltolower="loadMore">
-      <!-- 加载状态 -->
-      <view v-if="loading" class="loading-view">
-        <text>加载中...</text>
+    <!-- 当前宝宝名 -->
+    <view class="report-header">
+      <text class="report-emoji">{{ currentBaby?.emoji || '👶' }}</text>
+      <view class="report-title-wrap">
+        <text class="report-title">{{ currentBaby?.name || '宝宝' }}的成长报告</text>
+        <text class="report-subtitle">近7日数据概览</text>
       </view>
+    </view>
 
-      <!-- 报告内容 -->
-      <view v-else-if="report" class="report-wrapper">
-        <!-- 宝宝信息卡片 -->
-        <view class="baby-card">
-          <view class="baby-info">
-            <image 
-              class="baby-avatar" 
-              :src="report.baby.avatar || '/static/avatar.svg'" 
-              mode="aspectFill"
-            />
-            <view class="baby-details">
-              <text class="baby-name">{{ report.baby.babyName }}</text>
-              <view class="baby-level">
-                <text class="level-badge">Lv.{{ report.baby.level }}</text>
-                <text class="exp-text">{{ report.baby.exp }}/{{ report.baby.expToNextLevel }} EXP</text>
-              </view>
-            </view>
-          </view>
-          <!-- 经验值进度条 -->
-          <view class="exp-progress">
-            <view class="exp-bar">
-              <view class="exp-fill" :style="{ width: report.baby.levelProgress + '%' }"></view>
-            </view>
-          </view>
-        </view>
+    <!-- 统计卡片区 -->
+    <view class="stats-grid">
+      <view class="stat-card">
+        <text class="stat-value">{{ localStats.weekCompleted || 0 }}</text>
+        <text class="stat-label">本周完成</text>
+        <text class="stat-unit">任务</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-value text-gold">{{ localStats.weeklyEarned || 0 }}</text>
+        <text class="stat-label">本周获得</text>
+        <text class="stat-unit">积分</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-value text-purple">{{ localStats.achievementCount || 0 }}/{{ localStats.totalAchievements || 0 }}</text>
+        <text class="stat-label">成就解锁</text>
+        <text class="stat-unit">已解锁</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-value text-green">{{ localStats.continuousDays || 0 }}</text>
+        <text class="stat-label">连续活跃</text>
+        <text class="stat-unit">天数</text>
+      </view>
+    </view>
 
-        <!-- 核心数据 -->
-        <view class="stats-section">
-          <view class="section-title">成长数据</view>
-          <view class="stats-grid">
-            <view class="stat-item">
-              <text class="stat-value">{{ report.stats.tasksCompleted }}</text>
-              <text class="stat-label">完成任务</text>
-            </view>
-            <view class="stat-item highlight">
-              <text class="stat-value">{{ report.stats.currentStreak }}</text>
-              <text class="stat-label">连续打卡</text>
-            </view>
-            <view class="stat-item">
-              <text class="stat-value">{{ report.stats.longestStreak }}</text>
-              <text class="stat-label">最长连续</text>
-            </view>
-            <view class="stat-item highlight-orange">
-              <text class="stat-value">{{ report.stats.totalPoints }}</text>
-              <text class="stat-label">累计积分</text>
-            </view>
+    <!-- 任务完成柱状图 -->
+    <view class="chart-card">
+      <view class="chart-title">📊 本周任务完成</view>
+      <view class="bar-chart">
+        <view v-for="item in taskChartData" :key="item.date" class="bar-item">
+          <view class="bar-wrap">
+            <view
+              class="bar-fill"
+              :style="{ height: item.barHeight + 'rpx' }"
+            ></view>
           </view>
-        </view>
-
-        <!-- 本周进度 -->
-        <view class="weekly-section">
-          <view class="section-header">
-            <text class="section-title">本周进度</text>
-            <text class="section-date" v-if="report.weekRange">
-              {{ report.weekRange.startDate }} ~ {{ report.weekRange.endDate }}
-            </text>
-          </view>
-          <view class="weekly-progress">
-            <view class="progress-circle">
-              <view class="progress-ring">
-                <text class="progress-value">{{ report.baby.weeklyProgress.tasksCompleted }}</text>
-                <text class="progress-label">完成/7天</text>
-              </view>
-            </view>
-            <view class="weekly-stats">
-              <view class="weekly-stat-item">
-                <text class="weekly-stat-label">本周任务</text>
-                <text class="weekly-stat-value">{{ report.stats.weeklyTasks }}</text>
-              </view>
-              <view class="weekly-stat-item">
-                <text class="weekly-stat-label">完成率</text>
-                <text class="weekly-stat-value">{{ report.baby.weeklyProgress.completionRate.toFixed(0) }}%</text>
-              </view>
-            </view>
-          </view>
-        </view>
-
-        <!-- 雷达图区域 -->
-        <view class="radar-section">
-          <view class="section-title">能力雷达</view>
-          <view class="radar-container">
-            <view class="radar-legend">
-              <view class="legend-item">
-                <view class="legend-dot"></view>
-                <text>任务完成</text>
-              </view>
-              <view class="legend-item">
-                <view class="legend-dot"></view>
-                <text>连续打卡</text>
-              </view>
-              <view class="legend-item">
-                <view class="legend-dot"></view>
-                <text>等级</text>
-              </view>
-              <view class="legend-item">
-                <view class="legend-dot"></view>
-                <text>标签使用</text>
-              </view>
-              <view class="legend-item">
-                <view class="legend-dot"></view>
-                <text>积分获取</text>
-              </view>
-            </view>
-            <view class="radar-chart">
-              <!-- 简易雷达图 -->
-              <view class="radar-bg">
-                <view v-for="i in 5" :key="i" class="radar-circle" :class="'radar-circle-' + i"></view>
-                <view class="radar-center">
-                  <text class="radar-score">{{ calculateOverallScore() }}</text>
-                  <text class="radar-score-label">综合评分</text>
-                </view>
-              </view>
-              <view class="radar-data" :style="radarStyle">
-                <view class="radar-point" v-for="(item, index) in radarPoints" :key="index" 
-                  :style="{ left: item.x + 'px', top: item.y + 'px' }">
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
-
-        <!-- 常用标签 -->
-        <view class="tags-section" v-if="report.baby.topTags && report.baby.topTags.length > 0">
-          <view class="section-title">常用标签</view>
-          <view class="tags-list">
-            <view 
-              v-for="(tag, index) in report.baby.topTags" 
-              :key="index"
-              class="tag-item"
-            >
-              <text class="tag-name">{{ tag.tag }}</text>
-              <text class="tag-count">{{ tag.count }}次</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 鼓励文案 -->
-        <view class="encourage-section">
-          <text class="encourage-text">{{ report.encouragementMessage }}</text>
-        </view>
-
-        <!-- 历史记录入口 -->
-        <view class="history-section" @tap="navigateToHistory">
-          <text class="history-title">查看完整历史报告</text>
-          <text class="history-arrow">></text>
+          <text class="bar-value">{{ item.count }}</text>
+          <text class="bar-label">{{ item.date }}</text>
         </view>
       </view>
+    </view>
 
-      <!-- 空状态 -->
-      <view v-else class="empty-view">
-        <text class="empty-icon">📊</text>
-        <text class="empty-text">暂无成长报告数据</text>
-        <text class="empty-hint">完成任务开始积累数据吧</text>
+    <!-- 积分获取柱状图 -->
+    <view class="chart-card">
+      <view class="chart-title">💰 本周积分获取</view>
+      <view class="bar-chart">
+        <view v-for="item in pointsChartData" :key="item.date" class="bar-item">
+          <view class="bar-wrap">
+            <view
+              class="bar-fill bar-fill-gold"
+              :style="{ height: item.barHeight + 'rpx' }"
+            ></view>
+          </view>
+          <text class="bar-value">{{ item.points }}</text>
+          <text class="bar-label">{{ item.date }}</text>
+        </view>
       </view>
+    </view>
 
-      <!-- 底部安全区 -->
-      <view class="safe-area-bottom"></view>
-    </scroll-view>
+    <!-- 任务状态分布 -->
+    <view class="chart-card">
+      <view class="chart-title">📋 任务状态分布</view>
+      <view class="task-distribution">
+        <view class="dist-item">
+          <view class="dist-bar-wrap">
+            <view class="dist-bar dist-bar-blue" :style="{ width: distWidth('inProgress') }"></view>
+          </view>
+          <text class="dist-label">进行中</text>
+          <text class="dist-value">{{ taskStats.inProgress || 0 }}</text>
+        </view>
+        <view class="dist-item">
+          <view class="dist-bar-wrap">
+            <view class="dist-bar dist-bar-orange" :style="{ width: distWidth('pending') }"></view>
+          </view>
+          <text class="dist-label">待审核</text>
+          <text class="dist-value">{{ taskStats.pending || 0 }}</text>
+        </view>
+        <view class="dist-item">
+          <view class="dist-bar-wrap">
+            <view class="dist-bar dist-bar-green" :style="{ width: distWidth('weekCompleted') }"></view>
+          </view>
+          <text class="dist-label">本周完成</text>
+          <text class="dist-value">{{ localStats.weekCompleted || 0 }}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 成就进度 -->
+    <view class="chart-card">
+      <view class="chart-title">🏆 成就进度</view>
+      <view class="achievement-progress">
+        <view class="progress-bar-wrap">
+          <view
+            class="progress-bar-fill"
+            :style="{ width: achievementProgress + '%' }"
+          ></view>
+        </view>
+        <text class="progress-text">
+          {{ achievementData?.unlockedCount || 0 }} / {{ achievementData?.totalCount || 0 }} 已解锁
+        </text>
+      </view>
+      <!-- 已解锁成就列表 -->
+      <view class="achievement-list" v-if="achievementData?.unlocked?.length > 0">
+        <view
+          v-for="ach in achievementData.unlocked"
+          :key="ach.id"
+          class="achievement-badge"
+        >
+          <text class="achievement-icon">{{ ach.icon }}</text>
+          <text class="achievement-name">{{ ach.name }}</text>
+        </view>
+      </view>
+      <view class="empty-achievement" v-else>
+        <text class="empty-hint">暂无已解锁成就，继续加油！</text>
+      </view>
+    </view>
+
+    <!-- 返回按钮 -->
+    <view class="bottom-btn-wrap">
+      <button class="btn-back" @tap="goBack">返回仪表盘</button>
+    </view>
   </view>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-import growthReportService from '@/services/growthReportService'
+<script>
+import { ref, computed, onMounted } from 'vue';
 
-// 宝宝列表
-const babies = ref([])
-const currentBabyId = ref('')
-const loading = ref(false)
-const report = ref(null)
-const historyWeekly = ref([])
+export default {
+  setup() {
+    const currentBabyId = ref('');
+    const localStats = ref({});
+    const taskChartData = ref([]);
+    const pointsChartData = ref([]);
+    const achievementData = ref({});
+    const taskStats = ref({});
 
-// 当前宝宝名称
-const currentBabyName = computed(() => {
-  const baby = babies.value.find(b => b.id === currentBabyId.value)
-  return baby ? baby.name : '未知宝宝'
-})
+    const babies = ref([]);
 
-// 雷达图样式
-const radarStyle = computed(() => {
-  if (!report.value || !report.value.radarData) return {}
-  
-  const data = report.value.radarData
-  const centerX = 75
-  const centerY = 75
-  const maxRadius = 65
-  
-  // 计算各维度数值对应的位置（5个维度：任务、打卡、等级、标签、积分）
-  const values = [
-    data.tasks / 100,      // 任务
-    data.streak / 100,     // 打卡
-    data.level / 100,      // 等级
-    data.tags / 100,       // 标签
-    data.points / 100     // 积分
-  ]
-  
-  // 五个点的角度（从顶部开始，顺时针）
-  const angles = [-90, -18, 54, 126, 198] // degrees
-  
-  const points = values.map((val, i) => {
-    const angle = angles[i] * (Math.PI / 180)
-    const radius = val * maxRadius
+    const loadData = () => {
+      if (!currentBabyId.value) return;
+
+      try {
+        const { getDashboardStats, getWeeklyTimeline, getWeeklyPointsTimeline, getAchievementsSummary } =
+          require('../../utils/FamilyGrowthContext');
+
+        const stats = getDashboardStats(currentBabyId.value);
+        localStats.value = {
+          weekCompleted: stats.weekCompleted || 0,
+          weeklyEarned: stats.weeklyEarned || 0,
+          achievementCount: stats.achievementCount || 0,
+          totalAchievements: stats.totalAchievements || 0,
+          continuousDays: stats.continuousDays || 0,
+        };
+        taskStats.value = {
+          inProgress: stats.inProgressCount || 0,
+          pending: stats.pendingCount || 0,
+        };
+
+        // 任务柱状图
+        const timeline = getWeeklyTimeline(currentBabyId.value);
+        const maxTask = Math.max(...timeline.map(d => d.count), 1);
+        taskChartData.value = timeline.map(d => ({
+          date: d.date,
+          count: d.count,
+          barHeight: Math.max(4, Math.round((d.count / maxTask) * 120)),
+        }));
+
+        // 积分柱状图
+        const pointsTimeline = getWeeklyPointsTimeline(currentBabyId.value);
+        const maxPoints = Math.max(...pointsTimeline.map(d => d.points), 1);
+        pointsChartData.value = pointsTimeline.map(d => ({
+          date: d.date,
+          points: d.points,
+          barHeight: Math.max(4, Math.round((d.points / maxPoints) * 120)),
+        }));
+
+        // 成就数据
+        achievementData.value = getAchievementsSummary(currentBabyId.value);
+
+      } catch (e) {
+        console.error('[growth-report] Load data failed:', e);
+      }
+    };
+
+    const achievementProgress = computed(() => {
+      if (!achievementData.value?.totalCount) return 0;
+      return Math.round(
+        (achievementData.value.unlockedCount / achievementData.value.totalCount) * 100
+      );
+    });
+
+    const currentBaby = computed(() => {
+      return babies.value.find(b => b.id === currentBabyId.value);
+    });
+
+    const distWidth = (key) => {
+      const total = (taskStats.value.inProgress || 0) +
+        (taskStats.value.pending || 0) +
+        (localStats.value.weekCompleted || 0);
+      if (total === 0) return '0%';
+      const val = key === 'inProgress' ? (taskStats.value.inProgress || 0)
+        : key === 'pending' ? (taskStats.value.pending || 0)
+        : (localStats.value.weekCompleted || 0);
+      return Math.max(2, Math.round((val / total) * 100)) + '%';
+    };
+
+    onMounted(() => {
+      // 获取宝宝列表
+      try {
+        const { useBabyStore } = require('../../stores/babyStore');
+        const babyStore = useBabyStore();
+        babies.value = babyStore.babies || [];
+
+        // 当前宝宝
+        const storedId = uni.getStorageSync('currentBabyId');
+        currentBabyId.value = storedId || (babies.value[0]?.id || '');
+      } catch (e) {
+        console.error('[growth-report] Load babies failed:', e);
+      }
+
+      loadData();
+
+      // 监听宝宝切换
+      uni.$on('baby:switched', (babyId) => {
+        currentBabyId.value = babyId;
+        loadData();
+      });
+    });
+
+    const switchBaby = (babyId) => {
+      currentBabyId.value = babyId;
+      uni.setStorageSync('currentBabyId', babyId);
+      loadData();
+    };
+
+    const goBack = () => {
+      uni.navigateBack();
+    };
+
     return {
-      x: centerX + radius * Math.cos(angle),
-      y: centerY + radius * Math.sin(angle)
-    }
-  })
-  
-  // 生成多边形路径
-  const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z'
-  
-  return {
-    clipPath: `polygon(${points.map(p => `${(p.x/150)*100}% ${(p.y/150)*100}%`).join(', ')})`
+      babies,
+      currentBabyId,
+      currentBaby,
+      localStats,
+      taskChartData,
+      pointsChartData,
+      achievementData,
+      achievementProgress,
+      taskStats,
+      distWidth,
+      switchBaby,
+      goBack,
+    };
   }
-})
-
-// 雷达图数据点
-const radarPoints = computed(() => {
-  if (!report.value || !report.value.radarData) return []
-  
-  const data = report.value.radarData
-  const centerX = 75
-  const centerY = 75
-  const maxRadius = 65
-  
-  const values = [
-    data.tasks / 100,
-    data.streak / 100,
-    data.level / 100,
-    data.tags / 100,
-    data.points / 100
-  ]
-  
-  const angles = [-90, -18, 54, 126, 198]
-  
-  return values.map((val, i) => {
-    const angle = angles[i] * (Math.PI / 180)
-    const radius = val * maxRadius
-    return {
-      x: centerX + radius * Math.cos(angle),
-      y: centerY + radius * Math.sin(angle)
-    }
-  })
-})
-
-// 计算综合评分
-const calculateOverallScore = () => {
-  if (!report.value || !report.value.radarData) return 0
-  
-  const data = report.value.radarData
-  const score = Math.round(
-    (data.tasks * 0.25 + data.streak * 0.25 + data.level * 0.2 + data.tags * 0.15 + data.points * 0.15) * 100
-  )
-  
-  return Math.min(100, score)
-}
-
-// 加载成长报告
-const loadGrowthReport = () => {
-  loading.value = true
-  
-  try {
-    const data = growthReportService.getGrowthReport(currentBabyId.value)
-    report.value = data
-    
-    if (data) {
-      historyWeekly.value = growthReportService.getHistoryReports(currentBabyId.value)
-    }
-  } catch (e) {
-    console.error('加载成长报告失败:', e)
-    uni.showToast({
-      title: '加载失败',
-      icon: 'none'
-    })
-  } finally {
-    loading.value = false
-  }
-}
-
-// 刷新数据
-const onRefresh = () => {
-  loadGrowthReport()
-  uni.showToast({
-    title: '已刷新',
-    icon: 'success',
-    duration: 1000
-  })
-}
-
-// 加载宝宝列表
-const loadBabies = () => {
-  try {
-    const stored = uni.getStorageSync('babies')
-    babies.value = stored ? JSON.parse(stored) : []
-    
-    const storedBabyId = uni.getStorageSync('currentBabyId')
-    currentBabyId.value = storedBabyId || (babies.value.length > 0 ? babies.value[0].id : '')
-  } catch (e) {
-    console.error('加载宝宝列表失败:', e)
-    babies.value = []
-  }
-}
-
-// 切换宝宝
-const onBabyChange = (e) => {
-  const idx = e.detail.value
-  if (idx >= 0 && idx < babies.value.length) {
-    currentBabyId.value = babies.value[idx].id
-    uni.setStorageSync('currentBabyId', currentBabyId.value)
-    loadGrowthReport()
-    
-    uni.showToast({
-      title: `已切换到"${babies.value[idx].name}"`,
-      icon: 'none',
-      duration: 1500
-    })
-  }
-}
-
-// 跳转到历史报告
-const navigateToHistory = () => {
-  uni.navigateTo({
-    url: '/pages/report/report'
-  })
-}
-
-// 返回上一页
-const goBack = () => {
-  uni.navigateBack()
-}
-
-// 加载更多
-const loadMore = () => {
-  // 可扩展分页加载
-}
-
-// 初始化
-onMounted(() => {
-  loadBabies()
-  loadGrowthReport()
-})
+};
 </script>
 
 <style scoped>
 .page-container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background: linear-gradient(180deg, #F5F3FF 0%, #EDE9FE 100%);
+  padding-bottom: 40rpx;
 }
 
 .nav-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 44px;
-  padding: 0 16px;
-  background-color: #fff;
-  border-bottom: 1px solid #eee;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  height: 88rpx;
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  padding: 90rpx 40rpx 60rpx;
+  position: relative;
 }
-
-.nav-left {
-  width: 60px;
-}
-
-.back-icon {
-  font-size: 20px;
-  color: #333;
-}
-
-.nav-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: #333;
-}
-
-.nav-right {
-  width: 60px;
-  text-align: right;
-}
-
-.refresh-btn {
-  font-size: 14px;
-  color: #007aff;
-}
+.nav-left { position: absolute; left: 30rpx; }
+.icon { color: white; font-size: 48rpx; font-weight: bold; }
+.nav-title { flex: 1; text-align: center; color: white; font-size: 36rpx; font-weight: bold; }
+.nav-right { position: absolute; right: 30rpx; width: 60rpx; }
 
 .baby-selector {
-  background-color: #fff;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 40rpx;
+  flex-wrap: wrap;
+}
+.baby-chip {
+  padding: 10rpx 28rpx;
+  border-radius: 30rpx;
+  background: rgba(139, 92, 246, 0.1);
+  color: #7C3AED;
+  font-size: 26rpx;
+  border: 2rpx solid transparent;
+}
+.baby-chip.active {
+  background: #7C3AED;
+  color: white;
 }
 
-.picker-view {
+.report-header {
   display: flex;
   align-items: center;
+  gap: 24rpx;
+  padding: 20rpx 40rpx;
 }
-
-.picker-label {
-  font-size: 14px;
-  color: #666;
-}
-
-.picker-value {
-  font-size: 14px;
-  color: #333;
-  font-weight: 500;
-  margin-right: 8px;
-}
-
-.picker-arrow {
-  font-size: 12px;
-  color: #999;
-}
-
-.report-content {
-  height: calc(100vh - 44px);
-  padding: 16px;
-}
-
-.loading-view {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  color: #999;
-}
-
-/* 宝宝卡片 */
-.baby-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 16px;
-  color: #fff;
-}
-
-.baby-info {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.baby-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 30px;
-  border: 3px solid rgba(255, 255, 255, 0.5);
-  margin-right: 16px;
-}
-
-.baby-details {
-  flex: 1;
-}
-
-.baby-name {
-  font-size: 20px;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.baby-level {
-  display: flex;
-  align-items: center;
-}
-
-.level-badge {
-  background-color: rgba(255, 255, 255, 0.2);
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  margin-right: 8px;
-}
-
-.exp-text {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-.exp-progress {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  height: 8px;
-  overflow: hidden;
-}
-
-.exp-bar {
-  height: 100%;
-  border-radius: 8px;
-  transition: width 0.3s ease;
-}
-
-.exp-fill {
-  height: 100%;
-  background-color: #fff;
-  border-radius: 8px;
-}
-
-/* 统计数据区 */
-.stats-section {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 16px;
-}
+.report-emoji { font-size: 64rpx; }
+.report-title { font-size: 36rpx; font-weight: bold; color: #333; display: block; }
+.report-subtitle { font-size: 26rpx; color: #888; display: block; margin-top: 4rpx; }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+  padding: 0 40rpx 20rpx;
 }
-
-.stat-item {
-  background-color: #f8f8f8;
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-}
-
-.stat-item.highlight {
-  background-color: #e8f5e9;
-}
-
-.stat-item.highlight-orange {
-  background-color: #fff3e0;
-}
-
-.stat-value {
-  display: block;
-  font-size: 28px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 4px;
-}
-
-.stat-item.highlight .stat-value {
-  color: #00b578;
-}
-
-.stat-item.highlight-orange .stat-value {
-  color: #ff9500;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #666;
-}
-
-/* 本周进度 */
-.weekly-section {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.section-date {
-  font-size: 12px;
-  color: #999;
-}
-
-.weekly-progress {
-  display: flex;
-  align-items: center;
-}
-
-.progress-circle {
-  width: 100px;
-  height: 100px;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 20px;
-}
-
-.progress-ring {
-  width: 80px;
-  height: 80px;
-  background-color: #fff;
-  border-radius: 50%;
+.stat-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 28rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4rpx 16rpx rgba(139, 92, 246, 0.08);
 }
-
-.progress-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #667eea;
-}
-
-.progress-label {
-  font-size: 10px;
-  color: #999;
-}
-
-.weekly-stats {
-  flex: 1;
-}
-
-.weekly-stat-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.weekly-stat-item:last-child {
-  border-bottom: none;
-}
-
-.weekly-stat-label {
-  font-size: 14px;
-  color: #666;
-}
-
-.weekly-stat-value {
-  font-size: 14px;
-  font-weight: 600;
+.stat-value {
+  font-size: 48rpx;
+  font-weight: bold;
   color: #333;
+  line-height: 1;
 }
+.text-gold { color: #F59E0B; }
+.text-purple { color: #8B5CF6; }
+.text-green { color: #10B981; }
+.stat-label { font-size: 22rpx; color: #888; margin-top: 8rpx; }
+.stat-unit { font-size: 20rpx; color: #bbb; }
 
-/* 雷达图 */
-.radar-section {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
+.chart-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin: 0 40rpx 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(139, 92, 246, 0.08);
 }
+.chart-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 20rpx; }
 
-.radar-container {
+.bar-chart {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 200rpx;
+  gap: 8rpx;
 }
-
-.radar-legend {
-  width: 100px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #667eea;
-  margin-right: 8px;
-}
-
-.legend-item text {
-  font-size: 12px;
-  color: #666;
-}
-
-.radar-chart {
+.bar-item {
   flex: 1;
-  height: 150px;
-  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: 4rpx;
+}
+.bar-wrap {
+  height: 120rpx;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
   justify-content: center;
 }
-
-.radar-bg {
-  position: absolute;
-  width: 150px;
-  height: 150px;
+.bar-fill {
+  width: 70%;
+  max-width: 48rpx;
+  background: linear-gradient(180deg, #8B5CF6, #A78BFA);
+  border-radius: 6rpx 6rpx 0 0;
+  min-height: 4rpx;
+  transition: height 0.3s;
 }
-
-.radar-circle {
-  position: absolute;
-  border: 1px solid #e0e0e0;
-  border-radius: 50%;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+.bar-fill-gold {
+  background: linear-gradient(180deg, #F59E0B, #FCD34D);
 }
+.bar-value { font-size: 22rpx; color: #333; font-weight: bold; }
+.bar-label { font-size: 18rpx; color: #888; }
 
-.radar-circle-1 { width: 30px; height: 30px; }
-.radar-circle-2 { width: 60px; height: 60px; }
-.radar-circle-3 { width: 90px; height: 90px; }
-.radar-circle-4 { width: 120px; height: 120px; }
-.radar-circle-5 { width: 150px; height: 150px; }
-
-.radar-center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
+.task-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
-
-.radar-score {
-  display: block;
-  font-size: 24px;
-  font-weight: 700;
-  color: #667eea;
+.dist-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
 }
-
-.radar-score-label {
-  font-size: 10px;
-  color: #999;
+.dist-bar-wrap {
+  flex: 1;
+  height: 24rpx;
+  background: #F3F4F6;
+  border-radius: 12rpx;
+  overflow: hidden;
 }
-
-.radar-data {
-  position: absolute;
-  width: 150px;
-  height: 150px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
-  clip-path: polygon(50% 0%, 93% 24%, 93% 76%, 50% 100%, 7% 76%, 7% 24%);
+.dist-bar {
+  height: 100%;
+  border-radius: 12rpx;
+  transition: width 0.5s;
+  min-width: 4rpx;
 }
+.dist-bar-blue { background: #3B82F6; }
+.dist-bar-orange { background: #F59E0B; }
+.dist-bar-green { background: #10B981; }
+.dist-label { font-size: 24rpx; color: #666; width: 120rpx; }
+.dist-value { font-size: 24rpx; color: #333; font-weight: bold; width: 60rpx; text-align: right; }
 
-.radar-point {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background-color: #667eea;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  border: 2px solid #fff;
+.achievement-progress {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
 }
-
-/* 标签 */
-.tags-section {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
+.progress-bar-wrap {
+  flex: 1;
+  height: 20rpx;
+  background: #F3F4F6;
+  border-radius: 10rpx;
+  overflow: hidden;
 }
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+  border-radius: 10rpx;
+  transition: width 0.5s;
+}
+.progress-text { font-size: 24rpx; color: #888; white-space: nowrap; }
 
-.tags-list {
+.achievement-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 16rpx;
 }
-
-.tag-item {
+.achievement-badge {
   display: flex;
   align-items: center;
-  background-color: #f0f0f0;
-  border-radius: 16px;
-  padding: 6px 12px;
+  gap: 8rpx;
+  background: #F5F3FF;
+  border-radius: 30rpx;
+  padding: 10rpx 20rpx;
 }
+.achievement-icon { font-size: 28rpx; }
+.achievement-name { font-size: 24rpx; color: #7C3AED; }
 
-.tag-name {
-  font-size: 12px;
-  color: #333;
-  margin-right: 4px;
-}
-
-.tag-count {
-  font-size: 10px;
-  color: #999;
-}
-
-/* 鼓励文案 */
-.encourage-section {
-  background-color: #fff8e6;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
+.empty-achievement {
+  padding: 20rpx 0;
   text-align: center;
 }
+.empty-hint { font-size: 26rpx; color: #999; }
 
-.encourage-text {
-  font-size: 14px;
-  color: #b8860b;
-  line-height: 1.5;
+.bottom-btn-wrap {
+  padding: 20rpx 40rpx;
 }
-
-/* 历史记录 */
-.history-section {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.history-title {
-  font-size: 14px;
-  color: #333;
-}
-
-.history-arrow {
-  font-size: 14px;
-  color: #999;
-}
-
-/* 空状态 */
-.empty-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-}
-
-.empty-icon {
-  font-size: 60px;
-  margin-bottom: 16px;
-}
-
-.empty-text {
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-.empty-hint {
-  font-size: 14px;
-  color: #999;
-}
-
-.safe-area-bottom {
-  height: 20px;
+.btn-back {
+  width: 100%;
+  background: white;
+  color: #7C3AED;
+  border: 2rpx solid #7C3AED;
+  border-radius: 40rpx;
+  padding: 20rpx;
+  font-size: 30rpx;
+  font-weight: bold;
 }
 </style>
