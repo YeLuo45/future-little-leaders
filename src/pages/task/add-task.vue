@@ -182,6 +182,55 @@
         </view>
       </view>
 
+      <!-- 设为循环任务 -->
+      <view class="form-item recurring-section">
+        <view class="recurring-toggle" @tap="isRecurring = !isRecurring">
+          <view class="toggle-label">
+            <text class="form-label">循环任务</text>
+            <text class="toggle-hint">开启后自动周期性分配</text>
+          </view>
+          <view class="toggle-switch" :class="{ active: isRecurring }">
+            <view class="toggle-dot"></view>
+          </view>
+        </view>
+
+        <!-- 循环周期选择 -->
+        <view v-if="isRecurring" class="recurring-options">
+          <view class="cycle-picker">
+            <view
+              v-for="opt in cycleOptions"
+              :key="opt.value"
+              class="cycle-option"
+              :class="{ selected: recurringCycle === opt.value }"
+              @tap="recurringCycle = opt.value"
+            >
+              {{ opt.label }}
+            </view>
+          </view>
+
+          <!-- 星期选择（weekly 时显示） -->
+          <view v-if="recurringCycle === 'weekly'" class="weekdays-picker">
+            <view
+              v-for="day in weekdays"
+              :key="day.value"
+              class="weekday-btn"
+              :class="{ selected: recurringWeekdays.includes(day.value) }"
+              @tap="toggleWeekday(day.value)"
+            >
+              {{ day.label }}
+            </view>
+          </view>
+
+          <!-- 触发时间 -->
+          <view class="time-picker-row">
+            <text class="time-label">每日触发时间</text>
+            <picker mode="time" :value="recurringTime" @change="e => recurringTime = e.detail.value">
+              <view class="time-value">{{ recurringTime || '09:00' }}</view>
+            </picker>
+          </view>
+        </view>
+      </view>
+
       <!-- 任务积分 -->
       <view class="form-item">
         <text class="form-label">任务积分</text>
@@ -262,6 +311,28 @@
         { label: '周六', value: 6 },
         { label: '周日', value: 7 }
       ];
+
+      // 循环任务选项
+      const isRecurring = ref(false);
+      const recurringCycle = ref('daily');
+      const recurringWeekdays = ref([]);
+      const recurringTime = ref('09:00');
+
+      const cycleOptions = [
+        { label: '每日', value: 'daily' },
+        { label: '工作日', value: 'weekdays' },
+        { label: '每周', value: 'weekly' },
+        { label: '每月', value: 'monthly' },
+      ];
+
+      const toggleWeekday = (val) => {
+        const idx = recurringWeekdays.value.indexOf(val);
+        if (idx === -1) {
+          recurringWeekdays.value.push(val);
+        } else {
+          recurringWeekdays.value.splice(idx, 1);
+        }
+      };
 
       // 宝宝相关
       const babies = ref([]);
@@ -632,6 +703,26 @@
             }
           }
 
+          // ========== 循环任务模板 ==========
+          if (isRecurring.value && taskForm.value.babyId) {
+            try {
+              const { SchedulerService } = require('../../services/schedulerService');
+              SchedulerService.createTemplate({
+                title: taskForm.value.title,
+                description: taskForm.value.description || '',
+                babyId: taskForm.value.babyId,
+                rewardPoints: taskForm.value.points || 0,
+                cycle: recurringCycle.value,
+                weekdays: recurringWeekdays.value,
+                timeOfDay: recurringTime.value,
+                auditDeadline: 3,
+              });
+              console.log('[add-task] Recurring template created');
+            } catch (e) {
+              console.error('[add-task] Recurring template 创建失败:', e);
+            }
+          }
+
           uni.showToast({
             title: '任务创建成功',
             icon: 'success'
@@ -681,7 +772,13 @@
         reminderOptions,
         reminderMinutes,
         customReminderTime,
-        onCustomReminderChange
+        onCustomReminderChange,
+        // 循环任务
+        isRecurring,
+        recurringCycle,
+        recurringWeekdays,
+        recurringTime,
+        cycleOptions,
       };
     }
   };
@@ -1192,4 +1289,105 @@
     font-size: 28rpx;
     color: #333;
   }
+
+  /* 循环任务样式 */
+  .recurring-section {
+    background: white;
+    border-radius: 16rpx;
+    padding: 24rpx;
+    margin-bottom: 20rpx;
+  }
+
+  .recurring-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .toggle-label { display: flex; flex-direction: column; gap: 4rpx; }
+  .toggle-hint { font-size: 22rpx; color: #999; }
+
+  .toggle-switch {
+    width: 88rpx;
+    height: 48rpx;
+    background: #ddd;
+    border-radius: 24rpx;
+    position: relative;
+    transition: background 0.3s;
+  }
+
+  .toggle-switch.active { background: #8B5CF6; }
+
+  .toggle-dot {
+    width: 40rpx;
+    height: 40rpx;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 4rpx;
+    left: 4rpx;
+    transition: transform 0.3s;
+  }
+
+  .toggle-switch.active .toggle-dot { transform: translateX(40rpx); }
+
+  .recurring-options { margin-top: 20rpx; }
+
+  .cycle-picker {
+    display: flex;
+    gap: 16rpx;
+    flex-wrap: wrap;
+  }
+
+  .cycle-option {
+    padding: 12rpx 28rpx;
+    border-radius: 30rpx;
+    font-size: 26rpx;
+    background: #f0f0f0;
+    color: #666;
+    border: 2rpx solid transparent;
+  }
+
+  .cycle-option.selected {
+    background: #F5F3FF;
+    color: #7C3AED;
+    border-color: #7C3AED;
+  }
+
+  .weekdays-picker {
+    display: flex;
+    gap: 12rpx;
+    margin-top: 16rpx;
+    flex-wrap: wrap;
+  }
+
+  .weekday-btn {
+    width: 72rpx;
+    height: 72rpx;
+    border-radius: 50%;
+    background: #f0f0f0;
+    color: #666;
+    font-size: 24rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .weekday-btn.selected {
+    background: #7C3AED;
+    color: white;
+  }
+
+  .time-picker-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16rpx;
+    padding: 16rpx;
+    background: #f5f5f5;
+    border-radius: 12rpx;
+  }
+
+  .time-label { font-size: 28rpx; color: #333; }
+  .time-value { font-size: 28rpx; color: #7C3AED; }
 </style>

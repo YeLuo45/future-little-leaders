@@ -3,14 +3,17 @@ export default {
   // 当应用初始化完成时触发（全局只触发一次）
   onLaunch: function () {
     console.log('App Launch');
-    
+
     // 初始化全局事件代理
     this.setupGlobalEventProxy();
-    
+
     // 初始化成就Store
     this.initAchievementStore();
+
+    // 初始化周期性任务调度
+    this.initScheduler();
   },
-  
+
   // 初始化成就Store
   initAchievementStore: function() {
     // 延迟导入避免循环依赖
@@ -20,6 +23,22 @@ export default {
       achievementStore.init();
       console.log('[成就系统] 初始化完成');
     }, 100);
+  },
+
+  // 初始化周期性任务调度
+  initScheduler: function() {
+    setTimeout(() => {
+      try {
+        const { SchedulerService } = require('@/services/schedulerService.js');
+        // 触发到期循环任务
+        SchedulerService.checkAndTrigger();
+        // 检查待审核超时
+        SchedulerService.checkPendingApprovals();
+        console.log('[调度系统] 初始化完成');
+      } catch (e) {
+        console.warn('[调度系统] 初始化跳过:', e.message);
+      }
+    }, 500);
   },
   // 当应用启动，或从后台进入前台显示时触发
   onShow: function () {
