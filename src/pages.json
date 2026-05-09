@@ -195,6 +195,16 @@
         }
       }
     },
+    {
+      "path": "pages/notification/notification-center",
+      "style": {
+        "navigationBarTitleText": "通知中心",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
 		{
 			"path": "pages/task/task-records",
 			"style": {

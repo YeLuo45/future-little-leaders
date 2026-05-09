@@ -111,13 +111,55 @@ function generateId() {
 }
 
 // ============================================================================
-// Notification System (uni.$emit)
+// ============================================================================
+// Notification System (NotificationService)
 // ============================================================================
 
-function notify(event, data) {
-  // 广播协作事件，UI 层通过 uni.$on 监听
-  uni.$emit('collab:notification', { event, ...data });
-  console.log('[CollaborationService] 通知:', event, data);
+let _notificationService = null;
+function getNotificationService() {
+  if (!_notificationService) {
+    try {
+      _notificationService = require('./notificationService');
+    } catch (e) {
+      console.warn('[CollaborationService] NotificationService not available:', e.message);
+    }
+  }
+  return _notificationService;
+}
+
+function sendNotification(type, data) {
+  const ns = getNotificationService();
+  if (!ns) return;
+  try {
+    switch (type) {
+      case 'task_flow_created':
+        ns.sendTaskAssigned(data.childId, data.taskTitle, data.rewardPoints, data.taskId);
+        break;
+      case 'task_approved':
+        ns.sendTaskApproved(data.childId, data.taskTitle, data.rewardPoints, data.taskId);
+        break;
+      case 'task_rejected':
+        ns.sendTaskRejected(data.childId, data.taskTitle, data.reason, data.taskId);
+        break;
+      case 'task_resubmitted':
+        ns.sendTaskResubmitted(data.parentId, data.taskTitle, data.childId, data.childName);
+        break;
+      case 'achievement_unlocked':
+        // data: { childId, childName, achievements }
+        if (data.achievements && data.achievements.length > 0) {
+          data.achievements.forEach(ach => {
+            ns.sendAchievementUnlocked(data.childId, data.childName, ach.name, ach.icon);
+          });
+        }
+        break;
+      default:
+        // Fallback: generic notification
+        ns.send({ type, recipientId: data.childId || data.recipientId,
+          title: type, content: JSON.stringify(data) });
+    }
+  } catch (e) {
+    console.warn('[CollaborationService] Notification send failed:', e.message);
+  }
 }
 
 // ============================================================================
@@ -135,7 +177,7 @@ async function checkAchievements(childId, context) {
     const trigger = useAchievementTrigger();
     const newAchievements = trigger.checkAchievements(childId, context);
     if (newAchievements && newAchievements.length > 0) {
-      notify('achievement_unlocked', { childId, achievements: newAchievements });
+      sendNotification('achievement_unlocked', { childId, achievements: newAchievements });
     }
   } catch (e) {
     console.debug('[CollaborationService] Achievement check skipped:', e.message);
@@ -196,7 +238,7 @@ function createTaskFlow(taskId, childId, rewardPoints, taskTitle) {
   const flows = loadTaskFlows();
   flows.push(flow);
   saveTaskFlows(flows);
-  notify('task_flow_created', { flowId: flow.id, taskId, childId, rewardPoints });
+  sendNotification('task_flow_created', { flowId: flow.id, taskId, childId, rewardPoints });
   return flow;
 }
 
@@ -213,7 +255,7 @@ function startTaskFlow(flowId) {
   if (!nextState) { console.error('[CollaborationService] Invalid transition:', flow.state, 'start'); return null; }
   flow.state = nextState;
   saveTaskFlows(flows);
-  notify('task_flow_started', { flowId });
+  sendNotification('task_flow_started', { flowId });
   return flow;
 }
 
@@ -233,7 +275,7 @@ function completeTaskFlow(flowId, evidence) {
   flow.evidence = evidence;
   flow.completedAt = Date.now();
   saveTaskFlows(flows);
-  notify('task_pending_approval', { flowId, taskTitle: flow.taskTitle, childId: flow.childId, evidence });
+  sendNotification('task_pending_approval', { flowId, taskTitle: flow.taskTitle, childId: flow.childId, evidence });
   return flow;
 }
 
@@ -265,7 +307,7 @@ async function approveTaskFlow(flowId) {
   await checkAchievements(flow.childId, ctx);
 
   // Notify child
-  notify('task_approved', { flowId, taskTitle: flow.taskTitle, rewardPoints: flow.rewardPoints });
+  sendNotification('task_approved', { flowId, taskTitle: flow.taskTitle, rewardPoints: flow.rewardPoints });
 
   return flow;
 }
@@ -285,7 +327,7 @@ function rejectTaskFlow(flowId, reason) {
   flow.state = nextState;
   flow.rejectionReason = reason;
   saveTaskFlows(flows);
-  notify('task_rejected', { flowId, taskTitle: flow.taskTitle, reason });
+  sendNotification('task_rejected', { flowId, taskTitle: flow.taskTitle, reason });
   return flow;
 }
 
@@ -305,7 +347,7 @@ function resubmitTaskFlow(flowId, evidence) {
   flow.evidence = evidence;
   flow.completedAt = Date.now();
   saveTaskFlows(flows);
-  notify('task_resubmitted', { flowId, taskTitle: flow.taskTitle, childId: flow.childId, evidence });
+  sendNotification('task_resubmitted', { flowId, taskTitle: flow.taskTitle, childId: flow.childId, evidence });
   return flow;
 }
 
@@ -351,7 +393,7 @@ function cancelTaskFlow(flowId) {
   }
   flows.splice(flowIndex, 1);
   saveTaskFlows(flows);
-  notify('task_cancelled', { flowId, taskTitle: flow.taskTitle });
+  sendNotification('task_cancelled', { flowId, taskTitle: flow.taskTitle });
   return flow;
 }
 
