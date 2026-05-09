@@ -166,6 +166,29 @@
 
               // 提示兑换成功
               uni.showToast({ title: '兑换成功', icon: 'success' });
+
+              // ========== 成就检查：首次兑换 ==========
+              try {
+                const { onExchangeComplete } = require('../../stores/achievementStore');
+                const { useBabyStore } = require('../../stores/babyStore');
+                const babyStore = useBabyStore();
+                const baby = babyStore.babies.find(b => b.id === babyId);
+                const childName = baby ? baby.name : '孩子';
+
+                // 增加兑换计数并检查成就解锁
+                const newAchievements = onExchangeComplete(babyId);
+
+                // 如果解锁了新成就，发送通知
+                if (newAchievements && newAchievements.length > 0) {
+                  const { NotificationService } = require('../../services/notificationService');
+                  newAchievements.forEach(ach => {
+                    NotificationService.sendAchievementUnlocked(babyId, childName, ach.name, ach.icon);
+                  });
+                }
+              } catch (e) {
+                console.error('[product-detail] 成就检查失败:', e);
+              }
+
               // 2秒后返回商城页面
               setTimeout(() => {
                 goBack();
