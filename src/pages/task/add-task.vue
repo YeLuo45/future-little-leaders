@@ -124,7 +124,7 @@
         <!-- 每周选择 -->
         <view class="weekday-selector" v-if="taskForm.recurringType === 'weekly'">
           <view v-for="(day, index) in weekdays" :key="index" class="weekday-item"
-            :class="{ 'selected': taskForm.weekdays.includes(day.value) }" @tap="toggleWeekday(day.value)">
+            :class="{ 'selected': taskForm.weekdays.includes(day.value) }" @tap="toggleRecurringWeekday(day.value)">
             {{ day.label }}
           </view>
         </view>
@@ -215,7 +215,7 @@
               :key="day.value"
               class="weekday-btn"
               :class="{ selected: recurringWeekdays.includes(day.value) }"
-              @tap="toggleWeekday(day.value)"
+              @tap="toggleRecurringWeekday(day.value)"
             >
               {{ day.label }}
             </view>
@@ -325,7 +325,8 @@
         { label: '每月', value: 'monthly' },
       ];
 
-      const toggleWeekday = (val) => {
+      // 切换重复周期中的星期选择
+      const toggleRecurringWeekday = (val) => {
         const idx = recurringWeekdays.value.indexOf(val);
         if (idx === -1) {
           recurringWeekdays.value.push(val);
@@ -755,7 +756,7 @@
         weekdays,
         isFormValid,
         toggleTag,
-        toggleWeekday,
+        toggleRecurringWeekday,
         toggleMonthDay,
         onStartTimeChange,
         onEndTimeChange,
