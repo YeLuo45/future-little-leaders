@@ -221,6 +221,16 @@
 					"titleNView": false
 				}
 			}
+		},
+		{
+			"path": "pages/growth/skill-tree",
+			"style": {
+				"navigationBarTitleText": "技能成长图谱",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
 		}
 	],
 	"tabBar": {

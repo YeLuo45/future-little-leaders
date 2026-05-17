@@ -11,7 +11,10 @@ export const TABLES = {
   ACHIEVEMENTS: 'achievements',
   POINTS: 'points',
   CHANGE_LOG: 'change_log',
-  FLOWS: 'flows'
+  FLOWS: 'flows',
+  SKILL_TREES: 'skill_trees',
+  SKILL_NODES: 'skill_nodes',
+  SKILL_NODE_STATS: 'skill_node_stats'
 }
 
 export const SCHEMA = `
@@ -118,12 +121,64 @@ CREATE TABLE IF NOT EXISTS ${TABLES.FLOWS} (
   updatedAt TEXT NOT NULL
 );
 
+-- 技能树表 (V6 新增)
+CREATE TABLE IF NOT EXISTS ${TABLES.SKILL_TREES} (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  icon TEXT,
+  color TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- 技能节点表 (V6 新增)
+CREATE TABLE IF NOT EXISTS ${TABLES.SKILL_NODES} (
+  id TEXT PRIMARY KEY,
+  treeId TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  icon TEXT,
+  tier INTEGER DEFAULT 0,
+  prerequisiteIds TEXT,
+  conditionType TEXT NOT NULL,
+  conditionCount INTEGER DEFAULT 1,
+  conditionTag TEXT,
+  comparator TEXT DEFAULT '>=',
+  pointsReward INTEGER DEFAULT 0,
+  badge TEXT,
+  unlockTag TEXT,
+  autoUnlock INTEGER DEFAULT 1,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL,
+  FOREIGN KEY (treeId) REFERENCES ${TABLES.SKILL_TREES}(id)
+);
+
+-- 技能节点统计表 (V6 新增)
+CREATE TABLE IF NOT EXISTS ${TABLES.SKILL_NODE_STATS} (
+  id TEXT PRIMARY KEY,
+  nodeId TEXT NOT NULL,
+  babyId TEXT NOT NULL,
+  currentProgress INTEGER DEFAULT 0,
+  bestProgress INTEGER DEFAULT 0,
+  attemptCount INTEGER DEFAULT 0,
+  unlockAttemptTimestamps TEXT,
+  unlockedAt TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL,
+  FOREIGN KEY (nodeId) REFERENCES ${TABLES.SKILL_NODES}(id),
+  FOREIGN KEY (babyId) REFERENCES ${TABLES.BABIES}(id)
+);
+
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_change_log_synced ON ${TABLES.CHANGE_LOG}(synced);
 CREATE INDEX IF NOT EXISTS idx_babies_updated ON ${TABLES.BABIES}(updatedAt);
 CREATE INDEX IF NOT EXISTS idx_tasks_updated ON ${TABLES.TASKS}(updatedAt);
 CREATE INDEX IF NOT EXISTS idx_checkins_updated ON ${TABLES.CHECKINS}(updatedAt);
 CREATE INDEX IF NOT EXISTS idx_points_updated ON ${TABLES.POINTS}(updatedAt);
+CREATE INDEX IF NOT EXISTS idx_skill_nodes_tree ON ${TABLES.SKILL_NODES}(treeId);
+CREATE INDEX IF NOT EXISTS idx_skill_node_stats_baby ON ${TABLES.SKILL_NODE_STATS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_skill_node_stats_node ON ${TABLES.SKILL_NODE_STATS}(nodeId);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)
