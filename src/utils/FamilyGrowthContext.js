@@ -346,3 +346,84 @@ const FamilyGrowthContext = {
 // ============================================================================
 
 module.exports = FamilyGrowthContext;
+
+// ============================================================================
+// V10 Dashboard Stats V2
+// ============================================================================
+
+/**
+ * Get V2 dashboard stats for a baby (enhanced with SQLite queries)
+ * @param {string} babyId
+ * @returns {object}
+ */
+function getDashboardStatsV2(babyId) {
+  // Dynamic import to avoid circular dependency issues
+  let dbModule;
+  try {
+    dbModule = require('../db/sqlite.js')
+  } catch (e) {
+    console.warn('[V10] SQLite module not available:', e.message)
+  }
+  
+  const hasDb = dbModule && dbModule.getDatabase && dbModule.getDatabase()
+  
+  // Fallback to original stats if DB not available
+  if (!hasDb) {
+    return FamilyGrowthContext.getDashboardStats(babyId)
+  }
+  
+  const {
+    getPointsBalance,
+    getWeeklyEarned,
+    getWeeklySpent,
+    getPointsHistory7d,
+    getCheckinStats7d,
+    getSkillTreeStats,
+    getAchievementProgress,
+    getCachedAISummary
+  } = dbModule
+  
+  // Get V1 stats for compatibility
+  const v1Stats = FamilyGrowthContext.getDashboardStats(babyId)
+  
+  // Fetch V2 stats from SQLite
+  const pointsBalance = getPointsBalance(babyId) || v1Stats.totalPoints
+  const weeklyEarned = getWeeklyEarned(babyId) || v1Stats.weeklyEarned
+  const weeklySpent = getWeeklySpent(babyId) || 0
+  const pointsHistory7d = getPointsHistory7d(babyId) || []
+  const taskTrend7d = getCheckinStats7d(babyId) || []
+  const skillTreeProgress = getSkillTreeStats(babyId) || {}
+  const achievementProgress = getAchievementProgress(babyId) || { unlocked: 0, total: 5 }
+  const aiSummary = getCachedAISummary(babyId) || null
+  
+  return {
+    // Points
+    pointsBalance,
+    weeklyEarned,
+    weeklySpent,
+    pointsHistory7d,
+    
+    // Tasks
+    taskTrend7d,
+    weekCompleted: v1Stats.weekCompleted,
+    pendingCount: v1Stats.pendingCount,
+    
+    // Skill Tree (V6)
+    skillTreeProgress,
+    
+    // Achievements
+    achievementProgress,
+    
+    // AI Summary (V9)
+    aiSummary,
+    
+    // Legacy support
+    totalPoints: pointsBalance,
+    timeline: taskTrend7d,
+    continuousDays: v1Stats.continuousDays,
+    weeklyPointsTimeline: pointsHistory7d
+  }
+}
+
+// Export for use in components
+module.exports.getDashboardStatsV2 = getDashboardStatsV2

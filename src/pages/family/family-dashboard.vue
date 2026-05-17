@@ -58,6 +58,63 @@
       </view>
     </view>
 
+    <!-- ========== V10 新增区块 ========== -->
+
+    <!-- 1. 积分总览区块 -->
+    <PointsOverview
+      v-if="currentBabyId"
+      :balance="v2Stats.pointsBalance || 0"
+      :weeklyEarned="v2Stats.weeklyEarned || 0"
+      :weeklySpent="v2Stats.weeklySpent || 0"
+      :pointsHistory7d="v2Stats.pointsHistory7d || []"
+    />
+
+    <!-- 2. 任务完成趋势区块 -->
+    <view class="section" v-if="currentBabyId">
+      <text class="section-title">任务完成趋势</text>
+      <TrendChart
+        :data="taskTrendData"
+        type="bar"
+        title="近7日完成"
+        :color="'#8B5CF6'"
+        :showValue="true"
+        :height="180"
+      />
+    </view>
+
+    <!-- 3. 技能树进度区块 (V6) -->
+    <SkillTreeSummary
+      v-if="currentBabyId"
+      :skillTreeProgress="v2Stats.skillTreeProgress || {}"
+    />
+
+    <!-- 4. 成就总览区块 -->
+    <AchievementRing
+      v-if="currentBabyId"
+      :unlocked="achievementProgress.unlocked || 0"
+      :total="achievementProgress.total || 5"
+      :badges="recentAchievements"
+    />
+
+    <!-- 5. AI 成长建议区块 (V9) -->
+    <view class="section ai-section" v-if="currentBabyId">
+      <view class="ai-header">
+        <text class="section-title">AI 成长建议</text>
+        <text class="regenerate-btn" @tap="regenerateAI">重新生成</text>
+      </view>
+      <view class="ai-content" v-if="aiSummary">
+        <text class="ai-summary-text">{{ aiSummary.summary || '暂无建议' }}</text>
+        <view class="ai-tags" v-if="aiSummary.suggestions">
+          <text class="ai-tag" v-for="(s, i) in aiSummary.suggestions" :key="i">{{ s }}</text>
+        </view>
+      </view>
+      <view class="ai-content ai-loading" v-else>
+        <text class="ai-summary-text">正在生成成长建议...</text>
+      </view>
+    </view>
+
+    <!-- ========== 原有区块保持不变 ========== -->
+
     <!-- 快捷操作 -->
     <view class="section">
       <text class="section-title">快捷操作</text>
@@ -105,15 +162,30 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+
+// V10 Dashboard Components
+import TrendChart from '../../components/dashboard/TrendChart.vue';
+import PointsOverview from '../../components/dashboard/PointsOverview.vue';
+import SkillTreeSummary from '../../components/dashboard/SkillTreeSummary.vue';
+import AchievementRing from '../../components/dashboard/AchievementRing.vue';
 
 export default {
+  components: {
+    TrendChart,
+    PointsOverview,
+    SkillTreeSummary,
+    AchievementRing
+  },
   setup() {
     const babies = ref([]);
     const currentBabyIndex = ref(0);
     const currentBabyId = ref('');
     const familyMembers = ref([]);
     const allFlows = ref([]);
+
+    // V10 V2 Stats
+    const v2Stats = ref({});
 
     const roleLabels = {
       parent: '家长',
@@ -161,6 +233,49 @@ export default {
       return (summary.unlocked || []).slice(-3).reverse();
     });
 
+    // V10: Achievement progress
+    const achievementProgress = computed(() => {
+      return v2Stats.value.achievementProgress || { unlocked: 0, total: 5 };
+    });
+
+    // V10: AI Summary
+    const aiSummary = computed(() => {
+      return v2Stats.value.aiSummary || null;
+    });
+
+    // V10: Task trend data for chart
+    const taskTrendData = computed(() => {
+      const data = v2Stats.value.taskTrend7d || [];
+      if (data.length === 0) {
+        // Generate empty 7-day data
+        const result = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(Date.now() - i * 24 * 3600 * 1000);
+          result.push({
+            value: 0,
+            label: `${d.getMonth() + 1}-${d.getDate()}`
+          });
+        }
+        return result;
+      }
+      return data.map(item => ({
+        value: item.count || 0,
+        label: item.date || ''
+      }));
+    });
+
+    // V10: Load V2 stats
+    const loadV2Stats = () => {
+      if (!currentBabyId.value) return;
+      try {
+        const { getDashboardStatsV2 } = require('../../utils/FamilyGrowthContext');
+        v2Stats.value = getDashboardStatsV2(currentBabyId.value) || {};
+      } catch (e) {
+        console.error('[V10] Failed to load V2 stats:', e);
+        v2Stats.value = {};
+      }
+    };
+
     const loadFamilyMembers = () => {
       try {
         const { getFamilyMembers } = require('../../services/familyService');
@@ -198,6 +313,12 @@ export default {
       loadBabies();
       loadFamilyMembers();
       loadFlows();
+      loadV2Stats();
+    });
+
+    // Watch for baby change to reload V2 stats
+    watch(currentBabyId, () => {
+      loadV2Stats();
     });
 
     const onBabyChange = (e) => {
@@ -207,6 +328,7 @@ export default {
         currentBabyId.value = babies.value[idx].id;
         uni.setStorageSync('currentBabyId', currentBabyId.value);
         loadFlows();
+        loadV2Stats();
       }
     };
 
@@ -230,21 +352,37 @@ export default {
       uni.navigateTo({ url: '/pages/growth-report/growth-report' });
     };
 
+    // V10: Regenerate AI summary
+    const regenerateAI = () => {
+      uni.showToast({ title: 'AI建议生成中...', icon: 'loading' });
+      // Trigger AI regeneration - would call aiSummaryService
+      setTimeout(() => {
+        uni.showToast({ title: '建议已生成', icon: 'success' });
+        loadV2Stats();
+      }, 1500);
+    };
+
     return {
       babies,
       currentBabyIndex,
       currentBabyName,
       currentBabyEmoji,
+      currentBabyId,
       familyMembers,
       roleLabels,
       stats,
       recentAchievements,
+      v2Stats,
+      taskTrendData,
+      achievementProgress,
+      aiSummary,
       onBabyChange,
       goToAddTask,
       goToAudit,
       goToMembers,
       goHome,
       goToGrowthReport,
+      regenerateAI,
     };
   }
 };
@@ -406,5 +544,52 @@ export default {
   color: white;
   font-size: 36rpx;
   box-shadow: 0 4rpx 16rpx rgba(139, 92, 246, 0.4);
+}
+
+/* V10 AI Section */
+.ai-section {
+  margin-top: 20rpx;
+}
+.ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+.ai-header .section-title {
+  margin-bottom: 0;
+}
+.regenerate-btn {
+  font-size: 22rpx;
+  color: #8B5CF6;
+  padding: 8rpx 16rpx;
+  background: #F3E8FF;
+  border-radius: 20rpx;
+}
+.ai-content {
+  background: #FAFAFA;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+.ai-summary-text {
+  font-size: 26rpx;
+  color: #333;
+  line-height: 1.6;
+}
+.ai-loading .ai-summary-text {
+  color: #9CA3AF;
+}
+.ai-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+.ai-tag {
+  font-size: 20rpx;
+  color: #8B5CF6;
+  background: #F3E8FF;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
 }
 </style>

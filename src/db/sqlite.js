@@ -1006,3 +1006,239 @@ export function invalidateAICache(babyId, period = null) {
     return { success: false, error: e.message }
   }
 }
+
+// ==================== V10 Dashboard Stats Queries ====================
+
+const POINTS_TABLE = TABLES.POINTS
+const CHECKINS_TABLE = TABLES.CHECKINS
+const SKILL_TREES_TABLE = TABLES.SKILL_TREES
+const SKILL_NODES_TABLE = TABLES.SKILL_NODES
+const SKILL_NODE_STATS_TABLE = TABLES.SKILL_NODE_STATS
+const ACHIEVEMENTS_TABLE = TABLES.ACHIEVEMENTS
+
+/**
+ * Get points balance for a baby (sum of all income points)
+ */
+export function getPointsBalance(babyId) {
+  if (!db) return 0
+  try {
+    const results = db.exec(
+      `SELECT COALESCE(SUM(points), 0) as total FROM ${POINTS_TABLE} WHERE babyId = ? AND type = 'income'`,
+      [babyId]
+    )
+    if (!results.length || !results[0].values.length) return 0
+    return results[0].values[0][0] || 0
+  } catch (e) {
+    console.error('[V10] getPointsBalance failed:', e)
+    return 0
+  }
+}
+
+/**
+ * Get weekly earned points for a baby
+ */
+export function getWeeklyEarned(babyId) {
+  if (!db) return 0
+  const weekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
+  try {
+    const results = db.exec(
+      `SELECT COALESCE(SUM(points), 0) as total FROM ${POINTS_TABLE} WHERE babyId = ? AND type = 'income' AND createdAt >= ?`,
+      [babyId, weekAgo]
+    )
+    if (!results.length || !results[0].values.length) return 0
+    return results[0].values[0][0] || 0
+  } catch (e) {
+    console.error('[V10] getWeeklyEarned failed:', e)
+    return 0
+  }
+}
+
+/**
+ * Get weekly spent points for a baby
+ */
+export function getWeeklySpent(babyId) {
+  if (!db) return 0
+  const weekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
+  try {
+    const results = db.exec(
+      `SELECT COALESCE(SUM(ABS(points)), 0) as total FROM ${POINTS_TABLE} WHERE babyId = ? AND type = 'expense' AND createdAt >= ?`,
+      [babyId, weekAgo]
+    )
+    if (!results.length || !results[0].values.length) return 0
+    return results[0].values[0][0] || 0
+  } catch (e) {
+    console.error('[V10] getWeeklySpent failed:', e)
+    return 0
+  }
+}
+
+/**
+ * Get points history for last 7 days
+ * @returns {Array} [{date: 'M-D', earned: 10, spent: 0}, ...]
+ */
+export function getPointsHistory7d(babyId) {
+  if (!db) return []
+  const result = []
+  
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 3600 * 1000)
+    const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString()
+    const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).toISOString()
+    const dateLabel = `${d.getMonth() + 1}-${d.getDate()}`
+    
+    try {
+      // Earned
+      const earnedResults = db.exec(
+        `SELECT COALESCE(SUM(points), 0) FROM ${POINTS_TABLE} WHERE babyId = ? AND type = 'income' AND createdAt >= ? AND createdAt < ?`,
+        [babyId, dayStart, dayEnd]
+      )
+      const earned = earnedResults.length && earnedResults[0].values.length ? (earnedResults[0].values[0][0] || 0) : 0
+      
+      // Spent
+      const spentResults = db.exec(
+        `SELECT COALESCE(SUM(ABS(points)), 0) FROM ${POINTS_TABLE} WHERE babyId = ? AND type = 'expense' AND createdAt >= ? AND createdAt < ?`,
+        [babyId, dayStart, dayEnd]
+      )
+      const spent = spentResults.length && spentResults[0].values.length ? (spentResults[0].values[0][0] || 0) : 0
+      
+      result.push({ date: dateLabel, earned, spent })
+    } catch (e) {
+      console.error('[V10] getPointsHistory7d failed for day:', dateLabel, e)
+      result.push({ date: dateLabel, earned: 0, spent: 0 })
+    }
+  }
+  
+  return result
+}
+
+/**
+ * Get checkin stats for last 7 days
+ * @returns {Array} [{date: 'M-D', count: 3}, ...]
+ */
+export function getCheckinStats7d(babyId) {
+  if (!db) return []
+  const result = []
+  
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 3600 * 1000)
+    const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString()
+    const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).toISOString()
+    const dateLabel = `${d.getMonth() + 1}-${d.getDate()}`
+    
+    try {
+      const results = db.exec(
+        `SELECT COUNT(*) FROM ${CHECKINS_TABLE} WHERE babyId = ? AND checkinTime >= ? AND checkinTime < ?`,
+        [babyId, dayStart, dayEnd]
+      )
+      const count = results.length && results[0].values.length ? (results[0].values[0][0] || 0) : 0
+      result.push({ date: dateLabel, count })
+    } catch (e) {
+      console.error('[V10] getCheckinStats7d failed for day:', dateLabel, e)
+      result.push({ date: dateLabel, count: 0 })
+    }
+  }
+  
+  return result
+}
+
+/**
+ * Get skill tree stats for a baby
+ * @returns {Object} {knowledge: [unlocked, total], habit: [unlocked, total], ...}
+ */
+export function getSkillTreeStats(babyId) {
+  if (!db) return {}
+  
+  const treeIds = ['knowledge', 'habit', 'social', 'creative']
+  const result = {}
+  
+  for (const treeId of treeIds) {
+    try {
+      // Get total nodes for this tree
+      const totalResults = db.exec(
+        `SELECT COUNT(*) FROM ${SKILL_NODES_TABLE} WHERE treeId = ?`,
+        [treeId]
+      )
+      const total = totalResults.length && totalResults[0].values.length ? totalResults[0].values[0][0] : 0
+      
+      // Get unlocked nodes for this tree
+      const unlockedResults = db.exec(
+        `SELECT COUNT(*) FROM ${SKILL_NODE_STATS_TABLE} sn 
+         INNER JOIN ${SKILL_NODES_TABLE} n ON sn.nodeId = n.id 
+         WHERE n.treeId = ? AND sn.babyId = ? AND sn.unlockedAt IS NOT NULL`,
+        [treeId, babyId]
+      )
+      const unlocked = unlockedResults.length && unlockedResults[0].values.length ? unlockedResults[0].values[0][0] : 0
+      
+      result[treeId] = [unlocked, total]
+    } catch (e) {
+      console.error('[V10] getSkillTreeStats failed for tree:', treeId, e)
+      result[treeId] = [0, 0]
+    }
+  }
+  
+  return result
+}
+
+/**
+ * Get achievement progress for a baby
+ * @returns {Object} {unlocked: 3, total: 10}
+ */
+export function getAchievementProgress(babyId) {
+  if (!db) return { unlocked: 0, total: 0 }
+  
+  try {
+    const unlockedResults = db.exec(
+      `SELECT COUNT(*) FROM ${ACHIEVEMENTS_TABLE} WHERE babyId = ? AND unlockedAt IS NOT NULL`,
+      [babyId]
+    )
+    const unlocked = unlockedResults.length && unlockedResults[0].values.length ? unlockedResults[0].values[0][0] : 0
+    
+    // Get total defined achievements (hardcoded for now based on achievement definitions)
+    const totalResults = db.exec(`SELECT COUNT(*) FROM ${ACHIEVEMENTS_TABLE}`)
+    const total = totalResults.length && totalResults[0].values.length ? totalResults[0].values[0][0] : 5
+    
+    return { unlocked, total }
+  } catch (e) {
+    console.error('[V10] getAchievementProgress failed:', e)
+    return { unlocked: 0, total: 5 }
+  }
+}
+
+/**
+ * Get cached AI summary for a baby
+ * @returns {Object|null} {summary, strengths, suggestions, highlights, generatedAt}
+ */
+export function getCachedAISummary(babyId) {
+  if (!db) return null
+  
+  try {
+    const results = db.exec(
+      `SELECT * FROM ${AI_CACHE_TABLE} WHERE babyId = ? ORDER BY generatedAt DESC LIMIT 1`,
+      [babyId]
+    )
+    if (!results.length || !results[0].values.length) return null
+    
+    const columns = results[0].columns
+    const row = results[0].values[0]
+    const obj = {}
+    columns.forEach((col, i) => {
+      obj[col] = row[i]
+    })
+    
+    // Parse JSON fields
+    if (obj.strengths) {
+      try { obj.strengths = JSON.parse(obj.strengths) } catch (e) {}
+    }
+    if (obj.suggestions) {
+      try { obj.suggestions = JSON.parse(obj.suggestions) } catch (e) {}
+    }
+    if (obj.highlights) {
+      try { obj.highlights = JSON.parse(obj.highlights) } catch (e) {}
+    }
+    
+    return obj
+  } catch (e) {
+    console.error('[V10] getCachedAISummary failed:', e)
+    return null
+  }
+}
