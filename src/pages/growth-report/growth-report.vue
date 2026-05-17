@@ -148,6 +148,72 @@
       </view>
     </view>
 
+    <!-- AI 成长总结 -->
+    <view class="chart-card ai-summary-card">
+      <view class="chart-title">✨ AI 成长评语</view>
+      <!-- Loading Skeleton -->
+      <view v-if="aiSummaryLoading" class="ai-summary-skeleton">
+        <view class="skeleton-line skeleton-title"></view>
+        <view class="skeleton-line"></view>
+        <view class="skeleton-line"></view>
+        <view class="skeleton-tags">
+          <view class="skeleton-tag"></view>
+          <view class="skeleton-tag"></view>
+          <view class="skeleton-tag"></view>
+        </view>
+      </view>
+      <!-- AI Summary Content -->
+      <view v-else-if="aiSummary" class="ai-summary-content">
+        <view class="ai-summary-section">
+          <text class="ai-summary-text">{{ aiSummary.summary }}</text>
+        </view>
+        <!-- Strengths Tags -->
+        <view class="ai-summary-section" v-if="aiSummary.strengths?.length">
+          <text class="ai-section-label">💪 优势</text>
+          <view class="ai-tags-wrap">
+            <text
+              v-for="(strength, idx) in aiSummary.strengths"
+              :key="idx"
+              class="ai-tag ai-tag-strength"
+            >{{ strength }}</text>
+          </view>
+        </view>
+        <!-- Suggestions List -->
+        <view class="ai-summary-section" v-if="aiSummary.suggestions?.length">
+          <text class="ai-section-label">📝 建议</text>
+          <view class="ai-suggestions">
+            <view
+              v-for="(suggestion, idx) in aiSummary.suggestions"
+              :key="idx"
+              class="ai-suggestion-item"
+            >
+              <text class="ai-suggestion-bullet">•</text>
+              <text class="ai-suggestion-text">{{ suggestion }}</text>
+            </view>
+          </view>
+        </view>
+        <!-- Highlights -->
+        <view class="ai-summary-section" v-if="aiSummary.highlights?.length">
+          <text class="ai-section-label">🌟 亮点</text>
+          <view class="ai-tags-wrap">
+            <text
+              v-for="(highlight, idx) in aiSummary.highlights"
+              :key="idx"
+              class="ai-tag ai-tag-highlight"
+            >{{ highlight }}</text>
+          </view>
+        </view>
+        <!-- Regenerate Button -->
+        <view class="ai-regenerate-wrap">
+          <button class="btn-regenerate" @tap="regenerateAISummary">重新生成</button>
+        </view>
+      </view>
+      <!-- Fallback when no data -->
+      <view v-else class="ai-summary-empty">
+        <text class="empty-hint">AI 总结生成中...</text>
+      </view>
+    </view>
+
     <!-- 返回按钮 -->
     <view class="bottom-btn-wrap">
       <button class="btn-back" @tap="goBack">返回仪表盘</button>
@@ -166,6 +232,8 @@ export default {
     const pointsChartData = ref([]);
     const achievementData = ref({});
     const taskStats = ref({});
+    const aiSummary = ref(null);
+    const aiSummaryLoading = ref(true);
 
     const babies = ref([]);
 
@@ -215,6 +283,46 @@ export default {
       }
     };
 
+    const loadAISummary = async () => {
+      if (!currentBabyId.value) return;
+      
+      aiSummaryLoading.value = true;
+      aiSummary.value = null;
+      
+      try {
+        const { getGrowthReport } = require('../../services/growthReportService');
+        const report = getGrowthReport(currentBabyId.value);
+        if (report && report.aiSummary) {
+          aiSummary.value = report.aiSummary;
+        }
+      } catch (e) {
+        console.error('[growth-report] Load AI summary failed:', e);
+      } finally {
+        aiSummaryLoading.value = false;
+      }
+    };
+
+    const regenerateAISummary = async () => {
+      if (!currentBabyId.value) return;
+      
+      aiSummaryLoading.value = true;
+      
+      try {
+        const { invalidateAICache } = require('../../db/sqlite');
+        const { generateAISummary } = require('../../services/aiSummaryService');
+        
+        // Invalidate cache
+        invalidateAICache(currentBabyId.value, 'week');
+        
+        // Regenerate
+        aiSummary.value = await generateAISummary(currentBabyId.value, 'week');
+      } catch (e) {
+        console.error('[growth-report] Regenerate AI summary failed:', e);
+      } finally {
+        aiSummaryLoading.value = false;
+      }
+    };
+
     const achievementProgress = computed(() => {
       if (!achievementData.value?.totalCount) return 0;
       return Math.round(
@@ -252,11 +360,13 @@ export default {
       }
 
       loadData();
+      loadAISummary();
 
       // 监听宝宝切换
       uni.$on('baby:switched', (babyId) => {
         currentBabyId.value = babyId;
         loadData();
+        loadAISummary();
       });
     });
 
@@ -283,6 +393,9 @@ export default {
       distWidth,
       switchBaby,
       goBack,
+      aiSummary,
+      aiSummaryLoading,
+      regenerateAISummary
     };
   }
 };
@@ -492,5 +605,139 @@ export default {
   padding: 20rpx;
   font-size: 30rpx;
   font-weight: bold;
+}
+
+/* AI Summary Styles */
+.ai-summary-card {
+  margin-bottom: 120rpx;
+}
+
+.ai-summary-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.skeleton-line {
+  height: 32rpx;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 8rpx;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 40rpx;
+}
+
+.skeleton-tags {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.skeleton-tag {
+  width: 120rpx;
+  height: 48rpx;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 24rpx;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.ai-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.ai-summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.ai-summary-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+}
+
+.ai-section-label {
+  font-size: 26rpx;
+  color: #666;
+  font-weight: bold;
+}
+
+.ai-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.ai-tag {
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+}
+
+.ai-tag-strength {
+  background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+  color: #065F46;
+}
+
+.ai-tag-highlight {
+  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+  color: #92400E;
+}
+
+.ai-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.ai-suggestion-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+}
+
+.ai-suggestion-bullet {
+  color: #8B5CF6;
+  font-size: 28rpx;
+  line-height: 1.4;
+}
+
+.ai-suggestion-text {
+  font-size: 26rpx;
+  color: #555;
+  line-height: 1.4;
+}
+
+.ai-regenerate-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 16rpx;
+}
+
+.btn-regenerate {
+  padding: 12rpx 32rpx;
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  color: white;
+  border-radius: 30rpx;
+  font-size: 26rpx;
+  border: none;
+}
+
+.ai-summary-empty {
+  padding: 20rpx 0;
+  text-align: center;
 }
 </style>

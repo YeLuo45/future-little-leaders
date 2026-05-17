@@ -3,6 +3,7 @@
 
 import { useAchievementStore } from '@/stores/achievementStore'
 import { usePointsStore } from '@/stores/pointsStore'
+import { buildGrowthStats, generateAISummary, analyzeStrengths, generateSuggestions, detectHighlights } from './aiSummaryService.js'
 
 // localStorage keys
 const GROWTH_REPORT_KEY = 'growth_report_data'
@@ -350,7 +351,22 @@ const getGrowthReport = (babyId) => {
     currentWeeklyReport,
     encouragementMessage: generateEncouragement(babyGrowthData)
   }
-  
+
+  // V9: 生成 AI 总结 (异步，不阻塞主流程)
+  generateAISummary(currentBabyId, 'week').then(aiSummary => {
+    report.aiSummary = aiSummary
+  }).catch(e => {
+    console.error('[GrowthReportService] AI summary failed:', e)
+    // Fallback to template
+    const stats = buildGrowthStats(currentBabyId, 'week')
+    report.aiSummary = {
+      summary: generateEncouragement(stats.stats || stats),
+      strengths: analyzeStrengths(stats),
+      suggestions: generateSuggestions(stats),
+      highlights: detectHighlights(stats)
+    }
+  })
+
   return report
 }
 
@@ -441,5 +457,6 @@ export default {
   generateBabyGrowthReport,
   calculateLevelAndExp,
   getLastRefreshTime,
-  shouldRefresh
+  shouldRefresh,
+  generateEncouragement
 }

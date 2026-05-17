@@ -919,3 +919,90 @@ export function getNotificationPreferences(babyId) {
     return []
   }
 }
+
+// ==================== V9 AI Summary Cache CRUD ====================
+
+const AI_CACHE_TABLE = NOTIF_TABLES.AI_SUMMARY_CACHE || 'ai_summary_cache'
+
+/**
+ * Insert AI summary cache
+ */
+export function insertAISummaryCache(babyId, period, summary, strengths, suggestions, highlights) {
+  if (!db) {
+    console.error('[V9] Database not initialized')
+    return { success: false }
+  }
+
+  const id = `ai_cache_${babyId}_${period}_${Date.now()}`
+  const now = new Date().toISOString()
+
+  try {
+    db.run(
+      `INSERT OR REPLACE INTO ${AI_CACHE_TABLE} (id, babyId, period, summary, strengths, suggestions, highlights, generatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, babyId, period, summary, JSON.stringify(strengths), JSON.stringify(suggestions), JSON.stringify(highlights), now]
+    )
+    saveDatabase()
+    return { success: true, id }
+  } catch (e) {
+    console.error('[V9] Insert AI cache failed:', e)
+    return { success: false, error: e.message }
+  }
+}
+
+/**
+ * Get AI summary cache
+ * @param {string} babyId - Baby ID
+ * @param {string} period - 'week' | 'month'
+ * @returns {object|null} - Cached AI summary or null
+ */
+export function getAISummaryCache(babyId, period) {
+  if (!db) {
+    console.error('[V9] Database not initialized')
+    return null
+  }
+
+  try {
+    const results = db.exec(
+      `SELECT * FROM ${AI_CACHE_TABLE} WHERE babyId = ? AND period = ? ORDER BY generatedAt DESC LIMIT 1`,
+      [babyId, period]
+    )
+    if (!results.length || !results[0].values.length) return null
+
+    const columns = results[0].columns
+    const row = results[0].values[0]
+    const obj = {}
+    columns.forEach((col, i) => {
+      obj[col] = row[i]
+    })
+    return obj
+  } catch (e) {
+    console.error('[V9] Get AI cache failed:', e)
+    return null
+  }
+}
+
+/**
+ * Invalidate AI summary cache for a baby
+ * @param {string} babyId - Baby ID
+ * @param {string} period - Optional period, if not provided invalidate all periods
+ * @returns {object} - { success }
+ */
+export function invalidateAICache(babyId, period = null) {
+  if (!db) {
+    console.error('[V9] Database not initialized')
+    return { success: false }
+  }
+
+  try {
+    if (period) {
+      db.run(`DELETE FROM ${AI_CACHE_TABLE} WHERE babyId = ? AND period = ?`, [babyId, period])
+    } else {
+      db.run(`DELETE FROM ${AI_CACHE_TABLE} WHERE babyId = ?`, [babyId])
+    }
+    saveDatabase()
+    return { success: true }
+  } catch (e) {
+    console.error('[V9] Invalidate AI cache failed:', e)
+    return { success: false, error: e.message }
+  }
+}

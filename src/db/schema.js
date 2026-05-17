@@ -17,7 +17,9 @@ export const TABLES = {
   SKILL_NODE_STATS: 'skill_node_stats',
   // V7 Notification tables
   NOTIFICATIONS: 'notifications',
-  NOTIFICATION_PREFERENCES: 'notification_preferences'
+  NOTIFICATION_PREFERENCES: 'notification_preferences',
+  // V9 AI Summary Cache
+  AI_SUMMARY_CACHE: 'ai_summary_cache'
 }
 
 export const SCHEMA = `
@@ -216,6 +218,21 @@ CREATE TABLE IF NOT EXISTS ${TABLES.NOTIFICATION_PREFERENCES} (
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_notifications_recipient ON ${TABLES.NOTIFICATIONS}(recipientId, read);
 CREATE INDEX IF NOT EXISTS idx_notifications_synced ON ${TABLES.NOTIFICATIONS}(synced);
+
+-- V9 AI Summary Cache 表
+CREATE TABLE IF NOT EXISTS ${TABLES.AI_SUMMARY_CACHE} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  period TEXT NOT NULL,
+  summary TEXT,
+  strengths TEXT,
+  suggestions TEXT,
+  highlights TEXT,
+  generatedAt TEXT NOT NULL,
+  UNIQUE(babyId, period)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_summary_baby ON ${TABLES.AI_SUMMARY_CACHE}(babyId, period);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)
