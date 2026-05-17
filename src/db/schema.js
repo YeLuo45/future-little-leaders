@@ -10,7 +10,8 @@ export const TABLES = {
   CHECKINS: 'checkins',
   ACHIEVEMENTS: 'achievements',
   POINTS: 'points',
-  CHANGE_LOG: 'change_log'
+  CHANGE_LOG: 'change_log',
+  FLOWS: 'flows'
 }
 
 export const SCHEMA = `
@@ -106,6 +107,15 @@ CREATE TABLE IF NOT EXISTS ${TABLES.CHANGE_LOG} (
   payload TEXT NOT NULL,
   timestamp TEXT NOT NULL,
   synced INTEGER DEFAULT 0
+);
+
+-- 流程模板表 (V5 新增)
+CREATE TABLE IF NOT EXISTS ${TABLES.FLOWS} (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  data TEXT NOT NULL,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
 );
 
 -- 创建索引

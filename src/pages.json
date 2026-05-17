@@ -321,6 +321,26 @@
 			}
 		},
 		{
+			"path": "pages/task/flow-list",
+			"style": {
+				"navigationBarTitleText": "任务流程",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/task/flow-builder",
+			"style": {
+				"navigationBarTitleText": "流程编辑器",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
 			"path": "pages/reminder/notification-center",
 			"style": {
 				"navigationBarTitleText": "通知中心",
