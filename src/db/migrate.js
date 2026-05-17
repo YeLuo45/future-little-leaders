@@ -363,3 +363,74 @@ export function hasDataToMigrate() {
   }
   return false
 }
+
+/**
+ * V7: Migrate notifications from localStorage to SQLite
+ */
+function migrateNotifications() {
+  try {
+    const stored = uni.getStorageSync('collab_notifications')
+    if (!stored) return { success: true, count: 0 }
+    
+    const notifications = typeof stored === 'string' ? JSON.parse(stored) : stored
+    if (!Array.isArray(notifications)) return { success: true, count: 0 }
+    
+    // Check if already migrated
+    const { getNotifications } = require('./sqlite.js')
+    const existing = getNotifications('__migration_check__', { limit: 1 })
+    
+    let count = 0
+    for (const n of notifications) {
+      const result = require('./sqlite.js').insertNotification({
+        id: n.id,
+        channel: getChannelFromType(n.type),
+        type: n.type,
+        recipientId: n.recipientId,
+        senderId: n.senderId || null,
+        title: n.title,
+        content: n.content,
+        data: n.data || null,
+        priority: n.priority || 'normal',
+        read: n.read ? 1 : 0,
+        createdAt: n.createdAt ? new Date(n.createdAt).toISOString() : new Date().toISOString(),
+        expiresAt: null,
+        synced: 0
+      })
+      if (result.success) count++
+    }
+    
+    console.log(`[V7] Migrated ${count} notifications`)
+    return { success: true, count }
+  } catch (e) {
+    console.error('[V7] Failed to migrate notifications:', e)
+    return { success: false, error: e.message }
+  }
+}
+
+/**
+ * Map old notification type to channel
+ */
+function getChannelFromType(type) {
+  const typeToChannel = {
+    task_assigned: 'task',
+    task_approved: 'task',
+    task_rejected: 'task',
+    task_resubmitted: 'task',
+    achievement_unlocked: 'achievement',
+    points_earned: 'points'
+  }
+  return typeToChannel[type] || 'system'
+}
+
+/**
+ * Run V7 notification migration
+ * @returns {Promise<object>}
+ */
+export async function migrateNotificationsV7() {
+  console.log('[V7] Starting notification migration...')
+  
+  const result = migrateNotifications()
+  
+  console.log('[V7] Notification migration completed:', result)
+  return result
+}

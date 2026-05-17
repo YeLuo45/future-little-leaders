@@ -14,7 +14,10 @@ export const TABLES = {
   FLOWS: 'flows',
   SKILL_TREES: 'skill_trees',
   SKILL_NODES: 'skill_nodes',
-  SKILL_NODE_STATS: 'skill_node_stats'
+  SKILL_NODE_STATS: 'skill_node_stats',
+  // V7 Notification tables
+  NOTIFICATIONS: 'notifications',
+  NOTIFICATION_PREFERENCES: 'notification_preferences'
 }
 
 export const SCHEMA = `
@@ -179,6 +182,40 @@ CREATE INDEX IF NOT EXISTS idx_points_updated ON ${TABLES.POINTS}(updatedAt);
 CREATE INDEX IF NOT EXISTS idx_skill_nodes_tree ON ${TABLES.SKILL_NODES}(treeId);
 CREATE INDEX IF NOT EXISTS idx_skill_node_stats_baby ON ${TABLES.SKILL_NODE_STATS}(babyId);
 CREATE INDEX IF NOT EXISTS idx_skill_node_stats_node ON ${TABLES.SKILL_NODE_STATS}(nodeId);
+
+-- V7 通知表
+CREATE TABLE IF NOT EXISTS ${TABLES.NOTIFICATIONS} (
+  id TEXT PRIMARY KEY,
+  channel TEXT NOT NULL,
+  type TEXT NOT NULL,
+  recipientId TEXT NOT NULL,
+  senderId TEXT,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  data TEXT,
+  priority TEXT DEFAULT 'normal',
+  read INTEGER DEFAULT 0,
+  createdAt TEXT NOT NULL,
+  expiresAt TEXT,
+  synced INTEGER DEFAULT 0
+);
+
+-- V7 通知偏好设置表
+CREATE TABLE IF NOT EXISTS ${TABLES.NOTIFICATION_PREFERENCES} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  channel TEXT NOT NULL,
+  enabled INTEGER DEFAULT 1,
+  quietHoursStart TEXT,
+  quietHoursEnd TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL,
+  UNIQUE(babyId, channel)
+);
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient ON ${TABLES.NOTIFICATIONS}(recipientId, read);
+CREATE INDEX IF NOT EXISTS idx_notifications_synced ON ${TABLES.NOTIFICATIONS}(synced);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)

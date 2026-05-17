@@ -616,3 +616,306 @@ export function recordUnlockAttempt(nodeId, babyId) {
     unlockAttemptTimestamps: JSON.stringify(timestamps)
   })
 }
+
+// ==================== V7 Notification CRUD ====================
+
+import { TABLES as NOTIF_TABLES } from './schema.js'
+
+/**
+ * Insert a notification
+ * @param {object} notification - Notification data
+ * @returns {object} - { success, id }
+ */
+export function insertNotification(notification) {
+  if (!db) {
+    console.error('[V7] Database not initialized')
+    return { success: false }
+  }
+  
+  const id = notification.id || 'notif_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)
+  const now = new Date().toISOString()
+  
+  const data = {
+    id,
+    channel: notification.channel || 'system',
+    type: notification.type || 'unknown',
+    recipientId: notification.recipientId,
+    senderId: notification.senderId || null,
+    title: notification.title || '',
+    content: notification.content || '',
+    data: notification.data ? JSON.stringify(notification.data) : null,
+    priority: notification.priority || 'normal',
+    read: notification.read ? 1 : 0,
+    createdAt: notification.createdAt || now,
+    expiresAt: notification.expiresAt || null,
+    synced: 0
+  }
+  
+  try {
+    db.run(
+      `INSERT INTO ${NOTIF_TABLES.NOTIFICATIONS} (id, channel, type, recipientId, senderId, title, content, data, priority, read, createdAt, expiresAt, synced) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [data.id, data.channel, data.type, data.recipientId, data.senderId, data.title, data.content, data.data, data.priority, data.read, data.createdAt, data.expiresAt, data.synced]
+    )
+    saveDatabase()
+    return { success: true, id }
+  } catch (e) {
+    console.error('[V7] Insert notification failed:', e)
+    return { success: false, error: e.message }
+  }
+}
+
+/**
+ * Get notifications for a recipient
+ * @param {string} recipientId - Recipient babyId
+ * @param {object} options - Query options { channel, read, limit, offset }
+ * @returns {array} - Array of notifications
+ */
+export function getNotifications(recipientId, options = {}) {
+  if (!db) {
+    console.error('[V7] Database not initialized')
+    return []
+  }
+  
+  const { channel, read, limit = 50, offset = 0 } = options
+  
+  let sql = `SELECT * FROM ${NOTIF_TABLES.NOTIFICATIONS} WHERE (recipientId = ? OR recipientId = 'family_broadcast')`
+  const params = [recipientId]
+  
+  if (channel) {
+    sql += ` AND channel = ?`
+    params.push(channel)
+  }
+  
+  if (read !== undefined) {
+    sql += ` AND read = ?`
+    params.push(read ? 1 : 0)
+  }
+  
+  sql += ` ORDER BY createdAt DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`
+  
+  try {
+    const results = db.exec(sql, params)
+    if (!results.length) return []
+    
+    const columns = results[0].columns
+    return results[0].values.map(row => {
+      const obj = {}
+      columns.forEach((col, i) => {
+        if (col === 'data' && row[i]) {
+          try {
+            obj[col] = JSON.parse(row[i])
+          } catch {
+            obj[col] = row[i]
+          }
+        } else {
+          obj[col] = row[i]
+        }
+        if (col === 'read') {
+          obj[col] = row[i] === 1
+        }
+        if (col === 'synced') {
+          obj[col] = row[i] === 1
+        }
+      })
+      return obj
+    })
+  } catch (e) {
+    console.error('[V7] Get notifications failed:', e)
+    return []
+  }
+}
+
+/**
+ * Mark notification as read
+ * @param {string} id - Notification ID
+ * @returns {object} - { success }
+ */
+export function markNotificationRead(id) {
+  if (!db) return { success: false }
+  
+  try {
+    db.run(`UPDATE ${NOTIF_TABLES.NOTIFICATIONS} SET read = 1 WHERE id = ?`, [id])
+    saveDatabase()
+    return { success: true }
+  } catch (e) {
+    console.error('[V7] Mark read failed:', e)
+    return { success: false }
+  }
+}
+
+/**
+ * Mark all notifications as read for a recipient
+ * @param {string} recipientId - Recipient ID
+ * @returns {object} - { success }
+ */
+export function markAllNotificationsRead(recipientId) {
+  if (!db) return { success: false }
+  
+  try {
+    db.run(`UPDATE ${NOTIF_TABLES.NOTIFICATIONS} SET read = 1 WHERE recipientId = ? AND read = 0`, [recipientId])
+    saveDatabase()
+    return { success: true }
+  } catch (e) {
+    console.error('[V7] Mark all read failed:', e)
+    return { success: false }
+  }
+}
+
+/**
+ * Delete a notification
+ * @param {string} id - Notification ID
+ * @returns {object} - { success }
+ */
+export function deleteNotification(id) {
+  if (!db) return { success: false }
+  
+  try {
+    db.run(`DELETE FROM ${NOTIF_TABLES.NOTIFICATIONS} WHERE id = ?`, [id])
+    saveDatabase()
+    return { success: true }
+  } catch (e) {
+    console.error('[V7] Delete notification failed:', e)
+    return { success: false }
+  }
+}
+
+/**
+ * Get unread count for a recipient
+ * @param {string} recipientId - Recipient ID
+ * @param {string} channel - Optional channel filter
+ * @returns {number} - Unread count
+ */
+export function getUnreadNotificationCount(recipientId, channel = null) {
+  if (!db) return 0
+  
+  let sql = `SELECT COUNT(*) as cnt FROM ${NOTIF_TABLES.NOTIFICATIONS} WHERE (recipientId = ? OR recipientId = 'family_broadcast') AND read = 0`
+  const params = [recipientId]
+  
+  if (channel) {
+    sql += ` AND channel = ?`
+    params.push(channel)
+  }
+  
+  try {
+    const results = db.exec(sql, params)
+    if (!results.length) return 0
+    return results[0].values[0][0] || 0
+  } catch (e) {
+    console.error('[V7] Get unread count failed:', e)
+    return 0
+  }
+}
+
+/**
+ * Get unread counts grouped by channel
+ * @param {string} recipientId - Recipient ID
+ * @returns {object} - { channel: count }
+ */
+export function getChannelUnreadCounts(recipientId) {
+  if (!db) return {}
+  
+  const sql = `SELECT channel, COUNT(*) as cnt FROM ${NOTIF_TABLES.NOTIFICATIONS} WHERE (recipientId = ? OR recipientId = 'family_broadcast') AND read = 0 GROUP BY channel`
+  
+  try {
+    const results = db.exec(sql, [recipientId])
+    if (!results.length) return {}
+    
+    const counts = {}
+    results[0].values.forEach(row => {
+      counts[row[0]] = row[1]
+    })
+    return counts
+  } catch (e) {
+    console.error('[V7] Get channel counts failed:', e)
+    return {}
+  }
+}
+
+/**
+ * Update notification preference
+ * @param {string} babyId - Baby ID
+ * @param {string} channel - Channel ID
+ * @param {object} prefs - Preference data { enabled, quietHoursStart, quietHoursEnd }
+ * @returns {object} - { success }
+ */
+export function updateNotificationPreference(babyId, channel, prefs) {
+  if (!db) return { success: false }
+  
+  const id = `${babyId}_${channel}`
+  const now = new Date().toISOString()
+  
+  // Check if exists
+  const existing = db.exec(`SELECT id FROM ${NOTIF_TABLES.NOTIFICATION_PREFERENCES} WHERE id = ?`, [id])
+  
+  if (existing.length && existing[0].values.length > 0) {
+    // Update
+    const sets = ['updatedAt = ?']
+    const params = [now]
+    
+    if (prefs.enabled !== undefined) {
+      sets.push('enabled = ?')
+      params.push(prefs.enabled ? 1 : 0)
+    }
+    if (prefs.quietHoursStart !== undefined) {
+      sets.push('quietHoursStart = ?')
+      params.push(prefs.quietHoursStart)
+    }
+    if (prefs.quietHoursEnd !== undefined) {
+      sets.push('quietHoursEnd = ?')
+      params.push(prefs.quietHoursEnd)
+    }
+    
+    params.push(id)
+    
+    try {
+      db.run(`UPDATE ${NOTIF_TABLES.NOTIFICATION_PREFERENCES} SET ${sets.join(', ')} WHERE id = ?`, params)
+      saveDatabase()
+      return { success: true }
+    } catch (e) {
+      console.error('[V7] Update preference failed:', e)
+      return { success: false }
+    }
+  } else {
+    // Insert
+    try {
+      db.run(
+        `INSERT INTO ${NOTIF_TABLES.NOTIFICATION_PREFERENCES} (id, babyId, channel, enabled, quietHoursStart, quietHoursEnd, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, babyId, channel, prefs.enabled !== false ? 1 : 0, prefs.quietHoursStart || null, prefs.quietHoursEnd || null, now, now]
+      )
+      saveDatabase()
+      return { success: true }
+    } catch (e) {
+      console.error('[V7] Insert preference failed:', e)
+      return { success: false }
+    }
+  }
+}
+
+/**
+ * Get notification preferences for a baby
+ * @param {string} babyId - Baby ID
+ * @returns {array} - Array of preference objects
+ */
+export function getNotificationPreferences(babyId) {
+  if (!db) return []
+  
+  try {
+    const results = db.exec(`SELECT * FROM ${NOTIF_TABLES.NOTIFICATION_PREFERENCES} WHERE babyId = ?`, [babyId])
+    if (!results.length) return []
+    
+    const columns = results[0].columns
+    return results[0].values.map(row => {
+      const obj = {}
+      columns.forEach((col, i) => {
+        obj[col] = row[i]
+        if (col === 'enabled') {
+          obj[col] = row[i] === 1
+        }
+      })
+      return obj
+    })
+  } catch (e) {
+    console.error('[V7] Get preferences failed:', e)
+    return []
+  }
+}
