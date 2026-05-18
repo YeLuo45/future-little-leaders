@@ -584,6 +584,13 @@
         "navigationBarTitleText": "排行榜",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/ai-tutor/tutor",
+      "style": {
+        "navigationBarTitleText": "AI学习管家",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
