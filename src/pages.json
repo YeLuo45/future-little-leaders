@@ -885,6 +885,27 @@
         "navigationBarTitleText": "棋盘游戏",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/micro-learning/daily-cards",
+      "style": {
+        "navigationBarTitleText": "每日学习卡片",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/micro-learning/micro-lessons",
+      "style": {
+        "navigationBarTitleText": "微课堂",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/micro-learning/quick-ref",
+      "style": {
+        "navigationBarTitleText": "知识速查",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
