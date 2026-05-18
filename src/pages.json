@@ -457,6 +457,20 @@
         "navigationBarTitleText": "反馈与建议",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/collaboration/class-feed",
+      "style": {
+        "navigationBarTitleText": "班级动态",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/collaboration/chat",
+      "style": {
+        "navigationBarTitleText": "家校聊天",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
