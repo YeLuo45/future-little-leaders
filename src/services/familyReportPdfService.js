@@ -9,7 +9,7 @@
  * @param {Function} options.onProgress - 进度回调
  * @returns {Promise<string>} - 返回生成的图片临时路径
  */
-async function generateFamilyReportPdf(options) {
+export async function generateFamilyReportPdf(options) {
   const { babyId, reportData, onProgress } = options;
   
   return new Promise(async (resolve, reject) => {
@@ -512,7 +512,7 @@ function generateMockWeeklyData() {
  * 使用 canvas 绘制报告并导出图片
  * 用于实际渲染
  */
-async function renderReportToCanvas(canvasId, reportData) {
+export async function renderReportToCanvas(canvasId, reportData) {
   return new Promise((resolve, reject) => {
     const query = uni.createSelectorQuery().select(`#${canvasId}`);
     query.boundingClientRect(async (rect) => {
@@ -550,7 +550,7 @@ async function renderReportToCanvas(canvasId, reportData) {
 /**
  * 分享报告图片到微信
  */
-async function shareReportToWechat(tempFilePath) {
+export async function shareReportToWechat(tempFilePath) {
   try {
     // 微信分享图片
     if (uni.share) {
