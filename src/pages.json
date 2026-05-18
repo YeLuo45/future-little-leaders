@@ -382,14 +382,35 @@
 				"navigationStyle": "custom"
 			}
 		},
-		{
-			"path": "pages/reward/exchange-records",
-			"style": {
-				"navigationBarTitleText": "兑换记录",
-				"navigationStyle": "custom"
-			}
-		},
 	{
+      "path": "pages/reward/exchange-records",
+      "style": {
+        "navigationBarTitleText": "兑换记录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/subscription/vip-center",
+      "style": {
+        "navigationBarTitleText": "VIP中心",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/subscription/points-mall",
+      "style": {
+        "navigationBarTitleText": "积分商城",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/subscription/bounty-board",
+      "style": {
+        "navigationBarTitleText": "悬赏任务",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/family/leaderboard",
       "style": {
         "navigationBarTitleText": "家庭排行榜",

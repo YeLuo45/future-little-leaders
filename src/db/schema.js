@@ -49,7 +49,13 @@ export const TABLES = {
   READING_NOTES: 'reading_notes',
   READING_TESTS: 'reading_tests',
   READING_CHALLENGES: 'reading_challenges',
-  READING_CHALLENGE_PROGRESS: 'reading_challenge_progress'
+  READING_CHALLENGE_PROGRESS: 'reading_challenge_progress',
+  // V56 Subscription & Rewards tables
+  VIP_SUBSCRIPTIONS: 'vip_subscriptions',
+  BOUNTY_TASKS: 'bounty_tasks',
+  BOUNTY_CLAIMS: 'bounty_claims',
+  LIMITED_REWARDS: 'limited_rewards',
+  LIMITED_REWARD_CLAIMS: 'limited_reward_claims'
 }
 
 export const SCHEMA = `
@@ -619,6 +625,83 @@ CREATE INDEX IF NOT EXISTS idx_reading_notes_book ON ${TABLES.READING_NOTES}(boo
 CREATE INDEX IF NOT EXISTS idx_reading_tests_baby ON ${TABLES.READING_TESTS}(babyId);
 CREATE INDEX IF NOT EXISTS idx_challenge_progress_challenge ON ${TABLES.READING_CHALLENGE_PROGRESS}(challengeId);
 CREATE INDEX IF NOT EXISTS idx_challenge_progress_baby ON ${TABLES.READING_CHALLENGE_PROGRESS}(babyId);
+
+-- V56 Subscription & Rewards tables
+-- VIP Subscriptions Table
+CREATE TABLE IF NOT EXISTS ${TABLES.VIP_SUBSCRIPTIONS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  planId TEXT NOT NULL,
+  planName TEXT NOT NULL,
+  startAt TEXT NOT NULL,
+  expiresAt TEXT NOT NULL,
+  status TEXT DEFAULT 'active',
+  autoRenew INTEGER DEFAULT 1,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- Bounty Tasks Table
+CREATE TABLE IF NOT EXISTS ${TABLES.BOUNTY_TASKS} (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  bountyType TEXT NOT NULL,
+  points INTEGER NOT NULL,
+  status TEXT DEFAULT 'available',
+  claimantCount INTEGER DEFAULT 0,
+  completionCount INTEGER DEFAULT 0,
+  expiresAt TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- Bounty Claims Table
+CREATE TABLE IF NOT EXISTS ${TABLES.BOUNTY_CLAIMS} (
+  id TEXT PRIMARY KEY,
+  taskId TEXT NOT NULL,
+  babyId TEXT NOT NULL,
+  claimedAt TEXT NOT NULL,
+  status TEXT DEFAULT 'in_progress',
+  completedAt TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- Limited Rewards Table
+CREATE TABLE IF NOT EXISTS ${TABLES.LIMITED_REWARDS} (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  rewardType TEXT NOT NULL,
+  points INTEGER NOT NULL,
+  status TEXT DEFAULT 'active',
+  startAt TEXT,
+  endAt TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- Limited Reward Claims Table
+CREATE TABLE IF NOT EXISTS ${TABLES.LIMITED_REWARD_CLAIMS} (
+  id TEXT PRIMARY KEY,
+  rewardId TEXT NOT NULL,
+  babyId TEXT NOT NULL,
+  claimedAt TEXT NOT NULL,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- V56 Indexes
+CREATE INDEX IF NOT EXISTS idx_vip_subscriptions_baby ON ${TABLES.VIP_SUBSCRIPTIONS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_vip_subscriptions_status ON ${TABLES.VIP_SUBSCRIPTIONS}(status);
+CREATE INDEX IF NOT EXISTS idx_bounty_tasks_status ON ${TABLES.BOUNTY_TASKS}(status);
+CREATE INDEX IF NOT EXISTS idx_bounty_tasks_type ON ${TABLES.BOUNTY_TASKS}(bountyType);
+CREATE INDEX IF NOT EXISTS idx_bounty_claims_task ON ${TABLES.BOUNTY_CLAIMS}(taskId);
+CREATE INDEX IF NOT EXISTS idx_bounty_claims_baby ON ${TABLES.BOUNTY_CLAIMS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_limited_rewards_status ON ${TABLES.LIMITED_REWARDS}(status);
+CREATE INDEX IF NOT EXISTS idx_limited_reward_claims_reward ON ${TABLES.LIMITED_REWARD_CLAIMS}(rewardId);
+CREATE INDEX IF NOT EXISTS idx_limited_reward_claims_baby ON ${TABLES.LIMITED_REWARD_CLAIMS}(babyId);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)
