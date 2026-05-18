@@ -126,6 +126,36 @@ export const formatTransferDesc = (record) => {
   return record.reason || '积分变动'
 }
 
+// 获取家庭成员（从babyStore获取宝宝数据）
+export const getFamilyMembers = () => {
+  try {
+    // 简单返回本地存储的宝宝列表作为家庭成员
+    const babies = uni.getStorageSync('babies') || '[]'
+    return JSON.parse(babies)
+  } catch (e) {
+    return []
+  }
+}
+
+// 获取当前家庭成员ID（返回当前选中的宝宝ID）
+export const getCurrentMemberId = () => {
+  try {
+    return uni.getStorageSync('current_baby_id') || ''
+  } catch (e) {
+    return ''
+  }
+}
+
+// 检查是否已加入家庭（通过是否有家庭积分池记录判断）
+export const hasJoinedFamily = () => {
+  try {
+    const balance = uni.getStorageSync('family_points_pool')
+    return balance !== '' && balance !== null
+  } catch (e) {
+    return false
+  }
+}
+
 export default {
   getFamilyPoolBalance,
   setFamilyPoolBalance,
