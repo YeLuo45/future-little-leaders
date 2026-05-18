@@ -761,6 +761,27 @@
       }
     },
     {
+      "path": "pages/wellness/sleep-tracker",
+      "style": {
+        "navigationBarTitleText": "睡眠追踪",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/wellness/sleep-report",
+      "style": {
+        "navigationBarTitleText": "睡眠报告",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/wellness/habits",
+      "style": {
+        "navigationBarTitleText": "健康习惯",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/science-lab/virtual-lab",
       "style": {
         "navigationBarTitleText": "虚拟实验室",
