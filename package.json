@@ -20,7 +20,9 @@
     "build:mp-qq": "uni build -p mp-qq",
     "build:mp-kuaishou": "uni build -p mp-kuaishou",
     "build:mp-lark": "uni build -p mp-lark",
-    "compress-images": "node src/static/fix-images.js"
+    "compress-images": "node src/static/fix-images.js",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "keywords": [],
   "author": "",
