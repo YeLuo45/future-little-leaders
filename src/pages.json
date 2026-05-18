@@ -626,6 +626,13 @@
         "navigationBarTitleText": "设备详情",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/widget-config/widget-setup",
+      "style": {
+        "navigationBarTitleText": "小部件设置",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
