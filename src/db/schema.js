@@ -42,7 +42,14 @@ export const TABLES = {
   EMOTION_JOURNALS: 'emotion_journals',
   EMOTION_RECORDS: 'emotion_records',
   EMOTION_TRAINING_PROGRESS: 'emotion_training_progress',
-  RELAXATION_SESSIONS: 'relaxation_sessions'
+  RELAXATION_SESSIONS: 'relaxation_sessions',
+  // V46 Reading Tracker tables
+  READING_BOOKS: 'reading_books',
+  READING_LOGS: 'reading_logs',
+  READING_NOTES: 'reading_notes',
+  READING_TESTS: 'reading_tests',
+  READING_CHALLENGES: 'reading_challenges',
+  READING_CHALLENGE_PROGRESS: 'reading_challenge_progress'
 }
 
 export const SCHEMA = `
@@ -520,6 +527,98 @@ CREATE INDEX IF NOT EXISTS idx_emotion_journals_created ON ${TABLES.EMOTION_JOUR
 CREATE INDEX IF NOT EXISTS idx_emotion_records_baby ON ${TABLES.EMOTION_RECORDS}(babyId);
 CREATE INDEX IF NOT EXISTS idx_training_progress_baby ON ${TABLES.EMOTION_TRAINING_PROGRESS}(babyId);
 CREATE INDEX IF NOT EXISTS idx_relaxation_sessions_baby ON ${TABLES.RELAXATION_SESSIONS}(babyId);
+
+-- V46 阅读追踪表
+CREATE TABLE IF NOT EXISTS ${TABLES.READING_BOOKS} (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  author TEXT,
+  cover TEXT,
+  type TEXT,
+  difficulty INTEGER DEFAULT 1,
+  ageGroup TEXT,
+  pages INTEGER DEFAULT 0,
+  description TEXT,
+  tags TEXT,
+  recommended INTEGER DEFAULT 0,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.READING_LOGS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  bookId TEXT,
+  bookTitle TEXT,
+  date TEXT NOT NULL,
+  pagesRead INTEGER DEFAULT 0,
+  duration INTEGER DEFAULT 0,
+  startPage INTEGER DEFAULT 0,
+  endPage INTEGER DEFAULT 0,
+  note TEXT,
+  createdAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.READING_NOTES} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  bookId TEXT,
+  bookTitle TEXT,
+  chapter TEXT,
+  content TEXT NOT NULL,
+  mood TEXT,
+  createdAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.READING_TESTS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  bookId TEXT,
+  bookTitle TEXT,
+  questions TEXT,
+  answers TEXT,
+  correctCount INTEGER DEFAULT 0,
+  totalCount INTEGER DEFAULT 0,
+  score INTEGER DEFAULT 0,
+  completedAt TEXT,
+  createdAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.READING_CHALLENGES} (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  type TEXT NOT NULL,
+  targetDays INTEGER DEFAULT 0,
+  targetBooks INTEGER DEFAULT 0,
+  targetPages INTEGER DEFAULT 0,
+  targetMinutes INTEGER DEFAULT 0,
+  points INTEGER DEFAULT 0,
+  startDate TEXT,
+  endDate TEXT,
+  status TEXT DEFAULT 'active',
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.READING_CHALLENGE_PROGRESS} (
+  id TEXT PRIMARY KEY,
+  challengeId TEXT NOT NULL,
+  babyId TEXT NOT NULL,
+  currentValue INTEGER DEFAULT 0,
+  joinedAt TEXT,
+  completed INTEGER DEFAULT 0,
+  completedAt TEXT,
+  createdAt TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_reading_logs_baby ON ${TABLES.READING_LOGS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_reading_logs_date ON ${TABLES.READING_LOGS}(date);
+CREATE INDEX IF NOT EXISTS idx_reading_notes_baby ON ${TABLES.READING_NOTES}(babyId);
+CREATE INDEX IF NOT EXISTS idx_reading_notes_book ON ${TABLES.READING_NOTES}(bookId);
+CREATE INDEX IF NOT EXISTS idx_reading_tests_baby ON ${TABLES.READING_TESTS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_challenge_progress_challenge ON ${TABLES.READING_CHALLENGE_PROGRESS}(challengeId);
+CREATE INDEX IF NOT EXISTS idx_challenge_progress_baby ON ${TABLES.READING_CHALLENGE_PROGRESS}(babyId);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)

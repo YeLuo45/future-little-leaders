@@ -696,6 +696,27 @@
         "navigationBarTitleText": "放松练习",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/reading/book-library",
+      "style": {
+        "navigationBarTitleText": "书籍库",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/reading/reading-log",
+      "style": {
+        "navigationBarTitleText": "阅读打卡",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/reading/challenges",
+      "style": {
+        "navigationBarTitleText": "阅读挑战",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
