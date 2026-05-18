@@ -229,6 +229,16 @@ export const isOwner = () => {
   }
 }
 
+// 生成邀请码
+export const generateInvite = () => {
+  return Math.random().toString(36).substring(2, 8).toUpperCase()
+}
+
+// 获取角色信息
+export const getRoleInfo = (role) => {
+  return FAMILY_ROLES[role] || { icon: '👤', label: '未知' }
+}
+
 export default {
   FAMILY_ROLES,
   initFamily,
@@ -246,5 +256,7 @@ export default {
   getFamilyMembers,
   getCurrentMemberId,
   hasJoinedFamily,
-  isOwner
+  isOwner,
+  generateInvite,
+  getRoleInfo
 }
