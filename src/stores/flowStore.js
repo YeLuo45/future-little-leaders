@@ -9,7 +9,8 @@ export const NODE_TYPES = {
   exercise:  { icon: '🏃', label: '运动任务',   color: '#F59E0B' },
   habit:     { icon: '🌱', label: '习惯养成',   color: '#8B5CF6' },
   condition: { icon: '🔀', label: '条件分支',   color: '#EC4899' },
-  'ai-adjust': { icon: '🧙', label: 'AI难度调整', color: '#8B5CF6' }
+  'ai-adjust': { icon: '🧙', label: 'AI难度调整', color: '#8B5CF6' },
+  scheduled: { icon: '⏰', label: '定时提醒',   color: '#1890FF' }
 }
 
 // localStorage key for flows
@@ -181,6 +182,19 @@ export const useFlowStore = defineStore('flow', () => {
         mode: 'adaptive',
         threshold: 60,
         step: 1
+      }
+    }
+
+    // 定时提醒节点默认配置
+    if (type === 'scheduled') {
+      defaultConfig = {
+        title: nodeType.label,
+        description: '定时提醒任务执行',
+        cycle: 'daily',
+        weekdays: [],
+        timeOfDay: '09:00',
+        reminderTitle: '',
+        reminderContent: ''
       }
     }
 

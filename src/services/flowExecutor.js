@@ -338,7 +338,8 @@ class FlowExecutor {
       case 'checkin':
       case 'study':
       case 'exercise':
-      case 'habit': {
+      case 'habit':
+      case 'scheduled': {
         const taskData = {
           title: node.config?.title || node.label,
           description: node.config?.description || '',
@@ -356,6 +357,29 @@ class FlowExecutor {
         } catch (e) {
           console.warn('[FlowExecutor] createTask failed:', e)
         }
+        
+        // scheduled 节点额外注册调度
+        if (node.type === 'scheduled') {
+          try {
+            const FlowScheduler = require('./flowScheduler')
+            if (FlowScheduler && FlowScheduler.registerFlowSchedule) {
+              FlowScheduler.registerFlowSchedule(
+                this.currentFlowId,
+                node.id,
+                {
+                  cycle: node.config?.cycle || 'daily',
+                  weekdays: node.config?.weekdays || [],
+                  timeOfDay: node.config?.timeOfDay || null
+                },
+                { label: node.label, title: node.config?.title, description: node.config?.description }
+              )
+              console.log('[FlowExecutor] Scheduled node registered:', node.id)
+            }
+          } catch (e) {
+            console.warn('[FlowExecutor] FlowScheduler not available:', e.message)
+          }
+        }
+        
         return { context: { _lastNodeType: node.type, _lastNodeLabel: node.label } }
       }
 
