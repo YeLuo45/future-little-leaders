@@ -654,6 +654,27 @@
         "navigationBarTitleText": "学习进度",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/emotion-training/emotion-recognition",
+      "style": {
+        "navigationBarTitleText": "情绪识别训练",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/emotion-training/emotion-journal",
+      "style": {
+        "navigationBarTitleText": "情绪日记",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/emotion-training/relaxation",
+      "style": {
+        "navigationBarTitleText": "放松练习",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {

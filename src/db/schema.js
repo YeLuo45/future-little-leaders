@@ -37,7 +37,12 @@ export const TABLES = {
   LEARNING_PATHS: 'learning_paths',
   ASSESSMENTS: 'assessments',
   LEARNING_GOALS: 'learning_goals',
-  COURSE_PROGRESS: 'course_progress'
+  COURSE_PROGRESS: 'course_progress',
+  // V44 Emotion Training tables
+  EMOTION_JOURNALS: 'emotion_journals',
+  EMOTION_RECORDS: 'emotion_records',
+  EMOTION_TRAINING_PROGRESS: 'emotion_training_progress',
+  RELAXATION_SESSIONS: 'relaxation_sessions'
 }
 
 export const SCHEMA = `
@@ -455,6 +460,66 @@ CREATE INDEX IF NOT EXISTS idx_assessments_baby ON ${TABLES.ASSESSMENTS}(babyId)
 CREATE INDEX IF NOT EXISTS idx_learning_paths_baby ON ${TABLES.LEARNING_PATHS}(babyId);
 CREATE INDEX IF NOT EXISTS idx_learning_goals_baby ON ${TABLES.LEARNING_GOALS}(babyId);
 CREATE INDEX IF NOT EXISTS idx_course_progress_baby ON ${TABLES.COURSE_PROGRESS}(babyId);
+
+-- V44 情绪训练表
+CREATE TABLE IF NOT EXISTS ${TABLES.EMOTION_JOURNALS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  emotion TEXT NOT NULL,
+  intensity INTEGER DEFAULT 3,
+  title TEXT,
+  content TEXT,
+  triggers TEXT,
+  thoughts TEXT,
+  behavior TEXT,
+  regulationMethod TEXT,
+  category TEXT,
+  weather TEXT,
+  sleep TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.EMOTION_RECORDS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  emotion TEXT NOT NULL,
+  intensity INTEGER DEFAULT 3,
+  trigger TEXT,
+  recordedAt TEXT NOT NULL,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.EMOTION_TRAINING_PROGRESS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  trainingType TEXT NOT NULL,
+  score INTEGER DEFAULT 0,
+  correctCount INTEGER DEFAULT 0,
+  totalCount INTEGER DEFAULT 0,
+  duration INTEGER DEFAULT 0,
+  completedAt TEXT,
+  createdAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.RELAXATION_SESSIONS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  exerciseId TEXT NOT NULL,
+  exerciseType TEXT NOT NULL,
+  duration INTEGER DEFAULT 0,
+  completed INTEGER DEFAULT 0,
+  feedback TEXT,
+  completedAt TEXT,
+  createdAt TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_emotion_journals_baby ON ${TABLES.EMOTION_JOURNALS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_emotion_journals_created ON ${TABLES.EMOTION_JOURNALS}(createdAt);
+CREATE INDEX IF NOT EXISTS idx_emotion_records_baby ON ${TABLES.EMOTION_RECORDS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_training_progress_baby ON ${TABLES.EMOTION_TRAINING_PROGRESS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_relaxation_sessions_baby ON ${TABLES.RELAXATION_SESSIONS}(babyId);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)
