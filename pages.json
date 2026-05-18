@@ -251,6 +251,34 @@
 					"titleNView": false
 				}
 			}
+		},
+		{
+			"path": "pages/academy/home",
+			"style": {
+				"navigationBarTitleText": "家长成长学院",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/academy/article",
+			"style": {
+				"navigationBarTitleText": "知识库",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/academy/course",
+			"style": {
+				"navigationBarTitleText": "视频课程",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/academy/qa",
+			"style": {
+				"navigationBarTitleText": "专家问答",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
