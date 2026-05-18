@@ -1,36 +1,62 @@
 <template>
-  <view 
+  <view
     class="flow-node"
-    :class="{ 'selected': isSelected, 'connecting': isConnecting }"
+    :class="{ 'selected': isSelected, 'connecting': isConnecting, 'preview-highlight': isPreviewHighlighted }"
     :style="nodeStyle"
     @mousedown="onMouseDown"
     @touchstart="onTouchStart"
   >
+    <!-- Preview glow animation -->
+    <view v-if="isPreviewHighlighted" class="preview-glow"></view>
+
     <!-- Drag handle -->
     <view class="node-drag-handle">
       <text class="drag-icon">⋮⋮</text>
     </view>
-    
+
     <!-- Node content -->
     <view class="node-content">
       <text class="node-icon">{{ nodeIcon }}</text>
       <text class="node-label">{{ nodeLabel }}</text>
     </view>
-    
+
+    <!-- Condition node: dual output ports -->
+    <template v-if="node.type === 'condition'">
+      <!-- True port (left) -->
+      <view
+        class="node-port output-port true-port"
+        :style="truePortStyle"
+        @mousedown.stop="onTruePortMouseDown"
+        @touchstart.stop="onTruePortTouchStart"
+      >
+        <text class="port-label">T</text>
+      </view>
+      <!-- False port (right) -->
+      <view
+        class="node-port output-port false-port"
+        :style="falsePortStyle"
+        @mousedown.stop="onFalsePortMouseDown"
+        @touchstart.stop="onFalsePortTouchStart"
+      >
+        <text class="port-label">F</text>
+      </view>
+    </template>
+    <template v-else>
+      <!-- Default output port (bottom center) -->
+      <view
+        class="node-port output-port"
+        :style="outputPortStyle"
+        @mousedown.stop="onOutputPortMouseDown"
+        @touchstart.stop="onOutputPortTouchStart"
+      ></view>
+    </template>
+
     <!-- Input port (top) -->
-    <view 
+    <view
       class="node-port input-port"
       :style="inputPortStyle"
       @mousedown.stop="onInputPortMouseDown"
       @touchstart.stop="onInputPortTouchStart"
-    ></view>
-    
-    <!-- Output port (bottom) -->
-    <view 
-      class="node-port output-port"
-      :style="outputPortStyle"
-      @mousedown.stop="onOutputPortMouseDown"
-      @touchstart.stop="onOutputPortTouchStart"
     ></view>
   </view>
 </template>
@@ -53,10 +79,14 @@ export default {
     isConnecting: {
       type: Boolean,
       default: false
+    },
+    isPreviewHighlighted: {
+      type: Boolean,
+      default: false
     }
   },
-  
-  emits: ['select', 'dragstart', 'portdragstart', 'inputportdragstart'],
+
+  emits: ['select', 'dragstart', 'portdragstart', 'inputportdragstart', 'trueportdragstart', 'falseportdragstart'],
   
   computed: {
     nodeTypeConfig() {
@@ -92,6 +122,24 @@ export default {
       return {
         backgroundColor: this.nodeTypeConfig.color,
         borderColor: this.nodeTypeConfig.color
+      }
+    },
+
+    truePortStyle() {
+      return {
+        backgroundColor: '#22c55e',
+        borderColor: '#22c55e',
+        left: '8px',
+        transform: 'none'
+      }
+    },
+
+    falsePortStyle() {
+      return {
+        backgroundColor: '#ef4444',
+        borderColor: '#ef4444',
+        right: '8px',
+        transform: 'none'
       }
     }
   },
@@ -153,6 +201,28 @@ export default {
         portType: 'input',
         event: e
       })
+    },
+
+    // True port (condition node)
+    onTruePortMouseDown(e) {
+      e.stopPropagation()
+      this.$emit('trueportdragstart', { nodeId: this.node.id, portType: 'true', event: e })
+    },
+
+    onTruePortTouchStart(e) {
+      e.stopPropagation()
+      this.$emit('trueportdragstart', { nodeId: this.node.id, portType: 'true', event: e })
+    },
+
+    // False port (condition node)
+    onFalsePortMouseDown(e) {
+      e.stopPropagation()
+      this.$emit('falseportdragstart', { nodeId: this.node.id, portType: 'false', event: e })
+    },
+
+    onFalsePortTouchStart(e) {
+      e.stopPropagation()
+      this.$emit('falseportdragstart', { nodeId: this.node.id, portType: 'false', event: e })
     }
   }
 }
@@ -178,6 +248,30 @@ export default {
 
 .flow-node.connecting {
   cursor: crosshair;
+}
+
+/* Preview highlight animation */
+.flow-node.preview-highlight {
+  box-shadow: 0 0 0 3px #3b82f6, 0 0 20px rgba(59, 130, 246, 0.5);
+  transform: scale(1.05);
+  z-index: 100;
+}
+
+.preview-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 16px;
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+  background-size: 300% 300%;
+  animation: previewGlow 1.5s ease infinite;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+@keyframes previewGlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .node-drag-handle {
@@ -243,5 +337,23 @@ export default {
 .input-port:hover,
 .output-port:hover {
   transform: translateX(-50%) scale(1.3);
+}
+
+.true-port,
+.false-port {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.true-port .port-label {
+  color: #fff;
+}
+
+.false-port .port-label {
+  color: #fff;
 }
 </style>

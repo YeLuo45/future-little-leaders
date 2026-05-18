@@ -57,10 +57,13 @@
           :node="node"
           :isSelected="selectedNodeId === node.id"
           :isConnecting="connectingState.isConnecting"
+          :isPreviewHighlighted="previewHighlightNodeId === node.id"
           @select="onNodeSelect"
           @dragstart="onNodeDragStart"
           @portdragstart="onPortDragStart"
           @inputportdragstart="onInputPortDragStart"
+          @trueportdragstart="onTruePortDragStart"
+          @falseportdragstart="onFalsePortDragStart"
         />
       </view>
     </view>
@@ -115,26 +118,30 @@ export default {
       scale: 1,
       translateX: 0,
       translateY: 0,
-      
+
       // Panning state
       isPanning: false,
       panStartX: 0,
       panStartY: 0,
-      
+
       // Node dragging state
       draggingNodeId: null,
       dragStartX: 0,
       dragStartY: 0,
       nodeStartX: 0,
       nodeStartY: 0,
-      
+
       // Connecting state
       connectingState: {
         isConnecting: false,
         sourceNodeId: null,
+        sourcePortType: null, // 'output', 'true', 'false'
         tempX: 0,
         tempY: 0
-      }
+      },
+
+      // Preview highlight state
+      previewHighlightNodeId: null
     }
   },
   
@@ -427,12 +434,47 @@ export default {
       // Convert screen coordinates to canvas coordinates
       const canvasRect = this.$refs.canvasContainer?.getBoundingClientRect()
       if (!canvasRect) return null
-      
+
       const canvasX = (x - canvasRect.left - this.translateX) / this.scale
       const canvasY = (y - canvasRect.top - this.translateY) / this.scale
-      
+
       console.log('[V5] Adding node at position:', type, canvasX, canvasY)
       return { type, x: canvasX, y: canvasY }
+    },
+
+    // True port drag (condition node)
+    onTruePortDragStart({ nodeId, portType, event }) {
+      console.log('[V5] True port drag start:', nodeId)
+      const clientX = event.clientX || event.touches[0].clientX
+      const clientY = event.clientY || event.touches[0].clientY
+      const rect = event.target.getBoundingClientRect()
+      this.connectingState = {
+        isConnecting: true,
+        sourceNodeId: nodeId,
+        sourcePortType: 'true',
+        tempX: clientX - rect.left - this.translateX,
+        tempY: clientY - rect.top - this.translateY
+      }
+    },
+
+    // False port drag (condition node)
+    onFalsePortDragStart({ nodeId, portType, event }) {
+      console.log('[V5] False port drag start:', nodeId)
+      const clientX = event.clientX || event.touches[0].clientX
+      const clientY = event.clientY || event.touches[0].clientY
+      const rect = event.target.getBoundingClientRect()
+      this.connectingState = {
+        isConnecting: true,
+        sourceNodeId: nodeId,
+        sourcePortType: 'false',
+        tempX: clientX - rect.left - this.translateX,
+        tempY: clientY - rect.top - this.translateY
+      }
+    },
+
+    // Public: set preview highlight from parent
+    setPreviewHighlight(nodeId) {
+      this.previewHighlightNodeId = nodeId
     }
   }
 }

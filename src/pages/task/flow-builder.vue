@@ -412,11 +412,8 @@ export default {
         clearTimeout(this.previewTimer)
         this.previewTimer = null
       }
-      // Remove all preview highlights
-      this.$emit('update:nodes', this.currentNodes.map(n => ({
-        ...n,
-        config: { ...n.config, _preview: false }
-      })))
+      // Clear highlight via FlowEditor ref
+      this.$refs.flowEditor?.setPreviewHighlight(null)
     },
 
     highlightNextPreviewNode() {
@@ -424,17 +421,15 @@ export default {
         this.showToast('预览结束', 'info')
         this.isPreviewing = false
         this.executionStatus = 'completed'
+        this.$refs.flowEditor?.setPreviewHighlight(null)
         return
       }
       const nodeId = this.previewNodeIds[this.previewIndex]
       const node = this.currentNodes.find(n => n.id === nodeId)
       if (node) {
         this.currentPreviewNodeName = node.config?.title || node.label || node.type
-        // Update nodes with preview highlight
-        this.$emit('update:nodes', this.currentNodes.map(n => ({
-          ...n,
-          config: { ...n.config, _preview: n.id === nodeId }
-        })))
+        // Use FlowEditor ref to set preview highlight
+        this.$refs.flowEditor?.setPreviewHighlight(nodeId)
       }
       this.previewIndex++
       this.previewTimer = setTimeout(() => this.highlightNextPreviewNode(), 400)
