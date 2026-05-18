@@ -330,16 +330,26 @@
 				}
 			}
 		},
-		{
-			"path": "pages/task/flow-builder",
-			"style": {
-				"navigationBarTitleText": "流程编辑器",
-				"navigationStyle": "custom",
-				"app-plus": {
-					"titleNView": false
-				}
-			}
-		},
+{
+      "path": "pages/task/flow-builder",
+      "style": {
+        "navigationBarTitleText": "流程编辑器",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/task/flow-templates",
+      "style": {
+        "navigationBarTitleText": "模板市场",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
 		{
 			"path": "pages/reminder/notification-center",
 			"style": {
