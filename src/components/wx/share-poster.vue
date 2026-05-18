@@ -242,7 +242,7 @@ const generatePoster = async () => {
       ctx.fillStyle = '#666'
       achievements.slice(0, 3).forEach((ach, index) => {
         const y = startY + 55 + index * 18
-        ctx.fillText(`• ${ach.name || ach.title || '成就'}", cardPadding + 15, y)
+        ctx.fillText(`• ${ach.name || ach.title || '成就'}`, cardPadding + 15, y)
       })
     } else {
       ctx.font = '14px sans-serif'
