@@ -19,7 +19,10 @@ export const TABLES = {
   NOTIFICATIONS: 'notifications',
   NOTIFICATION_PREFERENCES: 'notification_preferences',
   // V9 AI Summary Cache
-  AI_SUMMARY_CACHE: 'ai_summary_cache'
+  AI_SUMMARY_CACHE: 'ai_summary_cache',
+  // V12 Reward Shop tables
+  REWARD_ITEMS: 'reward_items',
+  EXCHANGE_RECORDS: 'exchange_records'
 }
 
 export const SCHEMA = `
@@ -233,6 +236,40 @@ CREATE TABLE IF NOT EXISTS ${TABLES.AI_SUMMARY_CACHE} (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ai_summary_baby ON ${TABLES.AI_SUMMARY_CACHE}(babyId, period);
+
+-- V12 积分商城商品表
+CREATE TABLE IF NOT EXISTS ${TABLES.REWARD_ITEMS} (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  category TEXT NOT NULL,
+  pointsCost INTEGER NOT NULL,
+  stock INTEGER DEFAULT -1,
+  icon TEXT,
+  active INTEGER DEFAULT 1,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- V12 积分商城兑换记录表
+CREATE TABLE IF NOT EXISTS ${TABLES.EXCHANGE_RECORDS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  rewardItemId TEXT NOT NULL,
+  rewardItemName TEXT NOT NULL,
+  rewardItemIcon TEXT,
+  pointsCost INTEGER NOT NULL,
+  status TEXT DEFAULT 'completed',
+  exchangedAt TEXT NOT NULL,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_reward_items_category ON ${TABLES.REWARD_ITEMS}(category);
+CREATE INDEX IF NOT EXISTS idx_reward_items_active ON ${TABLES.REWARD_ITEMS}(active);
+CREATE INDEX IF NOT EXISTS idx_exchange_records_baby ON ${TABLES.EXCHANGE_RECORDS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_exchange_records_exchanged ON ${TABLES.EXCHANGE_RECORDS}(exchangedAt DESC);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)

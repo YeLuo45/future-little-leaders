@@ -356,6 +356,34 @@
 				"navigationBarTitleText": "通知中心",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/reward/reward-shop",
+			"style": {
+				"navigationBarTitleText": "积分商城",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/reward/reward-detail",
+			"style": {
+				"navigationBarTitleText": "商品详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/reward/exchange-records",
+			"style": {
+				"navigationBarTitleText": "兑换记录",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/family/leaderboard",
+			"style": {
+				"navigationBarTitleText": "家庭排行榜",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
