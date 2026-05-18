@@ -591,6 +591,20 @@
         "navigationBarTitleText": "AI学习管家",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/data-export/export-wizard",
+      "style": {
+        "navigationBarTitleText": "数据导出",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/data-export/achievement-receipt",
+      "style": {
+        "navigationBarTitleText": "成就凭证",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
