@@ -15,6 +15,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: https://yeluo45.github.io/future-little-leaders/
     steps:
       - uses: actions/checkout@v4
         with:
