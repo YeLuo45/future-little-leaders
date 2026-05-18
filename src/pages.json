@@ -738,6 +738,27 @@
         "navigationBarTitleText": "知识分享",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/activity-tracker/activity-log",
+      "style": {
+        "navigationBarTitleText": "运动打卡",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/activity-tracker/sports-challenges",
+      "style": {
+        "navigationBarTitleText": "运动挑战",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/activity-tracker/health-report",
+      "style": {
+        "navigationBarTitleText": "健康报告",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
