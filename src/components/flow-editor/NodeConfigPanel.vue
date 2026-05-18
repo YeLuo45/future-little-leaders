@@ -55,9 +55,18 @@
         <text class="field-label" style="margin-top:12px;">触发阈值 (%)</text>
         <input class="field-input" type="number" v-model.number="localNode.config.threshold" placeholder="60" @blur="onFieldChange" />
 
+        <text class="field-label" style="margin-top:12px;">难度调整步长</text>
+        <input class="field-input" type="number" v-model.number="localNode.config.step" placeholder="1" min="1" max="2" @blur="onFieldChange" />
+
         <view class="ai-preview">
           <text class="ai-icon">🧙</text>
-          <text class="ai-hint">{{ aiHint }}</text>
+          <view class="ai-hint-box">
+            <text class="ai-hint">{{ aiHint }}</text>
+            <text class="ai-reason" v-if="previewResult">推荐：{{ previewResult.suggestion }} | {{ previewResult.reason }}</text>
+            <text class="ai-dimension" v-if="previewResult && previewResult.dimensionAnalysis">
+              准确率：{{ previewResult.dimensionAnalysis.avgAccuracy }}% | 趋势：{{ previewResult.dimensionAnalysis.overallTrend }}
+            </text>
+          </view>
         </view>
       </view>
 
@@ -73,6 +82,7 @@
 <script>
 import { NODE_TYPES } from '../../stores/flowStore.js'
 import { useFlowStore } from '../../stores/flowStore.js'
+import { preview } from '../../services/aiAdjustService.js'
 
 export default {
   name: 'NodeConfigPanel',
@@ -90,7 +100,8 @@ export default {
     return {
       localNode: null,
       conditionTypes: ['accuracy', 'streak', 'time', 'score', 'always'],
-      aiModes: ['adaptive', 'easier', 'harder']
+      aiModes: ['adaptive', 'easier', 'harder'],
+      previewResult: null
     }
   },
 
@@ -121,9 +132,9 @@ export default {
     aiHint() {
       const mode = this.localNode?.config?.mode || 'adaptive'
       const threshold = this.localNode?.config?.threshold || 60
-      if (mode === 'easier') return `难度降低 ${threshold}%`
-      if (mode === 'harder') return `难度提高 ${threshold}%`
-      return `正确率<${threshold}%时降低难度`
+      if (mode === 'easier') return `强制降低难度模式`
+      if (mode === 'harder') return `强制提升难度模式`
+      return `准确率<${threshold}%时降低难度，>${threshold + 20}%时提升`
     }
   },
 
@@ -132,8 +143,13 @@ export default {
       handler(newNode) {
         if (newNode) {
           this.localNode = JSON.parse(JSON.stringify(newNode))
+          // AI-adjust 节点加载时刷新预览
+          if (newNode.type === 'ai-adjust') {
+            this.refreshPreview()
+          }
         } else {
           this.localNode = null
+          this.previewResult = null
         }
       },
       immediate: true
@@ -144,7 +160,16 @@ export default {
     onFieldChange() {
       if (this.localNode) {
         this.$emit('update:node', JSON.parse(JSON.stringify(this.localNode)))
+        // AI-adjust 配置变更时刷新预览
+        if (this.localNode.type === 'ai-adjust') {
+          this.refreshPreview()
+        }
       }
+    },
+
+    refreshPreview() {
+      if (!this.localNode || this.localNode.type !== 'ai-adjust') return
+      this.previewResult = preview(this.localNode.config || {})
     },
 
     onConditionTypeChange(e) {
@@ -321,21 +346,40 @@ export default {
 
 .ai-preview {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  margin-top: 12px;
   padding: 10px;
-  background: #f5f3ff;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+.ai-hint-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .ai-icon {
-  font-size: 20px;
+  font-size: 24px;
+  line-height: 1;
 }
 
 .ai-hint {
-  font-size: 13px;
+  font-size: 12px;
   color: #6b21a8;
+  font-weight: 500;
+}
+
+.ai-reason {
+  font-size: 11px;
+  color: #7c3aed;
+}
+
+.ai-dimension {
+  font-size: 10px;
+  color: #8b5cf6;
 }
 
 .node-info {

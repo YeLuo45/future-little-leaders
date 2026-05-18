@@ -6,6 +6,7 @@
 import { useFlowStore } from '../stores/flowStore.js'
 import { useTaskStore } from '../stores/taskStore.js'
 import { useChildStore } from '../stores/childStore.js'
+import { analyze } from './aiAdjustService.js'
 
 // 执行状态
 export const EXEC_STATUS = {
@@ -311,27 +312,27 @@ class FlowExecutor {
       }
 
       case 'ai-adjust': {
-        const mode = node.config.mode || 'adaptive'
-        const threshold = (node.config.threshold || 60) / 100
-        const history = this.context._recentPerformance || []
-        const avgAccuracy = history.length > 0
-          ? history.reduce((s, h) => s + h.accuracy, 0) / history.length
-          : 0.7
-
-        let suggestion = 'keep'
-        if (mode === 'adaptive' && avgAccuracy < threshold) {
-          suggestion = 'easier'
-        } else if (mode === 'adaptive' && avgAccuracy > (threshold + 0.2)) {
-          suggestion = 'harder'
-        } else if (mode === 'easier') {
-          suggestion = 'easier'
-        } else if (mode === 'harder') {
-          suggestion = 'harder'
-        }
+        // 使用完整的自适应难度算法
+        const result = analyze(this.context._recentPerformance || [], node.config || {})
+        const { suggestion, currentLevel, nextLevel, dimensionAnalysis, reason } = result
 
         this.context._aiSuggestion = suggestion
-        console.log('[FlowExecutor] AI adjust:', suggestion, 'avgAccuracy:', avgAccuracy)
-        return { context: { _aiSuggestion: suggestion, _avgAccuracy: avgAccuracy } }
+        this.context._difficultyLevel = nextLevel
+        this.context._aiAnalysis = dimensionAnalysis
+        this.context._aiReason = reason
+
+        console.log('[FlowExecutor] AI adjust:', suggestion, 'level:', currentLevel, '→', nextLevel, '|', reason)
+        if (dimensionAnalysis) {
+          console.log('[FlowExecutor] Dimension analysis:', JSON.stringify(dimensionAnalysis.dimensionTrends))
+        }
+        return { 
+          context: { 
+            _aiSuggestion: suggestion, 
+            _difficultyLevel: nextLevel,
+            _aiAnalysis: dimensionAnalysis,
+            _aiReason: reason
+          } 
+        }
       }
 
       case 'checkin':
