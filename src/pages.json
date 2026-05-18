@@ -378,14 +378,56 @@
 				"navigationStyle": "custom"
 			}
 		},
-		{
-			"path": "pages/family/leaderboard",
-			"style": {
-				"navigationBarTitleText": "家庭排行榜",
-				"navigationStyle": "custom"
-			}
-		}
-	],
+	{
+      "path": "pages/family/leaderboard",
+      "style": {
+        "navigationBarTitleText": "家庭排行榜",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/social/friends",
+      "style": {
+        "navigationBarTitleText": "我的同伴",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/social/add-friend",
+      "style": {
+        "navigationBarTitleText": "添加同伴",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/social/gift-points",
+      "style": {
+        "navigationBarTitleText": "赠送积分",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/social/team-task",
+      "style": {
+        "navigationBarTitleText": "组队任务",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/social/challenge",
+      "style": {
+        "navigationBarTitleText": "成长PK",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/social/friend-detail",
+      "style": {
+        "navigationBarTitleText": "同伴详情",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
 	"tabBar": {
 		"color": "#999999",
 		"selectedColor": "#8477fa",

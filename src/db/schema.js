@@ -22,7 +22,14 @@ export const TABLES = {
   AI_SUMMARY_CACHE: 'ai_summary_cache',
   // V12 Reward Shop tables
   REWARD_ITEMS: 'reward_items',
-  EXCHANGE_RECORDS: 'exchange_records'
+  EXCHANGE_RECORDS: 'exchange_records',
+  // V15 Social tables
+  FRIENDS: 'friends',
+  POINT_GIFTS: 'point_gifts',
+  TEAM_TASKS: 'team_tasks',
+  TEAM_MEMBERS: 'team_members',
+  CHALLENGES: 'challenges',
+  CHALLENGE_PARTICIPANTS: 'challenge_participants'
 }
 
 export const SCHEMA = `
@@ -270,6 +277,88 @@ CREATE INDEX IF NOT EXISTS idx_reward_items_category ON ${TABLES.REWARD_ITEMS}(c
 CREATE INDEX IF NOT EXISTS idx_reward_items_active ON ${TABLES.REWARD_ITEMS}(active);
 CREATE INDEX IF NOT EXISTS idx_exchange_records_baby ON ${TABLES.EXCHANGE_RECORDS}(babyId);
 CREATE INDEX IF NOT EXISTS idx_exchange_records_exchanged ON ${TABLES.EXCHANGE_RECORDS}(exchangedAt DESC);
+
+-- V15 社交功能表
+-- 好友表
+CREATE TABLE IF NOT EXISTS ${TABLES.FRIENDS} (
+  id TEXT PRIMARY KEY,
+  owner_baby_id TEXT NOT NULL,
+  friend_baby_id TEXT NOT NULL,
+  status TEXT DEFAULT 'pending',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- 积分赠送表
+CREATE TABLE IF NOT EXISTS ${TABLES.POINT_GIFTS} (
+  id TEXT PRIMARY KEY,
+  from_baby_id TEXT NOT NULL,
+  to_baby_id TEXT NOT NULL,
+  points INTEGER NOT NULL,
+  message TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- 组队任务表
+CREATE TABLE IF NOT EXISTS ${TABLES.TEAM_TASKS} (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  total_points INTEGER DEFAULT 0,
+  member_count INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'recruiting',
+  start_date TEXT,
+  end_date TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- 组队成员表
+CREATE TABLE IF NOT EXISTS ${TABLES.TEAM_MEMBERS} (
+  id TEXT PRIMARY KEY,
+  team_id TEXT NOT NULL,
+  baby_id TEXT NOT NULL,
+  contribution INTEGER DEFAULT 0,
+  joined_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (team_id) REFERENCES ${TABLES.TEAM_TASKS}(id)
+);
+
+-- 挑战表
+CREATE TABLE IF NOT EXISTS ${TABLES.CHALLENGES} (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  target_value INTEGER NOT NULL,
+  start_date TEXT NOT NULL,
+  end_date TEXT NOT NULL,
+  status TEXT DEFAULT 'active',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- 挑战参与者表
+CREATE TABLE IF NOT EXISTS ${TABLES.CHALLENGE_PARTICIPANTS} (
+  id TEXT PRIMARY KEY,
+  challenge_id TEXT NOT NULL,
+  baby_id TEXT NOT NULL,
+  current_value INTEGER DEFAULT 0,
+  rank INTEGER DEFAULT 0,
+  joined_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (challenge_id) REFERENCES ${TABLES.CHALLENGES}(id)
+);
+
+-- 社交功能索引
+CREATE INDEX IF NOT EXISTS idx_friends_owner ON ${TABLES.FRIENDS}(owner_baby_id);
+CREATE INDEX IF NOT EXISTS idx_friends_friend ON ${TABLES.FRIENDS}(friend_baby_id);
+CREATE INDEX IF NOT EXISTS idx_point_gifts_from ON ${TABLES.POINT_GIFTS}(from_baby_id);
+CREATE INDEX IF NOT EXISTS idx_point_gifts_to ON ${TABLES.POINT_GIFTS}(to_baby_id);
+CREATE INDEX IF NOT EXISTS idx_team_members_team ON ${TABLES.TEAM_MEMBERS}(team_id);
+CREATE INDEX IF NOT EXISTS idx_team_members_baby ON ${TABLES.TEAM_MEMBERS}(baby_id);
+CREATE INDEX IF NOT EXISTS idx_challenge_participants_challenge ON ${TABLES.CHALLENGE_PARTICIPANTS}(challenge_id);
+CREATE INDEX IF NOT EXISTS idx_challenge_participants_baby ON ${TABLES.CHALLENGE_PARTICIPANTS}(baby_id);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)
