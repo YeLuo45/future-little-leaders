@@ -502,6 +502,27 @@
       }
     },
     {
+      "path": "pages/parent-child/activity-list",
+      "style": {
+        "navigationBarTitleText": "亲子活动",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/parent-child/activity-detail",
+      "style": {
+        "navigationBarTitleText": "活动详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/parent-child/my-creations",
+      "style": {
+        "navigationBarTitleText": "我的成果",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/family-ritual/family-ritual",
       "style": {
         "navigationBarTitleText": "家庭仪式",
