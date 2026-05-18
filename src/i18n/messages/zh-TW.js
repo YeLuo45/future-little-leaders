@@ -1,9 +1,9 @@
-// 繁體中文
+// 繁體中文 (台灣)
 export default {
   app: {
     name: '親子任務寶',
     tagline: '今日成長任務完成情況',
-    loading: '載入中...'
+    loading: '加載中...'
   },
   nav: {
     home: '首頁',
@@ -27,7 +27,7 @@ export default {
     name: '任務名稱',
     description: '任務描述',
     tag: '任務標籤',
-    save: '儲存',
+    save: '保存',
     cancel: '取消',
     delete: '刪除',
     complete: '完成',
@@ -80,6 +80,7 @@ export default {
   settings: {
     title: '設定',
     language: '語言',
+    region: '地區',
     theme: '主題',
     darkMode: '深色模式',
     lightMode: '淺色模式',
@@ -87,7 +88,7 @@ export default {
     notifications: '通知',
     about: '關於',
     version: '版本',
-    logout: '登出'
+    logout: '退出登錄'
   },
   sync: {
     syncing: '同步中...',
@@ -103,12 +104,12 @@ export default {
   common: {
     confirm: '確認',
     cancel: '取消',
-    save: '儲存',
+    save: '保存',
     delete: '刪除',
     edit: '編輯',
     success: '成功',
     failed: '失敗',
-    loading: '載入中...',
+    loading: '加載中...',
     noData: '暫無數據',
     retry: '重試'
   },
@@ -127,10 +128,10 @@ export default {
     locked: '未解鎖'
   },
   a11y: {
-    menu: '選單',
+    menu: '菜單',
     close: '關閉',
     open: '打開',
-    loading: '載入中',
+    loading: '加載中',
     error: '錯誤',
     success: '成功',
     navigation: '導航',
@@ -143,5 +144,56 @@ export default {
     hidePassword: '隱藏密碼',
     increaseFontSize: '增大字體',
     decreaseFontSize: '減小字體'
+  },
+  // V37: 地區內容
+  region: {
+    select: '選擇地區',
+    china: '中國',
+    usa: '美國',
+    europe: '歐洲',
+    southeastAsia: '東南亞',
+    tasks: '地區任務',
+    rewards: '地區獎勵',
+    ip联动: 'IP聯動'
+  },
+  // V37: 文化節日
+  festival: {
+    // 中國節日
+    springFestival: '春節',
+    springFestivalDesc: '春節特別任務上線！',
+    lanternFestival: '元宵節',
+    midAutumn: '中秋節',
+    dragonBoat: '端午節',
+    qingming: '清明節',
+    // 西方節日
+    christmas: '聖誕節',
+    christmasDesc: '聖誕快樂！完成節日任務。',
+    thanksgiving: '感恩節',
+    halloween: '萬聖節',
+    easter: '復活節',
+    valentine: '情人節',
+    // 節日主題
+    theme: '節日主題',
+    specialTasks: '節日特別任務',
+    specialRewards: '節日獎勵'
+  },
+  // V37: 課程大綱對齊
+  curriculum: {
+    select: '選擇課程大綱',
+    chinaRjb: '人教版（中國）',
+    chinaSjk: '蘇教版（中國）',
+    usCcss: '美國共同核心標準',
+    ukNational: '英國國家課程',
+    aligned: '已對齊大綱',
+    grade: '年級',
+    subject: '科目'
+  },
+  // V37: 本地化格式
+  locale: {
+    dateFormat: '日期格式',
+    currencyFormat: '貨幣格式',
+    nameOrder: '姓名順序',
+    nameOrderFamilyFirst: '姓在前',
+    nameOrderGivenFirst: '名在前'
   }
 }
