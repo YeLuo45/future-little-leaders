@@ -471,6 +471,20 @@
         "navigationBarTitleText": "家校聊天",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/family/multi-child",
+      "style": {
+        "navigationBarTitleText": "多儿童家庭",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family/sibling-race",
+      "style": {
+        "navigationBarTitleText": "兄弟姐妹竞赛",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
