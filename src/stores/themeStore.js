@@ -6,7 +6,7 @@
 import { reactive, computed } from 'vue';
 
 // 内置主题定义
-const BUILT_IN_THEMES = {
+export const BUILT_IN_THEMES = {
   light: {
     id: 'light',
     name: '默认亮色',
