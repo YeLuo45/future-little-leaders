@@ -48,13 +48,13 @@
 		</view>
 
 		<!-- 通用设置分组 -->
-		<!-- <view class="settings-section" :class="{'dark-mode': isDarkMode}">
+		<view class="settings-section" :class="{'dark-mode': isDarkMode}">
 			<view class="section-title">通用设置</view>
 			
 			<view class="settings-item">
 				<view class="item-left">
 					<view class="item-icon icon-theme" :class="{'dark-mode': isDarkMode}">{{ isDarkMode ? '🌙' : '☀️' }}</view>
-					<text class="item-label">暗色模式</text>
+					<text class="item-label">{{ isDarkMode ? '暗色模式' : '浅色模式' }}</text>
 				</view>
 				<switch :checked="isDarkMode" @change="toggleDarkMode" color="#8477fa" />
 			</view>
@@ -72,10 +72,10 @@
 			<view class="settings-item" @tap="showLanguageOptions">
 				<view class="item-left">
 					<view class="item-icon icon-language" :class="{'dark-mode': isDarkMode}">🌐</view>
-					<text class="item-label">语言设置</text>
+					<text class="item-label">{{ $t('settings.language') }}</text>
 				</view>
 				<view class="item-right">
-					<text class="item-value">{{ currentLanguage }}</text>
+					<text class="item-value">{{ currentLanguageLabel }}</text>
 					<text class="item-arrow">›</text>
 				</view>
 			</view>
@@ -152,28 +152,40 @@
 
 <script>
 	export default {
-		data() {
-			return {
-				isDarkMode: false,
-				currentLanguage: '简体中文',
-				currentFontSize: '标准',
-				cacheSize: '12.5MB',
-				languages: ['简体中文', '繁體中文', 'English'],
-				fontSizes: ['小', '标准', '大', '超大']
+	data() {
+		return {
+			isDarkMode: false,
+			currentLanguageLabel: '简体中文',
+			currentFontSize: '标准',
+			cacheSize: '12.5MB',
+			fontSizes: ['小', '标准', '大', '超大']
+		}
+	},
+	onLoad() {
+		// 从本地存储获取暗色模式设置
+		try {
+			const darkModeSetting = uni.getStorageSync('darkMode');
+			if (darkModeSetting !== '') {
+				this.isDarkMode = darkModeSetting === 'true';
 			}
-		},
-		onLoad() {
-			// 从本地存储获取暗色模式设置
-			try {
-				const darkModeSetting = uni.getStorageSync('darkMode');
-				if (darkModeSetting !== '') {
-					this.isDarkMode = darkModeSetting === 'true';
-				}
-			} catch (e) {
-				console.error('获取暗色模式设置失败', e);
+		} catch (e) {
+			console.error('获取暗色模式设置失败', e);
+		}
+		// 加载语言偏好
+		this.updateLanguageLabel()
+	},
+	methods: {
+		updateLanguageLabel() {
+			const { locale } = this.$options.setup().i18n || {}
+			if (!locale) {
+				const saved = uni.getStorageSync('fll_locale') || 'zh-CN'
+				const labels = { 'zh-CN': '简体中文', 'zh-TW': '繁體中文', en: 'English', 'zh-HK': '廣東話' }
+				this.currentLanguageLabel = labels[saved] || '简体中文'
+				return
 			}
+			const labels = { 'zh-CN': '简体中文', 'zh-TW': '繁體中文', en: 'English', 'zh-HK': '廣東話' }
+			this.currentLanguageLabel = labels[locale.value] || '简体中文'
 		},
-		methods: {
 			/**
 			 * 返回上一页
 			 */
@@ -240,21 +252,33 @@
 				});
 			},
 
-			/**
-			 * 显示语言选项
-			 */
-			showLanguageOptions() {
-				uni.showActionSheet({
-					itemList: this.languages,
-					success: (res) => {
-						this.currentLanguage = this.languages[res.tapIndex];
+		/**
+		 * 显示语言选项
+		 */
+		showLanguageOptions() {
+			const locales = [
+				{ code: 'zh-CN', label: '简体中文' },
+				{ code: 'zh-TW', label: '繁體中文' },
+				{ code: 'en', label: 'English' },
+				{ code: 'zh-HK', label: '廣東話' }
+			]
+			const labels = locales.map(l => l.label)
+			uni.showActionSheet({
+				itemList: labels,
+				success: (res) => {
+					const selected = locales[res.tapIndex]
+					if (selected) {
+						const { setLocale } = require('@/i18n/index.js')
+						setLocale(selected.code)
+						this.currentLanguageLabel = selected.label
 						uni.showToast({
-							title: '语言已设置为：' + this.currentLanguage,
+							title: '语言已切换',
 							icon: 'none'
-						});
+						})
 					}
-				});
-			},
+				}
+			})
+		},
 
 			/**
 			 * 显示字体大小选项

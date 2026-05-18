@@ -1,0 +1,128 @@
+// 繁體中文
+export default {
+  app: {
+    name: '親子任務寶',
+    tagline: '今日成長任務完成情況',
+    loading: '載入中...'
+  },
+  nav: {
+    home: '首頁',
+    task: '任務',
+    achievement: '成就',
+    reward: '獎勵',
+    family: '家庭',
+    settings: '設定'
+  },
+  index: {
+    points: '積分',
+    selectBaby: '選擇寶寶',
+    todayProgress: '今日進度',
+    pendingAudit: '待審核',
+    noTasks: '暫無任務',
+    addFirstTask: '添加第一個任務吧'
+  },
+  task: {
+    add: '添加任務',
+    edit: '編輯任務',
+    name: '任務名稱',
+    description: '任務描述',
+    tag: '任務標籤',
+    save: '儲存',
+    cancel: '取消',
+    delete: '刪除',
+    complete: '完成',
+    recurring: '週期性任務',
+    oneTime: '一次性任務',
+    weekdays: '執行星期',
+    startDate: '開始日期',
+    endDate: '結束日期',
+    reminder: '提醒',
+    noReminder: '不提醒',
+    beforeStart: '開始前',
+    atTime: '準時',
+    afterComplete: '完成後',
+    points: '積分',
+    status: {
+      pending: '待完成',
+      completed: '已完成',
+      audited: '已審核'
+    }
+  },
+  achievement: {
+    title: '成就',
+    unlocked: '已解鎖',
+    locked: '未解鎖',
+    progress: '進度',
+    reward: '獎勵',
+    noAchievements: '暫無成就'
+  },
+  reward: {
+    shop: '積分商城',
+    exchange: '兌換',
+    exchangeRecord: '兌換記錄',
+    points: '積分',
+    insufficient: '積分不足',
+    confirmExchange: '確認兌換',
+    exchangeSuccess: '兌換成功',
+    exchangeFailed: '兌換失敗',
+    stock: '庫存',
+    hot: '熱門',
+    new: '新品'
+  },
+  family: {
+    dashboard: '家庭儀表盤',
+    member: '家庭成員',
+    leaderboard: '排行榜',
+    growthReport: '成長報告',
+    statistics: '統計',
+    addMember: '添加成員'
+  },
+  settings: {
+    title: '設定',
+    language: '語言',
+    theme: '主題',
+    darkMode: '深色模式',
+    lightMode: '淺色模式',
+    notifications: '通知',
+    about: '關於',
+    version: '版本',
+    logout: '登出'
+  },
+  sync: {
+    syncing: '同步中...',
+    synced: '已同步',
+    syncFailed: '同步失敗',
+    conflict: '數據衝突',
+    localVersion: '本地版本',
+    remoteVersion: '遠程版本',
+    keepLocal: '保留本地',
+    keepRemote: '使用遠程',
+    merge: '合併'
+  },
+  common: {
+    confirm: '確認',
+    cancel: '取消',
+    save: '儲存',
+    delete: '刪除',
+    edit: '編輯',
+    success: '成功',
+    failed: '失敗',
+    loading: '載入中...',
+    noData: '暫無數據',
+    retry: '重試'
+  },
+  points: {
+    income: '收入',
+    expense: '支出',
+    balance: '餘額',
+    record: '積分記錄',
+    total: '總積分'
+  },
+  skillTree: {
+    title: '技能樹',
+    level: '等級',
+    progress: '進度',
+    unlock: '解鎖',
+    locked: '未解鎖'
+  }
+}
