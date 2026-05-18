@@ -759,6 +759,27 @@
         "navigationBarTitleText": "健康报告",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/science-lab/virtual-lab",
+      "style": {
+        "navigationBarTitleText": "虚拟实验室",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/science-lab/science-quests",
+      "style": {
+        "navigationBarTitleText": "科学探索",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/science-lab/encyclopedia",
+      "style": {
+        "navigationBarTitleText": "科学百科",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
