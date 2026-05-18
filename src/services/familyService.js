@@ -126,6 +126,65 @@ export const formatTransferDesc = (record) => {
   return record.reason || '积分变动'
 }
 
+// 家庭角色常量
+export const FAMILY_ROLES = {
+  father: { icon: '👨', label: '爸爸' },
+  mother: { icon: '👩', label: '妈妈' },
+  grandfather: { icon: '👴', label: '爷爷' },
+  grandmother: { icon: '👵', label: '奶奶' },
+  other: { icon: '👤', label: '其他' }
+}
+
+// 初始化家庭（创建者）
+export const initFamily = (nickname, role) => {
+  try {
+    const familyId = 'family_' + Date.now()
+    const memberId = 'member_' + Date.now()
+    const familyData = {
+      id: familyId,
+      name: '我的家庭',
+      createdAt: new Date().toISOString(),
+      members: [{
+        id: memberId,
+        nickname,
+        role,
+        isOwner: true,
+        joinedAt: new Date().toISOString()
+      }]
+    }
+    uni.setStorageSync('family_data', JSON.stringify(familyData))
+    uni.setStorageSync('current_member_id', memberId)
+    uni.setStorageSync('family_points_pool', '0')
+    return familyData
+  } catch (e) {
+    throw new Error('创建家庭失败')
+  }
+}
+
+// 加入家庭
+export const joinFamily = (inviteCode, nickname, role) => {
+  try {
+    const stored = uni.getStorageSync('family_data')
+    const familyData = stored ? JSON.parse(stored) : null
+    if (!familyData) throw new Error('家庭不存在')
+    
+    const memberId = 'member_' + Date.now()
+    const member = {
+      id: memberId,
+      nickname,
+      role,
+      isOwner: false,
+      joinedAt: new Date().toISOString()
+    }
+    familyData.members.push(member)
+    uni.setStorageSync('family_data', JSON.stringify(familyData))
+    uni.setStorageSync('current_member_id', memberId)
+    return familyData
+  } catch (e) {
+    throw new Error('加入家庭失败')
+  }
+}
+
 // 获取家庭成员（从babyStore获取宝宝数据）
 export const getFamilyMembers = () => {
   try {
@@ -157,6 +216,9 @@ export const hasJoinedFamily = () => {
 }
 
 export default {
+  FAMILY_ROLES,
+  initFamily,
+  joinFamily,
   getFamilyPoolBalance,
   setFamilyPoolBalance,
   getPoolRecords,
