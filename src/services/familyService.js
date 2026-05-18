@@ -215,6 +215,20 @@ export const hasJoinedFamily = () => {
   }
 }
 
+// 检查当前成员是否为户主
+export const isOwner = () => {
+  try {
+    const stored = uni.getStorageSync('family_data')
+    if (!stored) return false
+    const familyData = JSON.parse(stored)
+    const currentMemberId = uni.getStorageSync('current_member_id') || ''
+    const member = familyData.members.find(m => m.id === currentMemberId)
+    return member ? member.isOwner === true : false
+  } catch (e) {
+    return false
+  }
+}
+
 export default {
   FAMILY_ROLES,
   initFamily,
@@ -228,5 +242,9 @@ export default {
   createSiblingCompetition,
   updateCompetitionScore,
   finishSiblingCompetition,
-  formatTransferDesc
+  formatTransferDesc,
+  getFamilyMembers,
+  getCurrentMemberId,
+  hasJoinedFamily,
+  isOwner
 }
