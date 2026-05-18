@@ -717,6 +717,27 @@
         "navigationBarTitleText": "阅读挑战",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/social-learning/study-groups",
+      "style": {
+        "navigationBarTitleText": "学习小组",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/social-learning/peer-tutoring",
+      "style": {
+        "navigationBarTitleText": "同伴辅导",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/social-learning/sharing",
+      "style": {
+        "navigationBarTitleText": "知识分享",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
