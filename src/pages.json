@@ -605,6 +605,27 @@
         "navigationBarTitleText": "成就凭证",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/smart-home/device-panel",
+      "style": {
+        "navigationBarTitleText": "智能设备",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/smart-home/automation-rules",
+      "style": {
+        "navigationBarTitleText": "自动化规则",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/smart-home/device-detail",
+      "style": {
+        "navigationBarTitleText": "设备详情",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
