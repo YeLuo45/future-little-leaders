@@ -98,6 +98,15 @@
       @clear="clearCanvas"
       @preview="togglePreview"
       @execute="executeFlow"
+      @history="showHistory"
+    />
+
+    <!-- Flow history panel -->
+    <FlowHistory
+      :flowId="currentFlow?.id"
+      :class="{ open: showHistory }"
+      @close="showHistory = false"
+      ref="flowHistory"
     />
     
     <!-- Toast message -->
@@ -111,6 +120,7 @@
 import FlowEditor from '../../components/flow-editor/FlowEditor.vue'
 import NodeConfigPanel from '../../components/flow-editor/NodeConfigPanel.vue'
 import FlowToolbar from '../../components/flow-editor/FlowToolbar.vue'
+import FlowHistory from '../../components/flow-editor/FlowHistory.vue'
 import { useFlowStore, NODE_TYPES } from '../../stores/flowStore.js'
 import { FlowExecutor } from '../../services/flowExecutor.js'
 import { mapState, mapWritableState } from 'pinia'
@@ -121,7 +131,8 @@ export default {
   components: {
     FlowEditor,
     NodeConfigPanel,
-    FlowToolbar
+    FlowToolbar,
+    FlowHistory
   },
   
   data() {
@@ -148,7 +159,9 @@ export default {
       currentPreviewNodeName: '',
       // Branch selection state
       branchSelectionTarget: null,
-      branchSelectionBranch: null
+      branchSelectionBranch: null,
+      // History panel
+      showHistory: false
     }
   },
   
@@ -486,6 +499,49 @@ export default {
     onSelectBranch({ branch, targetNodeId }) {
       // Update the condition node's branch target
       console.log('[V5] Branch selection:', branch, targetNodeId)
+    },
+
+    showHistory() {
+      this.showHistory = !this.showHistory
+    },
+
+    executeFlow() {
+      if (!this.currentFlow || this.currentNodes.length === 0) {
+        this.showToast('请先保存流程', 'warning')
+        return
+      }
+      const executor = new FlowExecutor(this.currentFlow)
+      const startTime = Date.now()
+      this.executionStatus = 'running'
+
+      // Record execution start
+      this.$refs.flowHistory?.recordExecution({
+        flowName: this.flowName,
+        flowId: this.currentFlow.id,
+        startTime,
+        totalNodes: this.currentNodes.length,
+        completedNodes: 0,
+        status: 'running'
+      })
+
+      executor.start()
+
+      // Simulate completion after a delay (actual executor would call callbacks)
+      setTimeout(() => {
+        const endTime = Date.now()
+        this.$refs.flowHistory?.recordExecution({
+          flowName: this.flowName,
+          flowId: this.currentFlow.id,
+          startTime,
+          endTime,
+          totalNodes: this.currentNodes.length,
+          completedNodes: this.currentNodes.length,
+          points: Math.floor(Math.random() * 50) + 10,
+          status: 'completed'
+        })
+        this.executionStatus = 'idle'
+        this.showToast('流程执行完成', 'success')
+      }, 2000)
     }
   }
 }

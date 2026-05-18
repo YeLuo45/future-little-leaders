@@ -23,6 +23,10 @@
         <text>👁️</text>
         <text class="tool-label">{{ isPreviewing ? '停止' : '预览' }}</text>
       </view>
+      <view class="tool-btn" @click="onHistory" title="执行历史">
+        <text>📊</text>
+        <text class="tool-label">历史</text>
+      </view>
       <view class="tool-btn" @click="onExecute" title="执行流程" v-if="showExecute">
         <text>▶️</text>
         <text class="tool-label">执行</text>
@@ -81,11 +85,14 @@ export default {
     }
   },
 
+  emits: ['save', 'clear', 'preview', 'execute', 'history'],
+
   methods: {
     onSave() { this.$emit('save') },
     onClear() { this.$emit('clear') },
     onPreview() { this.$emit('preview') },
-    onExecute() { this.$emit('execute') }
+    onExecute() { this.$emit('execute') },
+    onHistory() { this.$emit('history') }
   }
 }
 </script>
