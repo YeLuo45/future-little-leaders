@@ -133,7 +133,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import locationService from '@/services/locationService'
-import friendService from '@/services/friendService'
+import { friendService } from '@/services/friendService'
 
 const loading = ref(false)
 const hasLocationPermission = ref(false)
