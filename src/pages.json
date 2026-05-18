@@ -843,6 +843,27 @@
         "navigationBarTitleText": "Avatar 成就",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/games/coop-puzzles",
+      "style": {
+        "navigationBarTitleText": "协作解谜",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/games/team-challenges",
+      "style": {
+        "navigationBarTitleText": "团队挑战",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/games/board-games",
+      "style": {
+        "navigationBarTitleText": "棋盘游戏",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
