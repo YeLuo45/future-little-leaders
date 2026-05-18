@@ -780,6 +780,27 @@
         "navigationBarTitleText": "科学百科",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/pet/pet-home",
+      "style": {
+        "navigationBarTitleText": "宠物伙伴",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/pet/pet-care",
+      "style": {
+        "navigationBarTitleText": "照顾宠物",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/pet/pet-evolution",
+      "style": {
+        "navigationBarTitleText": "进化路线",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
