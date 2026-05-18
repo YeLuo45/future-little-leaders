@@ -206,6 +206,7 @@ export default {
 
 <style>
 @import './common/styles/common.css';
+@import './styles/high-contrast.css';
 @import './static/iconfont.css';
 page {
   height: 100%;

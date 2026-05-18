@@ -83,6 +83,7 @@ export default {
     theme: 'Theme',
     darkMode: 'Dark Mode',
     lightMode: 'Light Mode',
+    highContrast: 'High Contrast',
     notifications: 'Notifications',
     about: 'About',
     version: 'Version',
@@ -124,5 +125,23 @@ export default {
     progress: 'Progress',
     unlock: 'Unlock',
     locked: 'Locked'
+  },
+  a11y: {
+    menu: 'Menu',
+    close: 'Close',
+    open: 'Open',
+    loading: 'Loading',
+    error: 'Error',
+    success: 'Success',
+    navigation: 'Navigation',
+    form: 'Form',
+    required: 'Required',
+    optional: 'Optional',
+    invalidInput: 'Invalid input',
+    clearInput: 'Clear input',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+    increaseFontSize: 'Increase font size',
+    decreaseFontSize: 'Decrease font size'
   }
 }

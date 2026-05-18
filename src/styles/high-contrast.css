@@ -1,0 +1,219 @@
+/* 高对比度主题样式 - V28 Accessibility Enhancement */
+
+/* 高对比度颜色变量 */
+:root.high-contrast {
+  /* 基础颜色 - 高对比度 */
+  --primary-color: #4a3aff;
+  --primary-light: #6b5aff;
+  --primary-dark: #2a1aff;
+  --primary-shadow: rgba(74, 58, 255, 0.5);
+  
+  --danger-color: #ff2d2d;
+  --danger-light: #ff4d4d;
+  --danger-dark: #cc0000;
+  --danger-shadow: rgba(255, 45, 45, 0.5);
+  
+  --success-color: #00cc00;
+  --success-dark: #009900;
+  --success-shadow: rgba(0, 204, 0, 0.5);
+  
+  --warning-color: #ffaa00;
+  --warning-dark: #cc8800;
+  --warning-shadow: rgba(255, 170, 0, 0.5);
+  
+  --info-color: #0088ff;
+  --info-dark: #0066cc;
+  --info-shadow: rgba(0, 136, 255, 0.5);
+  
+  /* 文本颜色 - 最大对比度 */
+  --text-main: #000000;
+  --text-secondary: #1a1a1a;
+  --text-tertiary: #333333;
+  --text-main-dark: #ffffff;
+  --text-secondary-dark: #f0f0f0;
+  --text-tertiary-dark: #cccccc;
+  
+  /* 背景颜色 - 高对比度 */
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #f0f0f0;
+  --bg-main-dark: #000000;
+  --bg-card-dark: #0a0a0a;
+  --bg-input-dark: #1a1a1a;
+  
+  /* 边框 - 更明显的边框 */
+  --border-color: #000000;
+  --border-color-dark: #ffffff;
+  --border-width: 2px;
+}
+
+/* 高对比度模式下的页面容器 */
+.high-contrast .page-container {
+  background-color: var(--bg-main);
+  border: var(--border-width) solid var(--border-color);
+}
+
+/* 高对比度模式下的卡片 */
+.high-contrast .card {
+  background-color: var(--bg-card);
+  border: var(--border-width) solid var(--border-color);
+  box-shadow: none;
+}
+
+/* 高对比度模式下的输入框 */
+.high-contrast .modal-input,
+.high-contrast input[type="text"],
+.high-contrast input[type="password"],
+.high-contrast input[type="number"],
+.high-contrast input[type="email"],
+.high-contrast textarea {
+  background-color: var(--bg-input);
+  border: var(--border-width) solid var(--border-color);
+  color: var(--text-main);
+}
+
+.high-contrast .modal-input:focus,
+.high-contrast input:focus,
+.high-contrast textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-shadow);
+  outline: none;
+}
+
+/* 高对比度模式下的按钮 */
+.high-contrast .modal-btn,
+.high-contrast button,
+.high-contrast .btn {
+  border: var(--border-width) solid var(--border-color);
+  font-weight: bold;
+}
+
+.high-contrast .modal-confirm,
+.high-contrast .btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-dark);
+  color: #ffffff;
+}
+
+.high-contrast .modal-confirm:active,
+.high-contrast .btn-primary:active {
+  background-color: var(--primary-dark);
+}
+
+.high-contrast .modal-delete,
+.high-contrast .btn-danger {
+  background-color: var(--danger-color);
+  border-color: var(--danger-dark);
+  color: #ffffff;
+}
+
+/* 高对比度模式下的 Tab Bar */
+.high-contrast .tab-bar {
+  border-top: var(--border-width) solid var(--border-color);
+}
+
+.high-contrast .tab-item {
+  border-bottom: 3px solid transparent;
+}
+
+.high-contrast .tab-item.active {
+  border-bottom-color: var(--primary-color);
+  font-weight: bold;
+}
+
+/* 高对比度模式下的链接 */
+.high-contrast a,
+.high-contrast .link {
+  color: var(--info-color);
+  text-decoration: underline;
+}
+
+.high-contrast a:visited,
+.high-contrast .link:visited {
+  color: #6600cc;
+}
+
+/* 高对比度模式下的标签 */
+.high-contrast .selected-tag {
+  border: var(--border-width) solid #ffffff;
+}
+
+/* 高对比度模式下的模态框 */
+.high-contrast .modal-base {
+  border: var(--border-width) solid var(--border-color);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* 高对比度模式下的下拉框 */
+.high-contrast .tag-dropdown,
+.high-contrast select {
+  border: var(--border-width) solid var(--border-color);
+  background-color: var(--bg-input);
+}
+
+/* 高对比度模式下的进度条 */
+.high-contrast .progress-bar,
+.high-contrast .progress {
+  border: var(--border-width) solid var(--border-color);
+}
+
+.high-contrast .progress-fill,
+.high-contrast .progress-bar-fill {
+  background-color: var(--primary-color);
+}
+
+/* Focus 可访问性 - 确保键盘导航可见 */
+.high-contrast *:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* 高对比度模式下的选中状态 */
+.high-contrast ::selection {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+/* 高对比度模式下的禁用状态 */
+.high-contrast [disabled],
+.high-contrast .disabled {
+  opacity: 0.5;
+  border-color: var(--text-tertiary) !important;
+}
+
+/* 高对比度模式下的图标 */
+.high-contrast .icon,
+.high-contrast [class*="icon"] {
+  filter: contrast(1.2);
+}
+
+/* 暗色模式 + 高对比度 */
+.high-contrast.dark-mode {
+  --text-main: #ffffff;
+  --text-secondary: #f0f0f0;
+  --text-tertiary: #cccccc;
+  --bg-main: #000000;
+  --bg-card: #0a0a0a;
+  --bg-input: #1a1a1a;
+  --border-color: #ffffff;
+}
+
+/* 打印样式 - 始终高对比度 */
+@media print {
+  .high-contrast {
+    --text-main: #000000;
+    --bg-main: #ffffff;
+    --bg-card: #ffffff;
+  }
+}
+
+/* 减少动画偏好 - 高对比度模式下也尊重 */
+@media (prefers-reduced-motion: reduce) {
+  .high-contrast *,
+  .high-contrast *::before,
+  .high-contrast *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

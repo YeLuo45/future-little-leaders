@@ -4,8 +4,10 @@ import zhCN from './messages/zh-CN.js'
 import zhTW from './messages/zh-TW.js'
 import en from './messages/en.js'
 import zhHK from './messages/zh-HK.js'
+import ja from './messages/ja.js'
+import ko from './messages/ko.js'
 
-const messages = { 'zh-CN': zhCN, 'zh-TW': zhTW, en, 'zh-HK': zhHK }
+const messages = { 'zh-CN': zhCN, 'zh-TW': zhTW, en, 'zh-HK': zhHK, ja, ko }
 
 // 检测系统语言
 function detectSystemLocale() {
@@ -14,6 +16,8 @@ function detectSystemLocale() {
     if (sys.startsWith('zh-HK') || sys.startsWith('zh-MO')) return 'zh-HK'
     if (sys.startsWith('zh-TW') || sys.startsWith('zh-Hant')) return 'zh-TW'
     if (sys.startsWith('en')) return 'en'
+    if (sys.startsWith('ja')) return 'ja'
+    if (sys.startsWith('ko')) return 'ko'
     return 'zh-CN'
   } catch { return 'zh-CN' }
 }
@@ -66,7 +70,9 @@ export function getSupportedLocales() {
     { code: 'zh-CN', name: '简体中文', nativeName: '简体中文' },
     { code: 'zh-TW', name: '繁体中文', nativeName: '繁體中文' },
     { code: 'en', name: 'English', nativeName: 'English' },
-    { code: 'zh-HK', name: '粤语', nativeName: '廣東話' }
+    { code: 'zh-HK', name: '粤语', nativeName: '廣東話' },
+    { code: 'ja', name: 'Japanese', nativeName: '日本語' },
+    { code: 'ko', name: 'Korean', nativeName: '한국어' }
   ]
 }
 

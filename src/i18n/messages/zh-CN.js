@@ -83,6 +83,7 @@ export default {
     theme: '主题',
     darkMode: '深色模式',
     lightMode: '浅色模式',
+    highContrast: '高对比度',
     notifications: '通知',
     about: '关于',
     version: '版本',
@@ -124,5 +125,23 @@ export default {
     progress: '进度',
     unlock: '解锁',
     locked: '未解锁'
+  },
+  a11y: {
+    menu: '菜单',
+    close: '关闭',
+    open: '打开',
+    loading: '加载中',
+    error: '错误',
+    success: '成功',
+    navigation: '导航',
+    form: '表单',
+    required: '必填',
+    optional: '选填',
+    invalidInput: '输入无效',
+    clearInput: '清除输入',
+    showPassword: '显示密码',
+    hidePassword: '隐藏密码',
+    increaseFontSize: '增大字体',
+    decreaseFontSize: '减小字体'
   }
 }
