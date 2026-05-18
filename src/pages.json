@@ -633,6 +633,27 @@
         "navigationBarTitleText": "小部件设置",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/learning-path/path-overview",
+      "style": {
+        "navigationBarTitleText": "学习路径",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/learning-path/assessment",
+      "style": {
+        "navigationBarTitleText": "能力评估",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/learning-path/progress",
+      "style": {
+        "navigationBarTitleText": "学习进度",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {

@@ -32,7 +32,12 @@ export const TABLES = {
   CHALLENGE_PARTICIPANTS: 'challenge_participants',
   // V16 WX tables
   SHARE_RECORDS: 'share_records',
-  LOCATION_RECORDS: 'location_records'
+  LOCATION_RECORDS: 'location_records',
+  // V43 Learning Path tables
+  LEARNING_PATHS: 'learning_paths',
+  ASSESSMENTS: 'assessments',
+  LEARNING_GOALS: 'learning_goals',
+  COURSE_PROGRESS: 'course_progress'
 }
 
 export const SCHEMA = `
@@ -394,6 +399,62 @@ CREATE INDEX IF NOT EXISTS idx_share_records_user ON ${TABLES.SHARE_RECORDS}(use
 CREATE INDEX IF NOT EXISTS idx_share_records_baby ON ${TABLES.SHARE_RECORDS}(baby_id);
 CREATE INDEX IF NOT EXISTS idx_location_records_baby ON ${TABLES.LOCATION_RECORDS}(baby_id);
 CREATE INDEX IF NOT EXISTS idx_location_records_created ON ${TABLES.LOCATION_RECORDS}(created_at);
+
+-- V43 学习路径表
+CREATE TABLE IF NOT EXISTS ${TABLES.ASSESSMENTS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  scores TEXT,
+  radarData TEXT,
+  overallLevel TEXT,
+  strongAreas TEXT,
+  weakAreas TEXT,
+  completedAt TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.LEARNING_PATHS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  assessment TEXT,
+  goals TEXT,
+  recommendedCourses TEXT,
+  weakAreas TEXT,
+  strongAreas TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.LEARNING_GOALS} (
+  id TEXT PRIMARY KEY,
+  goalId TEXT NOT NULL,
+  babyId TEXT NOT NULL,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  dimensionIds TEXT,
+  targetScore INTEGER DEFAULT 0,
+  currentScore INTEGER DEFAULT 0,
+  deadline TEXT,
+  completed INTEGER DEFAULT 0,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ${TABLES.COURSE_PROGRESS} (
+  id TEXT PRIMARY KEY,
+  courseId TEXT NOT NULL,
+  babyId TEXT NOT NULL,
+  progress INTEGER DEFAULT 0,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_assessments_baby ON ${TABLES.ASSESSMENTS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_learning_paths_baby ON ${TABLES.LEARNING_PATHS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_learning_goals_baby ON ${TABLES.LEARNING_GOALS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_course_progress_baby ON ${TABLES.COURSE_PROGRESS}(babyId);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)
