@@ -459,6 +459,20 @@
       }
     },
     {
+      "path": "pages/wx/wx-login",
+      "style": {
+        "navigationBarTitleText": "微信登录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/wx/sports-sync",
+      "style": {
+        "navigationBarTitleText": "微信运动",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/collaboration/class-feed",
       "style": {
         "navigationBarTitleText": "班级动态",
