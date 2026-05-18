@@ -260,6 +260,16 @@
       }
     },
     {
+      "path": "pages/analytics/analytics-v18",
+      "style": {
+        "navigationBarTitleText": "高级数据分析",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
       "path": "pages/shop/exchange-records",
 			"style": {
 				"navigationBarTitleText": "兑换记录",
