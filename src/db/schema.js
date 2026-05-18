@@ -29,7 +29,10 @@ export const TABLES = {
   TEAM_TASKS: 'team_tasks',
   TEAM_MEMBERS: 'team_members',
   CHALLENGES: 'challenges',
-  CHALLENGE_PARTICIPANTS: 'challenge_participants'
+  CHALLENGE_PARTICIPANTS: 'challenge_participants',
+  // V16 WX tables
+  SHARE_RECORDS: 'share_records',
+  LOCATION_RECORDS: 'location_records'
 }
 
 export const SCHEMA = `
@@ -359,6 +362,38 @@ CREATE INDEX IF NOT EXISTS idx_team_members_team ON ${TABLES.TEAM_MEMBERS}(team_
 CREATE INDEX IF NOT EXISTS idx_team_members_baby ON ${TABLES.TEAM_MEMBERS}(baby_id);
 CREATE INDEX IF NOT EXISTS idx_challenge_participants_challenge ON ${TABLES.CHALLENGE_PARTICIPANTS}(challenge_id);
 CREATE INDEX IF NOT EXISTS idx_challenge_participants_baby ON ${TABLES.CHALLENGE_PARTICIPANTS}(baby_id);
+
+-- V16 微信功能表
+-- 分享记录表
+CREATE TABLE IF NOT EXISTS ${TABLES.SHARE_RECORDS} (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  baby_id TEXT NOT NULL,
+  share_type TEXT NOT NULL,
+  card_template TEXT,
+  card_data TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- 位置记录表
+CREATE TABLE IF NOT EXISTS ${TABLES.LOCATION_RECORDS} (
+  id TEXT PRIMARY KEY,
+  baby_id TEXT NOT NULL,
+  latitude REAL NOT NULL,
+  longitude REAL NOT NULL,
+  accuracy REAL,
+  altitude REAL,
+  speed REAL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- 微信功能索引
+CREATE INDEX IF NOT EXISTS idx_share_records_user ON ${TABLES.SHARE_RECORDS}(user_id);
+CREATE INDEX IF NOT EXISTS idx_share_records_baby ON ${TABLES.SHARE_RECORDS}(baby_id);
+CREATE INDEX IF NOT EXISTS idx_location_records_baby ON ${TABLES.LOCATION_RECORDS}(baby_id);
+CREATE INDEX IF NOT EXISTS idx_location_records_created ON ${TABLES.LOCATION_RECORDS}(created_at);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)

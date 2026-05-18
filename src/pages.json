@@ -426,6 +426,27 @@
         "navigationBarTitleText": "同伴详情",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/wx/share-card",
+      "style": {
+        "navigationBarTitleText": "分享卡片",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/wx/nearby",
+      "style": {
+        "navigationBarTitleText": "附近的孩子",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/wx/feedback",
+      "style": {
+        "navigationBarTitleText": "反馈与建议",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
