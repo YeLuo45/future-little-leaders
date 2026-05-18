@@ -1,24 +1,11 @@
 import { defineConfig } from 'vite'
 import uni from '@dcloudio/vite-plugin-uni'
-import { visualizer } from 'rollup-plugin-visualizer'
-
-// Dynamic import for bundle analyzer (avoid adding npm dependency)
-const getVisualizerPlugin = () => {
-  try {
-    const visualizer = require('rollup-plugin-visualizer')
-    return visualizer({ filename: 'dist/stats.html', open: false })
-  } catch (e) {
-    return null
-  }
-}
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     uni(),
-    // V27: Bundle analyzer for performance analysis
-    getVisualizerPlugin(),
-  ].filter(Boolean),
+  ],
   server: {
     proxy: {
       '/api': {
