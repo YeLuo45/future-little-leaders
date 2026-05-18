@@ -822,6 +822,27 @@
         "navigationBarTitleText": "进化路线",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/avatar/avatar-customize",
+      "style": {
+        "navigationBarTitleText": "头像定制",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/avatar/avatar-wardrobe",
+      "style": {
+        "navigationBarTitleText": "虚拟衣柜",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/avatar/avatar-achievements",
+      "style": {
+        "navigationBarTitleText": "Avatar 成就",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
