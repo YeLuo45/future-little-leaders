@@ -1,0 +1,91 @@
+/* 暗夜主题 - V33 Plugin Marketplace Theme System */
+
+:root[data-theme="dark"],
+.dark-mode {
+  /* 主题色 */
+  --primary-color: #6b5aff;
+  --primary-light: #8b7aff;
+  --primary-dark: #4a3aff;
+  --primary-shadow: rgba(107, 90, 255, 0.3);
+  
+  /* 背景色 */
+  --bg-main: #1a1a2e;
+  --bg-card: #16213e;
+  --bg-input: #0f3460;
+  --bg-nav: #0f0f1a;
+  
+  /* 文字色 */
+  --text-main: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-tertiary: #a0a0a0;
+  --text-inverse: #1a1a2e;
+  
+  /* 边框色 */
+  --border-color: #2a2a4e;
+  --border-light: #3a3a5e;
+  
+  /* 功能色 */
+  --success-color: #00e676;
+  --warning-color: #ffab00;
+  --danger-color: #ff5252;
+  --info-color: #40c4ff;
+  
+  /* 状态栏 */
+  --status-bar-bg: #0f0f1a;
+  
+  /* 阴影 */
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.5);
+}
+
+/* 暗夜主题页面背景 */
+[data-theme="dark"] .page-container,
+.dark-mode .page-container {
+  background-color: var(--bg-main);
+}
+
+/* 暗夜主题卡片 */
+[data-theme="dark"] .card,
+.dark-mode .card {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+/* 暗夜主题输入框 */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+.dark-mode input,
+.dark-mode textarea {
+  background-color: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+
+/* 暗夜主题按钮 */
+[data-theme="dark"] .btn-primary,
+.dark-mode .btn-primary {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+/* 暗夜主题导航栏 */
+[data-theme="dark"] .nav-header,
+.dark-mode .nav-header {
+  background-color: var(--bg-nav);
+  border-bottom-color: var(--border-color);
+}
+
+/* 暗夜主题底部导航 */
+[data-theme="dark"] .tab-bar,
+.dark-mode .tab-bar {
+  background-color: var(--bg-nav);
+  border-top-color: var(--border-color);
+}
+
+/* 暗夜主题模态框 */
+[data-theme="dark"] .modal-base,
+.dark-mode .modal-base {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+}

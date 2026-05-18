@@ -1,0 +1,126 @@
+/* 卡通主题 - V33 Plugin Marketplace Theme System */
+/* 明亮、活泼、适合儿童的设计风格 */
+
+:root[data-theme="cartoon"],
+.cartoon-mode {
+  /* 主题色 - 彩虹色系 */
+  --primary-color: #ff6b9d;
+  --primary-light: #ff8fb3;
+  --primary-dark: #e84a7f;
+  --primary-shadow: rgba(255, 107, 157, 0.3);
+  
+  /* 背景色 - 柔和暖色 */
+  --bg-main: #fff9f0;
+  --bg-card: #ffffff;
+  --bg-input: #fff5eb;
+  --bg-nav: #ffffff;
+  
+  /* 文字色 */
+  --text-main: #4a3a5c;
+  --text-secondary: #7a6a8c;
+  --text-tertiary: #a89ab0;
+  --text-inverse: #ffffff;
+  
+  /* 边框色 */
+  --border-color: #f0e6d8;
+  --border-light: #f8f2e8;
+  
+  /* 功能色 - 糖果色 */
+  --success-color: #7dd87d;
+  --warning-color: #ffc148;
+  --danger-color: #ff6b6b;
+  --info-color: #64b5f6;
+  
+  /* 状态栏 */
+  --status-bar-bg: #ffffff;
+  
+  /* 阴影 - 柔和 */
+  --shadow-sm: 0 2rpx 12rpx rgba(255, 150, 180, 0.15);
+  --shadow-md: 0 4rpx 20rpx rgba(255, 150, 180, 0.2);
+  --shadow-lg: 0 8rpx 40rpx rgba(255, 150, 180, 0.25);
+  
+  /* 圆角 - 更大更圆润 */
+  --radius-sm: 16rpx;
+  --radius-md: 24rpx;
+  --radius-lg: 32rpx;
+  --radius-xl: 48rpx;
+}
+
+/* 卡通主题页面背景 */
+[data-theme="cartoon"] .page-container,
+.cartoon-mode .page-container {
+  background-color: var(--bg-main);
+}
+
+/* 卡通主题卡片 - 大圆角 */
+[data-theme="cartoon"] .card,
+.cartoon-mode .card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* 卡通主题按钮 - 胶囊形状 */
+[data-theme="cartoon"] .btn-primary,
+[data-theme="cartoon"] button,
+.cartoon-mode .btn-primary,
+.cartoon-mode button {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  border-radius: var(--radius-xl);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 卡通主题输入框 */
+[data-theme="cartoon"] input,
+[data-theme="cartoon"] textarea,
+.cartoon-mode input,
+.cartoon-mode textarea {
+  background-color: var(--bg-input);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+}
+
+/* 卡通主题导航栏 */
+[data-theme="cartoon"] .nav-header,
+.cartoon-mode .nav-header {
+  background-color: var(--bg-nav);
+}
+
+/* 卡通主题标签 */
+[data-theme="cartoon"] .tag,
+[data-theme="cartoon"] .badge,
+.cartoon-mode .tag,
+.cartoon-mode .badge {
+  background: linear-gradient(135deg, #ffe0a0, #ffd54f);
+  color: #8a6000;
+  border-radius: var(--radius-sm);
+  padding: 4rpx 16rpx;
+}
+
+/* 卡通主题进度条 */
+[data-theme="cartoon"] .progress-bar,
+.cartoon-mode .progress-bar {
+  background-color: var(--bg-input);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+/* 卡通主题浮动元素 */
+[data-theme="cartoon"] .float-element,
+.cartoon-mode .float-element {
+  animation: cartoon-float 3s ease-in-out infinite;
+}
+
+@keyframes cartoon-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10rpx); }
+}
+
+/* 卡通主题星星效果 */
+[data-theme="cartoon"] .stars,
+.cartoon-mode .stars {
+  color: #ffd700;
+  text-shadow: 0 0 10rpx rgba(255, 215, 0, 0.5);
+}

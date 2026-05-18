@@ -1,0 +1,80 @@
+/* 节日主题 - V33 Plugin Marketplace Theme System */
+/* 节日气氛，红色金色配色，适合春节、中秋等节日 */
+
+:root[data-theme="festival"],
+.festival-mode {
+  /* 主题色 - 中国红金 */
+  --primary-color: #e53935;
+  --primary-light: #ff6f60;
+  --primary-dark: #ab000d;
+  --primary-shadow: rgba(229, 57, 53, 0.3);
+  
+  /* 背景色 */
+  --bg-main: #fff8f0;
+  --bg-card: #ffffff;
+  --bg-input: #fff5f0;
+  --bg-nav: #ffffff;
+  
+  /* 文字色 */
+  --text-main: #3d3d3d;
+  --text-secondary: #6d6d6d;
+  --text-tertiary: #9d9d9d;
+  --text-inverse: #ffffff;
+  
+  /* 边框色 */
+  --border-color: #ffe4cc;
+  --border-light: #fff0e0;
+  
+  /* 功能色 */
+  --success-color: #43a047;
+  --warning-color: #ffa000;
+  --danger-color: #e53935;
+  --info-color: #1e88e5;
+  
+  /* 状态栏 */
+  --status-bar-bg: #ffffff;
+  
+  /* 阴影 */
+  --shadow-sm: 0 2rpx 8rpx rgba(229, 57, 53, 0.1);
+  --shadow-md: 0 4rpx 16rpx rgba(229, 57, 53, 0.15);
+  --shadow-lg: 0 8rpx 32rpx rgba(229, 57, 53, 0.2);
+  
+  /* 圆角 */
+  --radius-sm: 12rpx;
+  --radius-md: 16rpx;
+  --radius-lg: 24rpx;
+}
+
+/* 节日主题页面背景 */
+[data-theme="festival"] .page-container,
+.festival-mode .page-container {
+  background-color: var(--bg-main);
+}
+
+/* 节日主题卡片 */
+[data-theme="festival"] .card,
+.festival-mode .card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+}
+
+/* 节日主题主按钮 */
+[data-theme="festival"] .btn-primary,
+[data-theme="festival"] button,
+.festival-mode .btn-primary,
+.festival-mode button {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: var(--text-inverse);
+}
+
+/* 节日主题强调色 */
+[data-theme="festival"] .accent,
+.festival-mode .accent {
+  color: var(--primary-color);
+}
+
+/* 节日主题分隔线 */
+[data-theme="festival"] .divider,
+.festival-mode .divider {
+  border-color: var(--border-color);
+}

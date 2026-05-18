@@ -502,6 +502,34 @@
       }
     },
     {
+      "path": "pages/marketplace/marketplace",
+      "style": {
+        "navigationBarTitleText": "插件市场",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/marketplace/plugin-detail",
+      "style": {
+        "navigationBarTitleText": "插件详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/marketplace/theme-store",
+      "style": {
+        "navigationBarTitleText": "主题商店",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/marketplace/plugin-manager",
+      "style": {
+        "navigationBarTitleText": "插件管理",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/gamification/seasonal-challenge",
       "style": {
         "navigationBarTitleText": "赛季挑战",

@@ -4,7 +4,6 @@
  */
 
 import { reactive, computed } from 'vue';
-import { prefersHighContrast } from '@/utils/a11y.js';
 
 // 内置主题定义
 const BUILT_IN_THEMES = {
@@ -52,9 +51,12 @@ const BUILT_IN_THEMES = {
 const state = reactive({
   currentThemeId: 'light',
   installedThemes: {},
-  highContrast: false, // V28: 高对比度模式
-  darkMode: false // 向后兼容
+  customThemes: {},
+  isLoading: false
 });
+
+// 主题缓存
+let themeCache = null;
 
 /**
  * 应用主题 CSS 变量到 DOM
@@ -73,7 +75,7 @@ function applyThemeVariables(variables) {
  * 加载主题样式
  * @param {String} themeId - 主题ID
  */
-function loadThemeStyle(themeId) {
+async function loadThemeStyle(themeId) {
   // 检查内置主题
   if (BUILT_IN_THEMES[themeId]) {
     applyThemeVariables(BUILT_IN_THEMES[themeId].variables);
@@ -121,27 +123,14 @@ export function useThemeStore() {
     return Object.values(state.installedThemes);
   });
 
-  // 向后兼容：是否为暗黑模式
-  const isDarkMode = computed(() => state.darkMode);
-  
-  // V28: 计算属性：是否为高对比度模式
-  const isHighContrast = computed(() => state.highContrast);
-
   // 初始化主题系统
   function initTheme() {
     // 加载保存的主题
     const savedThemeId = uni.getStorageSync('currentThemeId');
     if (savedThemeId) {
       state.currentThemeId = savedThemeId;
-      state.darkMode = savedThemeId === 'dark';
     } else {
       state.currentThemeId = 'light';
-      // 兼容旧版
-      const oldTheme = uni.getStorageSync('theme');
-      if (oldTheme) {
-        state.currentThemeId = oldTheme;
-        state.darkMode = oldTheme === 'dark';
-      }
     }
     
     // 加载已安装的自定义主题列表
@@ -154,34 +143,12 @@ export function useThemeStore() {
       }
     }
     
-    // V28: 检测系统高对比度偏好
-    const savedHighContrast = uni.getStorageSync('highContrast');
-    if (savedHighContrast !== null) {
-      state.highContrast = savedHighContrast === 'true';
-    } else {
-      state.highContrast = prefersHighContrast();
-    }
-    
-    // 应用高对比度
-    applyHighContrast(state.highContrast);
-    
     // 应用当前主题
     loadThemeStyle(state.currentThemeId);
     
     // 添加主题类名到 html
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', state.currentThemeId);
-    }
-  }
-
-  // V28: 应用高对比度主题到 DOM
-  function applyHighContrast(enabled) {
-    if (typeof document !== 'undefined') {
-      if (enabled) {
-        document.documentElement.classList.add('high-contrast');
-      } else {
-        document.documentElement.classList.remove('high-contrast');
-      }
     }
   }
 
@@ -193,10 +160,7 @@ export function useThemeStore() {
     }
     
     state.currentThemeId = themeId;
-    state.darkMode = themeId === 'dark';
     uni.setStorageSync('currentThemeId', themeId);
-    // 兼容旧版
-    uni.setStorageSync('theme', themeId);
     loadThemeStyle(themeId);
     
     if (typeof document !== 'undefined') {
@@ -205,12 +169,6 @@ export function useThemeStore() {
     
     console.log(`主题已切换到: ${allThemes.value[themeId].name}`);
     return true;
-  }
-
-  // 切换主题 (向后兼容)
-  function toggleTheme() {
-    const newTheme = state.currentThemeId === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
   }
 
   // 安装自定义主题
@@ -272,19 +230,24 @@ export function useThemeStore() {
     return theme ? theme.preview : '';
   }
 
-  // V28: 切换高对比度模式
-  function toggleHighContrast() {
-    state.highContrast = !state.highContrast;
-    uni.setStorageSync('highContrast', String(state.highContrast));
-    applyHighContrast(state.highContrast);
-    console.log('高对比度模式已' + (state.highContrast ? '开启' : '关闭'));
-  }
-
-  // V28: 设置高对比度模式
-  function setHighContrast(enabled) {
-    state.highContrast = enabled;
-    uni.setStorageSync('highContrast', String(enabled));
-    applyHighContrast(enabled);
+  // 验证主题变量格式
+  function validateThemeVariables(variables) {
+    if (typeof variables !== 'object') return false;
+    
+    const requiredVars = [
+      '--primary-color',
+      '--bg-main',
+      '--text-main'
+    ];
+    
+    for (const key of requiredVars) {
+      if (!variables[key]) {
+        console.warn(`主题变量缺少必需项: ${key}`);
+        return false;
+      }
+    }
+    
+    return true;
   }
 
   // 导出主题为 JSON
@@ -307,15 +270,11 @@ export function useThemeStore() {
     customThemesList,
     initTheme,
     setTheme,
-    toggleTheme,
     installTheme,
     uninstallTheme,
     getThemePreview,
-    toggleHighContrast,
-    setHighContrast,
+    validateThemeVariables,
     exportTheme,
-    BUILT_IN_THEMES,
-    isDarkMode,
-    isHighContrast
+    BUILT_IN_THEMES
   };
 }
