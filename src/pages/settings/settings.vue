@@ -203,15 +203,18 @@
 			/**
 			 * 切换暗色模式
 			 */
-			toggleDarkMode(e) {
-				this.isDarkMode = e.detail.value;
-				// 保存设置到本地存储
-				try {
-					uni.setStorageSync('darkMode', this.isDarkMode.toString());
-				} catch (e) {
-					console.error('保存暗色模式设置失败', e);
-				}
-			},
+		toggleDarkMode(e) {
+			this.isDarkMode = e.detail.value;
+			// 保存设置到本地存储
+			try {
+				uni.setStorageSync('darkMode', this.isDarkMode.toString());
+				uni.setStorageSync('currentThemeId', this.isDarkMode ? 'dark' : 'light');
+			} catch (e) {
+				console.error('保存暗色模式设置失败', e);
+			}
+			// V43: 通知全局暗色模式变化
+			uni.$emit('darkModeChanged', this.isDarkMode);
+		},
 
 			/**
 			 * 导航到个人资料设置页面

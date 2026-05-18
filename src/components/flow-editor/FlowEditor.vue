@@ -486,10 +486,15 @@ export default {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--bg-main, #f5f5f5);
   background-image: 
-    radial-gradient(circle, #ddd 1px, transparent 1px);
+    radial-gradient(circle, var(--border-color, #ddd) 1px, transparent 1px);
   background-size: 20px 20px;
+}
+
+[data-theme="dark"] .flow-editor {
+  background-image: 
+    radial-gradient(circle, #333 1px, transparent 1px);
 }
 
 .canvas-container {

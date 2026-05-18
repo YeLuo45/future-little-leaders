@@ -36,6 +36,33 @@
   --border-radius-circle: 50%;
 }
 
+/* V43: data-theme 属性驱动的暗色模式 */
+[data-theme="dark"] {
+  --primary-color: #6b5aff;
+  --primary-light: #8b7aff;
+  --primary-dark: #4a3aff;
+  --primary-shadow: rgba(107, 90, 255, 0.3);
+  --primary-shadow-light: rgba(107, 90, 255, 0.2);
+  --primary-shadow-dark: rgba(74, 58, 255, 0.3);
+  --primary-shadow-darker: rgba(74, 58, 255, 0.2);
+  --danger-color: #ff7875;
+  --danger-light: #ff4d4f;
+  --danger-dark: #c62828;
+  --success-color: #52c41a;
+  --success-dark: #389e0d;
+  --text-main: #e0e0e0;
+  --text-secondary: #aaa;
+  --text-tertiary: #777;
+  --bg-main: #121212;
+  --bg-card: #1f1f1f;
+  --bg-input: #2a2a2a;
+  --border-color: #333;
+}
+
+[data-theme="dark"] body {
+  background-color: var(--bg-main);
+}
+
 /* 通用样式类 */
 .page-container {
   min-height: 100vh;

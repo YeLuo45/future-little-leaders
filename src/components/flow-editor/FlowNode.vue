@@ -101,19 +101,24 @@ export default {
       return this.node.config?.title || this.nodeTypeConfig.label
     },
     
+    isDarkMode() {
+      const savedTheme = uni.getStorageSync('currentThemeId') || uni.getStorageSync('theme_mode') || 'light'
+      return savedTheme === 'dark'
+    },
+    
     nodeStyle() {
       const config = this.nodeTypeConfig
       return {
         left: `${this.node.x}px`,
         top: `${this.node.y}px`,
         borderColor: config.color,
-        backgroundColor: this.isSelected ? `${config.color}15` : '#fff'
+        backgroundColor: this.isSelected ? `${config.color}15` : (this.isDarkMode ? '#1f1f1f' : '#fff')
       }
     },
     
     inputPortStyle() {
       return {
-        backgroundColor: '#fff',
+        backgroundColor: this.isDarkMode ? '#2a2a2a' : '#fff',
         borderColor: this.nodeTypeConfig.color
       }
     },

@@ -6,6 +6,7 @@ export default {
     this.initAchievementStore();
     this.initScheduler();
     this.initOfflineFirst();
+    this.initDarkMode();
   },
 
   initAchievementStore: function() {
@@ -161,6 +162,34 @@ export default {
       query: '',
       imageUrl: '/static/logo/share-logo.png'
     };
+  },
+
+  // V43: 初始化暗色模式
+  initDarkMode: function() {
+    if (typeof document === 'undefined') return
+    const savedTheme = uni.getStorageSync('currentThemeId') || uni.getStorageSync('theme_mode') || 'light'
+    if (savedTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark')
+      document.body.classList.add('dark-mode')
+      console.log('[V43] 暗色模式已恢复')
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light')
+      document.body.classList.remove('dark-mode')
+    }
+  },
+
+  // V43: 监听暗色模式切换事件
+  listenDarkModeChanges: function() {
+    uni.$on('darkModeChanged', (isDark) => {
+      if (typeof document === 'undefined') return
+      if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        document.body.classList.add('dark-mode')
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light')
+        document.body.classList.remove('dark-mode')
+      }
+    })
   },
 
   methods: {
