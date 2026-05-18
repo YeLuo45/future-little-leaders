@@ -9,11 +9,29 @@
       <view class="placeholder"></view>
     </view>
 
+    <!-- Tabs -->
+    <view class="tab-bar">
+      <view
+        class="tab-item"
+        :class="{ active: activeTab === 'builtin' }"
+        @click="activeTab = 'builtin'"
+      >
+        <text>推荐模板</text>
+      </view>
+      <view
+        class="tab-item"
+        :class="{ active: activeTab === 'user' }"
+        @click="activeTab = 'user'"
+      >
+        <text>我的模板</text>
+      </view>
+    </view>
+
     <!-- Search Bar -->
     <view class="search-bar">
-      <input 
-        class="search-input" 
-        v-model="searchKeyword" 
+      <input
+        class="search-input"
+        v-model="searchKeyword"
         placeholder="搜索模板名称或标签..."
         @input="onSearch"
       />
@@ -21,29 +39,56 @@
 
     <!-- Template List -->
     <scroll-view class="template-list" scroll-y>
-      <view 
-        class="template-card" 
-        v-for="template in filteredTemplates" 
-        :key="template.id"
-        @click="showPreview(template)"
-      >
-        <view class="card-icon">{{ template.icon }}</view>
-        <view class="card-content">
-          <text class="card-title">{{ template.name }}</text>
-          <text class="card-desc">{{ template.description }}</text>
-          <view class="card-meta">
-            <text class="node-count">{{ template.nodes.length }} 个节点</text>
-            <view class="tags">
-              <text class="tag" v-for="tag in template.tags" :key="tag">{{ tag }}</text>
+      <view v-if="activeTab === 'builtin'">
+        <view class="builtin-badge">官方</view>
+        <view
+          class="template-card"
+          v-for="template in filteredBuiltinTemplates"
+          :key="template.id"
+          @click="showPreview(template)"
+        >
+          <view class="card-icon">{{ template.icon }}</view>
+          <view class="card-content">
+            <text class="card-title">{{ template.name }}</text>
+            <text class="card-desc">{{ template.description }}</text>
+            <view class="card-meta">
+              <text class="node-count">{{ template.nodes.length }} 个节点</text>
+              <view class="tags">
+                <text class="tag" v-for="tag in template.tags" :key="tag">{{ tag }}</text>
+              </view>
             </view>
           </view>
+          <view class="card-arrow">›</view>
         </view>
-        <view class="card-arrow">›</view>
+
+        <view v-if="filteredBuiltinTemplates.length === 0" class="empty-state">
+          <text class="empty-icon">🔍</text>
+          <text class="empty-text">未找到匹配的模板</text>
+        </view>
       </view>
 
-      <view v-if="filteredTemplates.length === 0" class="empty-state">
-        <text class="empty-icon">🔍</text>
-        <text class="empty-text">未找到匹配的模板</text>
+      <view v-else>
+        <view
+          class="template-card"
+          v-for="template in filteredUserTemplates"
+          :key="template.id"
+          @click="showPreview(template)"
+        >
+          <view class="card-icon">📋</view>
+          <view class="card-content">
+            <text class="card-title">{{ template.name }}</text>
+            <text class="card-desc">{{ template.description || '自定义流程' }}</text>
+            <view class="card-meta">
+              <text class="node-count">{{ template.nodes?.length || 0 }} 个节点</text>
+            </view>
+          </view>
+          <view class="card-arrow">›</view>
+        </view>
+
+        <view v-if="filteredUserTemplates.length === 0" class="empty-state">
+          <text class="empty-icon">📝</text>
+          <text class="empty-text">暂无自定义模板</text>
+        </view>
       </view>
     </scroll-view>
 
@@ -125,19 +170,35 @@ import { useFlowStore } from '@/stores/flowStore.js'
 
 const flowStore = useFlowStore()
 
+// Tab state
+const activeTab = ref('builtin')
+
 // Search
 const searchKeyword = ref('')
 const allTemplates = getFlowTemplates()
+const userTemplates = computed(() => flowStore.flows || [])
 
-const filteredTemplates = computed(() => {
-  if (!searchKeyword.value.trim()) {
-    return allTemplates
+const filteredBuiltinTemplates = computed(() => {
+  let templates = allTemplates
+  if (searchKeyword.value.trim()) {
+    const keyword = searchKeyword.value.toLowerCase()
+    templates = templates.filter(t =>
+      t.name.toLowerCase().includes(keyword) ||
+      t.tags.some(tag => tag.toLowerCase().includes(keyword))
+    )
   }
-  const keyword = searchKeyword.value.toLowerCase()
-  return allTemplates.filter(t => 
-    t.name.toLowerCase().includes(keyword) ||
-    t.tags.some(tag => tag.toLowerCase().includes(keyword))
-  )
+  return templates
+})
+
+const filteredUserTemplates = computed(() => {
+  let templates = userTemplates.value
+  if (searchKeyword.value.trim()) {
+    const keyword = searchKeyword.value.toLowerCase()
+    templates = templates.filter(t =>
+      t.name.toLowerCase().includes(keyword)
+    )
+  }
+  return templates
 })
 
 // Preview Modal
@@ -525,6 +586,38 @@ function goBack() {
   font-size: 24px;
   color: #ccc;
   margin-left: 8px;
+}
+
+.tab-bar {
+  display: flex;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 16px;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #666;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-item.active {
+  color: #8477fa;
+  border-bottom-color: #8477fa;
+  font-weight: 500;
+}
+
+.builtin-badge {
+  display: inline-block;
+  font-size: 10px;
+  color: #fff;
+  background: #8477fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 8px;
 }
 
 .empty-state {

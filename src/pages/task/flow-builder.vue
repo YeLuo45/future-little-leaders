@@ -81,53 +81,24 @@
       </view>
       
       <!-- Right panel: Properties -->
-      <view class="property-panel" :class="{ 'show': selectedNode }">
-        <view class="panel-title">节点属性</view>
-        
-        <view v-if="selectedNode" class="property-form">
-          <view class="form-item">
-            <text class="form-label">名称</text>
-            <input 
-              class="form-input"
-              v-model="selectedNode.config.title"
-              placeholder="输入节点名称"
-              @input="onNodeConfigChange"
-            />
-          </view>
-          
-          <view class="form-item">
-            <text class="form-label">描述</text>
-            <textarea 
-              class="form-textarea"
-              v-model="selectedNode.config.description"
-              placeholder="输入描述"
-              @input="onNodeConfigChange"
-            ></textarea>
-          </view>
-          
-          <view class="form-item">
-            <text class="form-label">积分</text>
-            <input 
-              class="form-input"
-              type="number"
-              v-model.number="selectedNode.config.points"
-              placeholder="积分"
-              @input="onNodeConfigChange"
-            />
-          </view>
-          
-          <view class="form-actions">
-            <view class="form-btn duplicate-btn" @click="duplicateSelectedNode">
-              <text>📋 复制节点</text>
-            </view>
-          </view>
-        </view>
-        
-        <view v-else class="no-selection">
-          <text>选择一个节点查看属性</text>
-        </view>
-      </view>
+      <NodeConfigPanel
+        :node="selectedNodeForConfig"
+        @update:node="onNodeConfigUpdate"
+        @close="selectedNodeId = null"
+        @select-branch="onSelectBranch"
+      />
     </view>
+
+    <!-- Bottom toolbar -->
+    <FlowToolbar
+      :isPreviewing="isPreviewing"
+      :executionStatus="executionStatus"
+      :currentNodeName="currentPreviewNodeName"
+      @save="saveFlow"
+      @clear="clearCanvas"
+      @preview="togglePreview"
+      @execute="executeFlow"
+    />
     
     <!-- Toast message -->
     <view v-if="toast.show" class="toast" :class="toast.type">
@@ -138,14 +109,19 @@
 
 <script>
 import FlowEditor from '../../components/flow-editor/FlowEditor.vue'
+import NodeConfigPanel from '../../components/flow-editor/NodeConfigPanel.vue'
+import FlowToolbar from '../../components/flow-editor/FlowToolbar.vue'
 import { useFlowStore, NODE_TYPES } from '../../stores/flowStore.js'
+import { FlowExecutor } from '../../services/flowExecutor.js'
 import { mapState, mapWritableState } from 'pinia'
 
 export default {
   name: 'FlowBuilder',
   
   components: {
-    FlowEditor
+    FlowEditor,
+    NodeConfigPanel,
+    FlowToolbar
   },
   
   data() {
@@ -162,7 +138,17 @@ export default {
       },
       // Track drag state
       dragNodeType: null,
-      touchNodeType: null
+      touchNodeType: null,
+      // Preview state
+      isPreviewing: false,
+      previewNodeIds: [],
+      previewIndex: 0,
+      previewTimer: null,
+      executionStatus: 'idle',
+      currentPreviewNodeName: '',
+      // Branch selection state
+      branchSelectionTarget: null,
+      branchSelectionBranch: null
     }
   },
   
@@ -173,6 +159,10 @@ export default {
     selectedNode() {
       if (!this.selectedNodeId) return null
       return this.currentNodes.find(n => n.id === this.selectedNodeId) || null
+    },
+
+    selectedNodeForConfig() {
+      return this.selectedNode
     }
   },
   
@@ -387,6 +377,120 @@ export default {
       setTimeout(() => {
         this.toast.show = false
       }, 2000)
+    },
+
+    // Preview flow (sequential node highlight)
+    togglePreview() {
+      if (this.isPreviewing) {
+        this.stopPreview()
+      } else {
+        this.startPreview()
+      }
+    },
+
+    startPreview() {
+      if (this.currentNodes.length === 0) {
+        this.showToast('请先添加节点', 'warning')
+        return
+      }
+      this.isPreviewing = true
+      this.executionStatus = 'running'
+      // Build execution order via topological sort
+      const ordered = this.buildExecutionOrder()
+      this.previewNodeIds = ordered
+      this.previewIndex = 0
+      this.highlightNextPreviewNode()
+    },
+
+    stopPreview() {
+      this.isPreviewing = false
+      this.executionStatus = 'idle'
+      this.previewNodeIds = []
+      this.previewIndex = 0
+      this.currentPreviewNodeName = ''
+      if (this.previewTimer) {
+        clearTimeout(this.previewTimer)
+        this.previewTimer = null
+      }
+      // Remove all preview highlights
+      this.$emit('update:nodes', this.currentNodes.map(n => ({
+        ...n,
+        config: { ...n.config, _preview: false }
+      })))
+    },
+
+    highlightNextPreviewNode() {
+      if (!this.isPreviewing || this.previewIndex >= this.previewNodeIds.length) {
+        this.showToast('预览结束', 'info')
+        this.isPreviewing = false
+        this.executionStatus = 'completed'
+        return
+      }
+      const nodeId = this.previewNodeIds[this.previewIndex]
+      const node = this.currentNodes.find(n => n.id === nodeId)
+      if (node) {
+        this.currentPreviewNodeName = node.config?.title || node.label || node.type
+        // Update nodes with preview highlight
+        this.$emit('update:nodes', this.currentNodes.map(n => ({
+          ...n,
+          config: { ...n.config, _preview: n.id === nodeId }
+        })))
+      }
+      this.previewIndex++
+      this.previewTimer = setTimeout(() => this.highlightNextPreviewNode(), 400)
+    },
+
+    buildExecutionOrder() {
+      // Simple topological sort based on connections
+      const nodeIds = this.currentNodes.map(n => n.id)
+      const inDegree = {}
+      const adj = {}
+      nodeIds.forEach(id => {
+        inDegree[id] = 0
+        adj[id] = []
+      })
+      this.currentConnections.forEach(conn => {
+        if (adj[conn.source]) {
+          adj[conn.source].push(conn.target)
+          inDegree[conn.target] = (inDegree[conn.target] || 0) + 1
+        }
+      })
+      const queue = nodeIds.filter(id => !inDegree[id])
+      const result = []
+      while (queue.length) {
+        const id = queue.shift()
+        result.push(id)
+        adj[id].forEach(target => {
+          inDegree[target]--
+          if (inDegree[target] === 0) queue.push(target)
+        })
+      }
+      return result.length ? result : nodeIds
+    },
+
+    executeFlow() {
+      if (!this.currentFlow || this.currentNodes.length === 0) {
+        this.showToast('请先保存流程', 'warning')
+        return
+      }
+      const executor = new FlowExecutor(this.currentFlow)
+      executor.start()
+      this.showToast('流程已开始', 'success')
+      this.executionStatus = 'running'
+    },
+
+    onNodeConfigUpdate(updatedNode) {
+      if (!updatedNode) return
+      const flowStore = useFlowStore()
+      flowStore.updateNodeConfig(updatedNode.id, updatedNode.config)
+      this.$emit('update:nodes', this.currentNodes.map(n =>
+        n.id === updatedNode.id ? { ...n, config: updatedNode.config } : n
+      ))
+    },
+
+    onSelectBranch({ branch, targetNodeId }) {
+      // Update the condition node's branch target
+      console.log('[V5] Branch selection:', branch, targetNodeId)
     }
   }
 }
