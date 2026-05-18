@@ -502,6 +502,41 @@
       }
     },
     {
+      "path": "pages/family-ritual/family-ritual",
+      "style": {
+        "navigationBarTitleText": "家庭仪式",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-ritual/daily-ritual",
+      "style": {
+        "navigationBarTitleText": "每日仪式",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-ritual/weekly-challenge",
+      "style": {
+        "navigationBarTitleText": "每周挑战",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-ritual/memory-archive",
+      "style": {
+        "navigationBarTitleText": "回忆存档",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-ritual/family-mission",
+      "style": {
+        "navigationBarTitleText": "家庭任务",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/marketplace/marketplace",
       "style": {
         "navigationBarTitleText": "插件市场",
