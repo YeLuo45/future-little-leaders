@@ -454,6 +454,20 @@
 				"navigationBarTitleText": "健康提醒",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/mood/mood-journal",
+			"style": {
+				"navigationBarTitleText": "情绪日记",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/mood/mood-analytics",
+			"style": {
+				"navigationBarTitleText": "情绪分析",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
