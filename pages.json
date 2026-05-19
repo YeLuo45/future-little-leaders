@@ -384,6 +384,27 @@
 				"navigationBarTitleText": "作品展示",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/math/games",
+			"style": {
+				"navigationBarTitleText": "数学游戏",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/math/mental-math",
+			"style": {
+				"navigationBarTitleText": "速算训练",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/math/exploration",
+			"style": {
+				"navigationBarTitleText": "数学探索",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
