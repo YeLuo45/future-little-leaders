@@ -279,6 +279,27 @@
 				"navigationBarTitleText": "专家问答",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/time/schedule",
+			"style": {
+				"navigationBarTitleText": "日程管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/time/pomodoro",
+			"style": {
+				"navigationBarTitleText": "番茄钟",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/time/habits",
+			"style": {
+				"navigationBarTitleText": "习惯打卡",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
