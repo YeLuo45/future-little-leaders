@@ -1173,6 +1173,36 @@
           "titleNView": false
         }
       }
+    },
+    {
+      "path": "pages/knowledge/knowledge",
+      "style": {
+        "navigationBarTitleText": "知识树",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/knowledge/learning",
+      "style": {
+        "navigationBarTitleText": "学习",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/knowledge/knowledge-stats",
+      "style": {
+        "navigationBarTitleText": "学习统计",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
     }
   ],
 	"tabBar": {
