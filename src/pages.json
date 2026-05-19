@@ -1011,6 +1011,97 @@
         "navigationBarTitleText": "角色扮演",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/family-charter/family-charter",
+      "style": {
+        "navigationBarTitleText": "家庭宪章",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-charter/values",
+      "style": {
+        "navigationBarTitleText": "家庭价值观",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-charter/rules",
+      "style": {
+        "navigationBarTitleText": "家规",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-charter/meetings",
+      "style": {
+        "navigationBarTitleText": "家庭会议",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-charter/meeting-detail",
+      "style": {
+        "navigationBarTitleText": "会议详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-charter/conflicts",
+      "style": {
+        "navigationBarTitleText": "冲突解决",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-charter/conflict-detail",
+      "style": {
+        "navigationBarTitleText": "冲突详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/family-charter/config",
+      "style": {
+        "navigationBarTitleText": "宪章设置",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-journal/growth-journal",
+      "style": {
+        "navigationBarTitleText": "成长日记",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-journal/daily-reflection",
+      "style": {
+        "navigationBarTitleText": "每日反思",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-journal/weekly-review",
+      "style": {
+        "navigationBarTitleText": "周记月记",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-journal/growth-album",
+      "style": {
+        "navigationBarTitleText": "成长相册",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-journal/milestone-list",
+      "style": {
+        "navigationBarTitleText": "里程碑",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
