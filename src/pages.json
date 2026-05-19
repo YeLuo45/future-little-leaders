@@ -1335,6 +1335,16 @@
           "titleNView": false
         }
       }
+    },
+    {
+      "path": "pages/social-skills-dojo/social-skills-dojo",
+      "style": {
+        "navigationBarTitleText": "社交技能道场",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
     }
   ],
 	"tabBar": {
