@@ -342,6 +342,27 @@
 				"navigationBarTitleText": "乐器认知",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/science/experiments",
+			"style": {
+				"navigationBarTitleText": "科学实验",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/science/virtual-lab",
+			"style": {
+				"navigationBarTitleText": "虚拟实验室",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/science/journal",
+			"style": {
+				"navigationBarTitleText": "实验记录",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
