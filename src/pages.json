@@ -791,6 +791,27 @@
       }
     },
     {
+      "path": "pages/study/study-room",
+      "style": {
+        "navigationBarTitleText": "自习室",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/study/ambient-sounds",
+      "style": {
+        "navigationBarTitleText": "背景音乐",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/study/focus-stats",
+      "style": {
+        "navigationBarTitleText": "专注统计",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/social-learning/study-groups",
       "style": {
         "navigationBarTitleText": "学习小组",
