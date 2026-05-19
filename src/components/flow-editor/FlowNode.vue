@@ -83,6 +83,10 @@ export default {
     isPreviewHighlighted: {
       type: Boolean,
       default: false
+    },
+    isRunning: {
+      type: Boolean,
+      default: false
     }
   },
 
@@ -112,7 +116,8 @@ export default {
         left: `${this.node.x}px`,
         top: `${this.node.y}px`,
         borderColor: config.color,
-        backgroundColor: this.isSelected ? `${config.color}15` : (this.isDarkMode ? '#1f1f1f' : '#fff')
+        backgroundColor: this.isSelected ? `${config.color}15` : (this.isDarkMode ? '#1f1f1f' : '#fff'),
+        animation: this.isRunning ? 'nodeRunningPulse 1s ease-in-out infinite' : 'none'
       }
     },
     
@@ -253,6 +258,24 @@ export default {
 
 .flow-node.connecting {
   cursor: crosshair;
+}
+
+/* Running animation */
+.flow-node.running {
+  animation: nodeRunningPulse 1s ease-in-out infinite !important;
+  box-shadow: 0 0 20px var(--primary-color, #8477fa);
+  z-index: 50;
+}
+
+@keyframes nodeRunningPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px var(--primary-color, #8477fa);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px var(--primary-color, #8477fa);
+  }
 }
 
 /* Preview highlight animation */

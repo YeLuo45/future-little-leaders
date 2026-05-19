@@ -8,7 +8,7 @@
       fill="none"
       marker-end="url(#arrowhead)"
       class="connector-path"
-      :class="{ 'selected': isSelected }"
+      :class="{ 'selected': isSelected, 'running': isRunning }"
       @click="onClick"
     />
     
@@ -49,6 +49,10 @@ export default {
       required: true
     },
     isSelected: {
+      type: Boolean,
+      default: false
+    },
+    isRunning: {
       type: Boolean,
       default: false
     }
@@ -184,9 +188,21 @@ export default {
   animation: dash 0.5s linear infinite;
 }
 
+.connector-path.running {
+  stroke-width: 3;
+  stroke-dasharray: 12, 6;
+  animation: flowAnimation 0.6s linear infinite;
+}
+
 @keyframes dash {
   to {
     stroke-dashoffset: -10;
+  }
+}
+
+@keyframes flowAnimation {
+  to {
+    stroke-dashoffset: -36;
   }
 }
 </style>

@@ -65,6 +65,7 @@
           :connections="currentConnections"
           :selectedNodeId="selectedNodeId"
           :selectedConnectionId="selectedConnectionId"
+          :runningNodeId="runningNodeId"
           @select-node="onSelectNode"
           @select-connection="onSelectConnection"
           @update:nodes="onNodesUpdate"
@@ -161,7 +162,8 @@ export default {
       branchSelectionTarget: null,
       branchSelectionBranch: null,
       // History panel
-      showHistory: false
+      showHistory: false,
+      runningNodeId: null
     }
   },
   
@@ -514,6 +516,33 @@ export default {
       const startTime = Date.now()
       this.executionStatus = 'running'
 
+      // Animate through nodes sequentially
+      const nodeIds = this.currentNodes.map(n => n.id)
+      let index = 0
+
+      const animateNext = () => {
+        if (index < nodeIds.length) {
+          this.runningNodeId = nodeIds[index]
+          index++
+          setTimeout(animateNext, 600)
+        } else {
+          this.runningNodeId = null
+          const endTime = Date.now()
+          this.$refs.flowHistory?.recordExecution({
+            flowName: this.flowName,
+            flowId: this.currentFlow.id,
+            startTime,
+            endTime,
+            totalNodes: this.currentNodes.length,
+            completedNodes: this.currentNodes.length,
+            points: Math.floor(Math.random() * 50) + 10,
+            status: 'completed'
+          })
+          this.executionStatus = 'idle'
+          this.showToast('流程执行完成', 'success')
+        }
+      }
+
       // Record execution start
       this.$refs.flowHistory?.recordExecution({
         flowName: this.flowName,
@@ -525,23 +554,7 @@ export default {
       })
 
       executor.start()
-
-      // Simulate completion after a delay (actual executor would call callbacks)
-      setTimeout(() => {
-        const endTime = Date.now()
-        this.$refs.flowHistory?.recordExecution({
-          flowName: this.flowName,
-          flowId: this.currentFlow.id,
-          startTime,
-          endTime,
-          totalNodes: this.currentNodes.length,
-          completedNodes: this.currentNodes.length,
-          points: Math.floor(Math.random() * 50) + 10,
-          status: 'completed'
-        })
-        this.executionStatus = 'idle'
-        this.showToast('流程执行完成', 'success')
-      }, 2000)
+      animateNext()
     }
   }
 }

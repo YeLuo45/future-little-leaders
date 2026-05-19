@@ -19,14 +19,13 @@
       @touchmove="onCanvasTouchMove"
       @touchend="onCanvasTouchEnd"
       @wheel="onWheel"
-    >
-      <!-- Canvas content (transformable) -->
-      <view 
-        class="canvas-content"
-        :style="canvasStyle"
       >
-        <!-- Connections layer (SVG) -->
-        <view class="connections-layer">
+        <!-- Canvas content (transformable) -->
+        <view
+          class="canvas-content"
+          :style="canvasStyle"
+        >
+          <!-- Connections layer (SVG) -->
           <FlowConnector
             v-for="conn in connections"
             :key="conn.id"
@@ -34,12 +33,12 @@
             :sourceNode="getNodeById(conn.source)"
             :targetNode="getNodeById(conn.target)"
             :isSelected="selectedConnectionId === conn.id"
+            :isRunning="runningNodeId === conn.source"
             @select="onConnectionSelect"
             @delete="onConnectionDelete"
           />
-        </view>
-        
-        <!-- Temp connection line while dragging -->
+
+          <!-- Temp connection line while dragging -->
         <svg v-if="connectingState.isConnecting" class="temp-connector" :style="tempConnectorStyle">
           <path
             :d="tempPathData"
@@ -58,6 +57,7 @@
           :isSelected="selectedNodeId === node.id"
           :isConnecting="connectingState.isConnecting"
           :isPreviewHighlighted="previewHighlightNodeId === node.id"
+          :isRunning="runningNodeId === node.id"
           @select="onNodeSelect"
           @dragstart="onNodeDragStart"
           @portdragstart="onPortDragStart"
@@ -108,10 +108,14 @@ export default {
     selectedConnectionId: {
       type: String,
       default: null
+    },
+    runningNodeId: {
+      type: String,
+      default: null
     }
   },
-  
-  emits: ['update:nodes', 'update:connections', 'select-node', 'select-connection', 'delete-node', 'delete-connection'],
+
+  emits: ['update:nodes', 'update:connections', 'select-node', 'select-connection', 'delete-node', 'delete-connection', 'node-run-start'],
   
   data() {
     return {
