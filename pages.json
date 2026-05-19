@@ -300,6 +300,27 @@
 				"navigationBarTitleText": "习惯打卡",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/writing/story-creator",
+			"style": {
+				"navigationBarTitleText": "故事创作",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/writing/diary",
+			"style": {
+				"navigationBarTitleText": "日记本",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/writing/poetry",
+			"style": {
+				"navigationBarTitleText": "诗歌创作",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
