@@ -468,6 +468,20 @@
 				"navigationBarTitleText": "情绪分析",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/weekend-camp/weekend-camp",
+			"style": {
+				"navigationBarTitleText": "周末营",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/weekend-camp/camp-detail",
+			"style": {
+				"navigationBarTitleText": "活动详情",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
