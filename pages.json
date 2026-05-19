@@ -281,6 +281,34 @@
 			}
 		},
 		{
+			"path": "pages/peer-coaching/peer-coaching",
+			"style": {
+				"navigationBarTitleText": "同伴辅导",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/peer-coaching/buddy-matching",
+			"style": {
+				"navigationBarTitleText": "学习伙伴匹配",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/peer-coaching/peer-qa",
+			"style": {
+				"navigationBarTitleText": "同伴答疑",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/peer-coaching/mutual-feedback",
+			"style": {
+				"navigationBarTitleText": "互评反馈",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/time/schedule",
 			"style": {
 				"navigationBarTitleText": "日程管理",
