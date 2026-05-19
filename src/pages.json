@@ -1315,6 +1315,26 @@
           "titleNView": false
         }
       }
+    },
+    {
+      "path": "pages/dream-journal/dream-journal",
+      "style": {
+        "navigationBarTitleText": "梦想日记",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/dream-journal/dream-detail",
+      "style": {
+        "navigationBarTitleText": "梦想详情",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
     }
   ],
 	"tabBar": {
