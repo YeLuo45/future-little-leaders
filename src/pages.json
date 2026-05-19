@@ -1285,6 +1285,36 @@
           "titleNView": false
         }
       }
+    },
+    {
+      "path": "pages/character/character",
+      "style": {
+        "navigationBarTitleText": "品格修炼",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/character/character-journal",
+      "style": {
+        "navigationBarTitleText": "修炼日记",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/character/character-certificate",
+      "style": {
+        "navigationBarTitleText": "品格证书",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
     }
   ],
 	"tabBar": {
