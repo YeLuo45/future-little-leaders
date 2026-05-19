@@ -791,6 +791,41 @@
       }
     },
     {
+      "path": "pages/reading-club/book-club",
+      "style": {
+        "navigationBarTitleText": "读书俱乐部",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/reading-club/club-detail",
+      "style": {
+        "navigationBarTitleText": "俱乐部详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/reading-club/review-publish",
+      "style": {
+        "navigationBarTitleText": "发布书评",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/reading-club/review-detail",
+      "style": {
+        "navigationBarTitleText": "书评详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/reading-club/review-edit",
+      "style": {
+        "navigationBarTitleText": "编辑书评",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/study/study-room",
       "style": {
         "navigationBarTitleText": "自习室",
