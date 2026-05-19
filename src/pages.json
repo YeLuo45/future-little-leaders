@@ -976,6 +976,41 @@
         "navigationBarTitleText": "决策训练",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/leadership/leadership",
+      "style": {
+        "navigationBarTitleText": "领导力挑战",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/leadership/quest-list",
+      "style": {
+        "navigationBarTitleText": "领导力任务",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/leadership/quest-detail",
+      "style": {
+        "navigationBarTitleText": "任务详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/leadership/scenario-list",
+      "style": {
+        "navigationBarTitleText": "角色扮演",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/leadership/scenario-play",
+      "style": {
+        "navigationBarTitleText": "角色扮演",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
