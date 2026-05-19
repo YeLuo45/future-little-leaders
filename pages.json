@@ -321,6 +321,27 @@
 				"navigationBarTitleText": "诗歌创作",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/music/appreciation",
+			"style": {
+				"navigationBarTitleText": "音乐欣赏",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/music/rhythm-game",
+			"style": {
+				"navigationBarTitleText": "节奏游戏",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/music/instruments",
+			"style": {
+				"navigationBarTitleText": "乐器认知",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
