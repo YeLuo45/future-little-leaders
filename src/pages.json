@@ -712,6 +712,69 @@
       }
     },
     {
+      "path": "pages/growth-portfolio/growth-portfolio",
+      "style": {
+        "navigationBarTitleText": "成长档案袋",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-portfolio/work-gallery",
+      "style": {
+        "navigationBarTitleText": "作品集",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-portfolio/growth-timeline",
+      "style": {
+        "navigationBarTitleText": "成长时间线",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-portfolio/milestones",
+      "style": {
+        "navigationBarTitleText": "里程碑",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-portfolio/add-work",
+      "style": {
+        "navigationBarTitleText": "添加作品",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-portfolio/work-detail",
+      "style": {
+        "navigationBarTitleText": "作品详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-portfolio/portfolio-cover",
+      "style": {
+        "navigationBarTitleText": "编辑封面",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-portfolio/add-timeline-event",
+      "style": {
+        "navigationBarTitleText": "记录成长",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/growth-portfolio/add-milestone",
+      "style": {
+        "navigationBarTitleText": "添加里程碑",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/marketplace/marketplace",
       "style": {
         "navigationBarTitleText": "插件市场",
