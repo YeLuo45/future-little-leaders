@@ -1111,6 +1111,34 @@
       }
     },
     {
+      "path": "pages/mindfulness/mindfulness-garden",
+      "style": {
+        "navigationBarTitleText": "正念花园",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mindfulness/meditation",
+      "style": {
+        "navigationBarTitleText": "冥想练习",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mindfulness/breathing",
+      "style": {
+        "navigationBarTitleText": "呼吸训练",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/mindfulness/mindfulness-games",
+      "style": {
+        "navigationBarTitleText": "正念游戏",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/leadership/leadership",
       "style": {
         "navigationBarTitleText": "领导力挑战",
