@@ -1142,6 +1142,16 @@
           "titleNView": false
         }
       }
+    },
+    {
+      "path": "pages/habit/habit-master",
+      "style": {
+        "navigationBarTitleText": "习惯大师",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
     }
   ],
 	"tabBar": {
