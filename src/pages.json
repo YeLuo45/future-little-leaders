@@ -999,6 +999,27 @@
       }
     },
     {
+      "path": "pages/pet/pet-skills",
+      "style": {
+        "navigationBarTitleText": "宠物技能",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/pet/pet-competition",
+      "style": {
+        "navigationBarTitleText": "宠物竞赛",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/pet/pet-leaderboard",
+      "style": {
+        "navigationBarTitleText": "排行榜",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/avatar/avatar-customize",
       "style": {
         "navigationBarTitleText": "头像定制",

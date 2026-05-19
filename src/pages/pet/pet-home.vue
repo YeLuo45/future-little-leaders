@@ -147,6 +147,14 @@
           <text class="action-icon">✨</text>
           <text class="action-name">进化路线</text>
         </view>
+        <view class="action-btn skills" @click="goToSkills">
+          <text class="action-icon">⚔️</text>
+          <text class="action-name">宠物技能</text>
+        </view>
+        <view class="action-btn competition" @click="goToCompetition">
+          <text class="action-icon">🏆</text>
+          <text class="action-name">宠物竞赛</text>
+        </view>
       </view>
     </view>
   </view>
@@ -196,6 +204,14 @@ const goToCare = () => {
 
 const goToEvolution = () => {
   uni.navigateTo({ url: '/pages/pet/pet-evolution' })
+}
+
+const goToSkills = () => {
+  uni.navigateTo({ url: '/pages/pet/pet-skills' })
+}
+
+const goToCompetition = () => {
+  uni.navigateTo({ url: '/pages/pet/pet-competition' })
 }
 
 onMounted(() => {
@@ -559,18 +575,18 @@ onMounted(() => {
 
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 
 .action-btn {
   background: #fff;
   border-radius: 16px;
-  padding: 20px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .action-btn.primary {
@@ -580,6 +596,16 @@ onMounted(() => {
 
 .action-btn.secondary {
   background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+.action-btn.skills {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.action-btn.competition {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #fff;
 }
 
 .action-icon {

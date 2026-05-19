@@ -3,8 +3,8 @@ import { ref, computed } from 'vue'
 import petService from '@/services/petService.js'
 
 /**
- * V51 Pet Store
- * 虚拟宠物状态管理
+ * V96 Pet Store
+ * 虚拟宠物状态管理 - V96新增技能和竞赛系统
  */
 export const usePetStore = defineStore('pet', () => {
   // 状态
@@ -13,23 +13,42 @@ export const usePetStore = defineStore('pet', () => {
   const isLoading = ref(false)
   const showEvolutionModal = ref(false)
   const evolutionResult = ref(null)
-
+  
+  // V96新增：技能相关状态
+  const petSkills = ref([])
+  const selectedDifficulty = ref('normal')
+  const competitionResult = ref(null)
+  const showCompetitionModal = ref(false)
+  const leaderboard = ref([])
+  
   // 初始化
   const init = () => {
     loadPetData()
     loadPetStats()
+    loadPetSkills()
+    loadLeaderboard()
   }
-
+  
   // 加载宠物数据
   const loadPetData = () => {
     petData.value = petService.getPetData()
   }
-
+  
   // 加载宠物属性
   const loadPetStats = () => {
     petStats.value = petService.getPetStats()
   }
-
+  
+  // V96新增：加载宠物技能
+  const loadPetSkills = () => {
+    petSkills.value = petService.getPetSkillsData()
+  }
+  
+  // V96新增：加载排行榜
+  const loadLeaderboard = () => {
+    leaderboard.value = petService.getLeaderboard()
+  }
+  
   // 创建宠物
   const adoptPet = (typeId, name) => {
     isLoading.value = true
@@ -37,6 +56,9 @@ export const usePetStore = defineStore('pet', () => {
       const newPet = petService.createPet(typeId, name)
       petData.value = newPet
       petStats.value = petService.getPetStats()
+      // V96：初始化宠物技能
+      petService.initPetSkills(newPet.id)
+      loadPetSkills()
       uni.showToast({ title: '领养成功！', icon: 'success' })
       uni.$emit('petAdopted', newPet)
       return newPet
@@ -207,7 +229,70 @@ export const usePetStore = defineStore('pet', () => {
     if (petStats.value.cleanliness < 40) tips.push({ type: 'clean', message: '宠物需要清洁', icon: '🛁' })
     return tips
   })
-
+  
+  // V96新增：计算属性
+  const equippedSkills = computed(() => {
+    return petSkills.value.filter(s => s.isEquipped) || []
+  })
+  
+  const availableSkills = computed(() => {
+    return petSkills.value || []
+  })
+  
+  const competitionHistory = computed(() => {
+    return petService.getCompetitionHistory()
+  })
+  
+  // V96新增：技能相关方法
+  const equipSkill = (skillId) => {
+    const result = petService.equipSkill(skillId)
+    if (result && result.success) {
+      loadPetSkills()
+    }
+    return result
+  }
+  
+  const upgradeSkill = (skillId) => {
+    const result = petService.upgradeSkill(skillId)
+    if (result && result.success) {
+      loadPetSkills()
+    }
+    return result
+  }
+  
+  const getSkillPower = (skillId, level) => {
+    return petService.calculateSkillPower(skillId, level)
+  }
+  
+  const getSkillInfo = (skillId) => {
+    return petService.PET_SKILL_TYPES[skillId]
+  }
+  
+  // V96新增：竞赛相关方法
+  const setDifficulty = (difficulty) => {
+    selectedDifficulty.value = difficulty
+  }
+  
+  const startCompetition = () => {
+    const result = petService.startCompetition(selectedDifficulty.value)
+    if (result.success) {
+      competitionResult.value = result.result
+      showCompetitionModal.value = true
+      loadPetData()
+      loadPetStats()
+      loadPetSkills()
+      loadLeaderboard()
+    } else {
+      uni.showToast({ title: result.message, icon: 'none' })
+    }
+    return result
+  }
+  
+  const closeCompetitionModal = () => {
+    showCompetitionModal.value = false
+    competitionResult.value = null
+  }
+  
   return {
     // 状态
     petData,
@@ -215,6 +300,12 @@ export const usePetStore = defineStore('pet', () => {
     isLoading,
     showEvolutionModal,
     evolutionResult,
+    // V96新增：技能状态
+    petSkills,
+    selectedDifficulty,
+    competitionResult,
+    showCompetitionModal,
+    leaderboard,
 
     // 计算属性
     hasPet,
@@ -228,11 +319,17 @@ export const usePetStore = defineStore('pet', () => {
     petMoodEmoji,
     needsAttention,
     getStatusTips,
+    // V96新增：技能计算属性
+    equippedSkills,
+    availableSkills,
+    competitionHistory,
 
     // 方法
     init,
     loadPetData,
     loadPetStats,
+    loadPetSkills,
+    loadLeaderboard,
     adoptPet,
     feed,
     play,
@@ -241,6 +338,15 @@ export const usePetStore = defineStore('pet', () => {
     onTaskCompleted,
     onDailyLogin,
     checkEvolution,
-    closeEvolutionModal
+    closeEvolutionModal,
+    // V96新增：技能方法
+    equipSkill,
+    upgradeSkill,
+    getSkillPower,
+    getSkillInfo,
+    // V96新增：竞赛方法
+    setDifficulty,
+    startCompetition,
+    closeCompetitionModal
   }
 })
