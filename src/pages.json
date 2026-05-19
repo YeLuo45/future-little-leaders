@@ -291,6 +291,46 @@
       }
     },
     {
+      "path": "pages/growth-report-card/index",
+      "style": {
+        "navigationBarTitleText": "成长报告卡",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/growth-report-card/edit",
+      "style": {
+        "navigationBarTitleText": "编辑报告卡",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/growth-report-card/parent-message",
+      "style": {
+        "navigationBarTitleText": "家长寄语",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/growth-report-card/history",
+      "style": {
+        "navigationBarTitleText": "历史报告",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
       "path": "pages/analytics/analytics-v18",
       "style": {
         "navigationBarTitleText": "高级数据分析",
