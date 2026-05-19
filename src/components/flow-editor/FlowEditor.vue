@@ -59,6 +59,7 @@
           :isPreviewHighlighted="previewHighlightNodeId === node.id"
           :isRunning="runningNodeId === node.id"
           :isCompleted="completedNodeIds.includes(node.id)"
+          :nodeExecutionTime="nodeExecutionTimes[node.id]"
           @select="onNodeSelect"
           @dragstart="onNodeDragStart"
           @portdragstart="onPortDragStart"
@@ -117,6 +118,10 @@ export default {
     completedNodeIds: {
       type: Array,
       default: () => []
+    },
+    nodeExecutionTimes: {
+      type: Object,
+      default: () => {}
     }
   },
 

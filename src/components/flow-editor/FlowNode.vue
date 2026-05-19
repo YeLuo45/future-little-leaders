@@ -18,6 +18,7 @@
     <view class="node-content">
       <text class="node-icon">{{ nodeIcon }}</text>
       <text class="node-label">{{ nodeLabel }}</text>
+      <text v-if="executionTimeBadge" class="execution-time-badge">{{ executionTimeBadge }}</text>
     </view>
 
     <!-- Condition node: dual output ports -->
@@ -91,6 +92,10 @@ export default {
     isCompleted: {
       type: Boolean,
       default: false
+    },
+    nodeExecutionTime: {
+      type: Number,
+      default: null
     }
   },
 
@@ -158,9 +163,15 @@ export default {
         right: '8px',
         transform: 'none'
       }
+    },
+
+    executionTimeBadge() {
+      if (!this.nodeExecutionTime) return null
+      if (this.nodeExecutionTime < 1000) return `${this.nodeExecutionTime}ms`
+      return `${(this.nodeExecutionTime / 1000).toFixed(1)}s`
     }
   },
-  
+
   methods: {
     onMouseDown(e) {
       console.log('[V5] Node mouse down:', this.node.id)
@@ -369,6 +380,18 @@ export default {
   color: #333;
   text-align: center;
   word-break: break-word;
+}
+
+.execution-time-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 9px;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 1px 4px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 .node-port {
