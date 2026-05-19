@@ -1139,6 +1139,41 @@
       }
     },
     {
+      "path": "pages/science-museum/science-museum",
+      "style": {
+        "navigationBarTitleText": "科学博物馆",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/science-museum/hall-list",
+      "style": {
+        "navigationBarTitleText": "博物馆展厅",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/science-museum/hall-detail",
+      "style": {
+        "navigationBarTitleText": "展厅详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/science-museum/exhibit-detail",
+      "style": {
+        "navigationBarTitleText": "展品详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/science-museum/collection-book",
+      "style": {
+        "navigationBarTitleText": "科学收藏册",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/leadership/leadership",
       "style": {
         "navigationBarTitleText": "领导力挑战",
