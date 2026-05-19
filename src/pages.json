@@ -509,6 +509,27 @@
       }
     },
     {
+      "path": "pages/pbl/project-library",
+      "style": {
+        "navigationBarTitleText": "PBL项目库",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/pbl/project-steps",
+      "style": {
+        "navigationBarTitleText": "项目阶段",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/pbl/team-collaboration",
+      "style": {
+        "navigationBarTitleText": "团队协作",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/family/multi-child",
       "style": {
         "navigationBarTitleText": "多儿童家庭",
