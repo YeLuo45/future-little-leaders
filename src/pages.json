@@ -948,6 +948,34 @@
         "navigationBarTitleText": "志愿服务",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/critical-thinking/critical-thinking",
+      "style": {
+        "navigationBarTitleText": "思辨训练",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/critical-thinking/logic-puzzles",
+      "style": {
+        "navigationBarTitleText": "逻辑谜题",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/critical-thinking/debate-practice",
+      "style": {
+        "navigationBarTitleText": "辩论练习",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/critical-thinking/decision-making",
+      "style": {
+        "navigationBarTitleText": "决策训练",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
