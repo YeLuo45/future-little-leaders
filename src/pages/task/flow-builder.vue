@@ -66,6 +66,7 @@
           :selectedNodeId="selectedNodeId"
           :selectedConnectionId="selectedConnectionId"
           :runningNodeId="runningNodeId"
+          :completedNodeIds="completedNodeIds"
           @select-node="onSelectNode"
           @select-connection="onSelectConnection"
           @update:nodes="onNodesUpdate"
@@ -163,7 +164,8 @@ export default {
       branchSelectionBranch: null,
       // History panel
       showHistory: false,
-      runningNodeId: null
+      runningNodeId: null,
+      completedNodeIds: []
     }
   },
   
@@ -519,13 +521,20 @@ export default {
       // Animate through nodes sequentially
       const nodeIds = this.currentNodes.map(n => n.id)
       let index = 0
+      this.completedNodeIds = []
 
       const animateNext = () => {
         if (index < nodeIds.length) {
           this.runningNodeId = nodeIds[index]
+          // Mark previous node as completed
+          if (index > 0) {
+            this.completedNodeIds.push(nodeIds[index - 1])
+          }
           index++
           setTimeout(animateNext, 600)
         } else {
+          // Final node completed
+          this.completedNodeIds.push(nodeIds[nodeIds.length - 1])
           this.runningNodeId = null
           const endTime = Date.now()
           this.$refs.flowHistory?.recordExecution({

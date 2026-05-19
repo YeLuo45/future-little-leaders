@@ -58,6 +58,7 @@
           :isConnecting="connectingState.isConnecting"
           :isPreviewHighlighted="previewHighlightNodeId === node.id"
           :isRunning="runningNodeId === node.id"
+          :isCompleted="completedNodeIds.includes(node.id)"
           @select="onNodeSelect"
           @dragstart="onNodeDragStart"
           @portdragstart="onPortDragStart"
@@ -112,6 +113,10 @@ export default {
     runningNodeId: {
       type: String,
       default: null
+    },
+    completedNodeIds: {
+      type: Array,
+      default: () => []
     }
   },
 

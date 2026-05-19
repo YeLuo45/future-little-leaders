@@ -1,7 +1,7 @@
 <template>
   <view
     class="flow-node"
-    :class="{ 'selected': isSelected, 'connecting': isConnecting, 'preview-highlight': isPreviewHighlighted }"
+    :class="{ 'selected': isSelected, 'connecting': isConnecting, 'preview-highlight': isPreviewHighlighted, 'running': isRunning, 'completed': isCompleted }"
     :style="nodeStyle"
     @mousedown="onMouseDown"
     @touchstart="onTouchStart"
@@ -87,6 +87,10 @@ export default {
     isRunning: {
       type: Boolean,
       default: false
+    },
+    isCompleted: {
+      type: Boolean,
+      default: false
     }
   },
 
@@ -112,12 +116,15 @@ export default {
     
     nodeStyle() {
       const config = this.nodeTypeConfig
+      let opacity = 1
+      if (this.isCompleted) opacity = 0.6
       return {
         left: `${this.node.x}px`,
         top: `${this.node.y}px`,
         borderColor: config.color,
         backgroundColor: this.isSelected ? `${config.color}15` : (this.isDarkMode ? '#1f1f1f' : '#fff'),
-        animation: this.isRunning ? 'nodeRunningPulse 1s ease-in-out infinite' : 'none'
+        animation: this.isRunning ? 'nodeRunningPulse 1s ease-in-out infinite' : 'none',
+        opacity
       }
     },
     
@@ -276,6 +283,30 @@ export default {
     transform: scale(1.05);
     box-shadow: 0 0 25px var(--primary-color, #8477fa);
   }
+}
+
+/* Completed state */
+.flow-node.completed {
+  opacity: 0.7;
+  border-color: #22c55e !important;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}
+
+.flow-node.completed::after {
+  content: '✓';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  background: #22c55e;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
 }
 
 /* Preview highlight animation */
