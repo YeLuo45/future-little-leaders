@@ -251,6 +251,36 @@
       }
     },
     {
+      "path": "pages/badge/badge-library",
+      "style": {
+        "navigationBarTitleText": "徽章库",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/badge/badge-collection",
+      "style": {
+        "navigationBarTitleText": "徽章收集",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/badge/badge-showcase",
+      "style": {
+        "navigationBarTitleText": "徽章展示墙",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
       "path": "pages/growth-report/growth-report",
       "style": {
         "navigationBarTitleText": "M2成长报告",
@@ -1101,6 +1131,16 @@
       "style": {
         "navigationBarTitleText": "里程碑",
         "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/daily-challenge/daily-challenge",
+      "style": {
+        "navigationBarTitleText": "每日挑战",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
       }
     }
   ],
