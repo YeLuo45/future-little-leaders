@@ -483,6 +483,13 @@
       }
     },
     {
+      "path": "pages/parent-child/parent-child",
+      "style": {
+        "navigationBarTitleText": "亲子挑战",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/social/friend-detail",
       "style": {
         "navigationBarTitleText": "同伴详情",
