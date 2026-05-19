@@ -363,6 +363,27 @@
 				"navigationBarTitleText": "实验记录",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/art/drawing-board",
+			"style": {
+				"navigationBarTitleText": "绘画板",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/art/crafts",
+			"style": {
+				"navigationBarTitleText": "手工制作",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/art/gallery",
+			"style": {
+				"navigationBarTitleText": "作品展示",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
