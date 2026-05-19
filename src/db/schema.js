@@ -55,7 +55,15 @@ export const TABLES = {
   BOUNTY_TASKS: 'bounty_tasks',
   BOUNTY_CLAIMS: 'bounty_claims',
   LIMITED_REWARDS: 'limited_rewards',
-  LIMITED_REWARD_CLAIMS: 'limited_reward_claims'
+  LIMITED_REWARD_CLAIMS: 'limited_reward_claims',
+  // V58 Moral Education tables
+  MORAL_STORIES: 'moral_stories',
+  VALUE_RECORDS: 'value_records',
+  VALUE_PROGRESS: 'value_progress',
+  VOLUNTEER_TASKS: 'volunteer_tasks',
+  VOLUNTEER_RECORDS: 'volunteer_records',
+  MORAL_BADGES: 'moral_badges',
+  HONOR_BOARD: 'honor_board'
 }
 
 export const SCHEMA = `
@@ -702,6 +710,69 @@ CREATE INDEX IF NOT EXISTS idx_bounty_claims_baby ON ${TABLES.BOUNTY_CLAIMS}(bab
 CREATE INDEX IF NOT EXISTS idx_limited_rewards_status ON ${TABLES.LIMITED_REWARDS}(status);
 CREATE INDEX IF NOT EXISTS idx_limited_reward_claims_reward ON ${TABLES.LIMITED_REWARD_CLAIMS}(rewardId);
 CREATE INDEX IF NOT EXISTS idx_limited_reward_claims_baby ON ${TABLES.LIMITED_REWARD_CLAIMS}(babyId);
+
+-- V58 品德教育表
+-- 价值观进度表
+CREATE TABLE IF NOT EXISTS ${TABLES.VALUE_PROGRESS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  valueType TEXT NOT NULL,
+  score INTEGER DEFAULT 0,
+  duration INTEGER DEFAULT 0,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- 志愿服务记录表
+CREATE TABLE IF NOT EXISTS ${TABLES.VOLUNTEER_RECORDS} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  taskId TEXT NOT NULL,
+  taskTitle TEXT NOT NULL,
+  taskType TEXT NOT NULL,
+  actualHours REAL DEFAULT 0,
+  points INTEGER DEFAULT 0,
+  description TEXT,
+  photos TEXT,
+  completedAt TEXT NOT NULL,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- 品德徽章表
+CREATE TABLE IF NOT EXISTS ${TABLES.MORAL_BADGES} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  badgeType TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  level TEXT DEFAULT 'bronze',
+  icon TEXT,
+  earnedAt TEXT NOT NULL,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- 荣誉榜表
+CREATE TABLE IF NOT EXISTS ${TABLES.HONOR_BOARD} (
+  id TEXT PRIMARY KEY,
+  babyId TEXT NOT NULL,
+  babyName TEXT,
+  reason TEXT NOT NULL,
+  valueType TEXT,
+  points INTEGER DEFAULT 0,
+  recordDate TEXT NOT NULL,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+-- V58 Indexes
+CREATE INDEX IF NOT EXISTS idx_value_progress_baby ON ${TABLES.VALUE_PROGRESS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_value_progress_type ON ${TABLES.VALUE_PROGRESS}(valueType);
+CREATE INDEX IF NOT EXISTS idx_volunteer_records_baby ON ${TABLES.VOLUNTEER_RECORDS}(babyId);
+CREATE INDEX IF NOT EXISTS idx_volunteer_records_type ON ${TABLES.VOLUNTEER_RECORDS}(taskType);
+CREATE INDEX IF NOT EXISTS idx_moral_badges_baby ON ${TABLES.MORAL_BADGES}(babyId);
+CREATE INDEX IF NOT EXISTS idx_honor_board_date ON ${TABLES.HONOR_BOARD}(recordDate DESC);
 `
 
 export const TABLE_NAMES = Object.values(TABLES)

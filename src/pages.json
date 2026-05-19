@@ -906,6 +906,27 @@
         "navigationBarTitleText": "知识速查",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/moral/stories",
+      "style": {
+        "navigationBarTitleText": "品德故事",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/moral/values",
+      "style": {
+        "navigationBarTitleText": "价值观学习",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/moral/volunteer",
+      "style": {
+        "navigationBarTitleText": "志愿服务",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
