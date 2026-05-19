@@ -1589,6 +1589,13 @@
         "navigationBarTitleText": "成就徽章",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/family-legacy/family-legacy",
+      "style": {
+        "navigationBarTitleText": "家族传承",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
