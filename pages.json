@@ -405,6 +405,27 @@
 				"navigationBarTitleText": "数学探索",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/health/food-diary",
+			"style": {
+				"navigationBarTitleText": "饮食日记",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/health/nutrition",
+			"style": {
+				"navigationBarTitleText": "营养分析",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/health/reminders",
+			"style": {
+				"navigationBarTitleText": "健康提醒",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"tabBar": {
@@ -418,6 +439,12 @@
 				"text": "首页",
 				"iconPath": "static/tarbar/home.png",
 				"selectedIconPath": "static/tarbar/home_active.png"
+			},
+			{
+				"pagePath": "pages/health/food-diary",
+				"text": "健康",
+				"iconPath": "static/tarbar/health.png",
+				"selectedIconPath": "static/tarbar/health_active.png"
 			},
 			{
 				"pagePath": "pages/shop/shop",
