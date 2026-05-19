@@ -1174,6 +1174,26 @@
       }
     },
     {
+      "path": "pages/world-culture/world-culture",
+      "style": {
+        "navigationBarTitleText": "世界文化探索",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
+      "path": "pages/world-culture/culture-detail",
+      "style": {
+        "navigationBarTitleText": "文化详情",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "titleNView": false
+        }
+      }
+    },
+    {
       "path": "pages/leadership/leadership",
       "style": {
         "navigationBarTitleText": "领导力挑战",
