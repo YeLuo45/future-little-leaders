@@ -81,6 +81,21 @@
           <text>点击另一个节点端口完成连接</text>
           <text class="cancel-hint" @click="cancelConnection">取消</text>
         </view>
+
+        <!-- Execution log panel -->
+        <view v-if="executionLogs.length > 0" class="execution-log-panel">
+          <view class="log-header">
+            <text class="log-title">执行日志</text>
+            <text class="log-close" @click="executionLogs = []">×</text>
+          </view>
+          <scroll-view class="log-list" scroll-y>
+            <view v-for="(log, idx) in executionLogs" :key="idx" class="log-item" :class="log.type">
+              <text class="log-time">{{ log.time }}</text>
+              <text class="log-icon">{{ log.type === 'running' ? '⏳' : log.type === 'completed' ? '✅' : '➡️' }}</text>
+              <text class="log-text">{{ log.text }}</text>
+            </view>
+          </scroll-view>
+        </view>
       </view>
       
       <!-- Right panel: Properties -->
@@ -167,7 +182,8 @@ export default {
       showHistory: false,
       runningNodeId: null,
       completedNodeIds: [],
-      nodeExecutionTimes: {}
+      nodeExecutionTimes: {},
+      executionLogs: []
     }
   },
   
@@ -231,14 +247,19 @@ export default {
     saveFlow() {
       console.log('[V5] Saving flow')
       const flowStore = useFlowStore()
-      
+
       if (this.currentFlow) {
         this.currentFlow.name = this.flowName
         flowStore.saveFlow()
         this.showToast('保存成功', 'success')
       }
     },
-    
+
+    getTimeStr() {
+      const now = new Date()
+      return `${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
+    },
+
     // Node type drag start
     onNodeTypeDragStart(e, type) {
       console.log('[V5] Node type drag start:', type)
@@ -525,22 +546,29 @@ export default {
       let index = 0
       this.completedNodeIds = []
       this.nodeExecutionTimes = {}
+      this.executionLogs = [{ time: this.getTimeStr(), type: 'info', text: `开始执行流程: ${this.flowName}` }]
       const nodeStartTime = Date.now()
 
       const animateNext = () => {
         if (index < nodeIds.length) {
+          const node = this.currentNodes.find(n => n.id === nodeIds[index])
           this.runningNodeId = nodeIds[index]
+          this.executionLogs.push({ time: this.getTimeStr(), type: 'running', text: `执行中: ${node?.config?.title || node?.type}` })
           // Mark previous node as completed
           if (index > 0) {
             this.completedNodeIds.push(nodeIds[index - 1])
-            this.nodeExecutionTimes[nodeIds[index - 1]] = 600 // 600ms per node
+            const prevNode = this.currentNodes.find(n => n.id === nodeIds[index - 1])
+            this.nodeExecutionTimes[nodeIds[index - 1]] = 600
+            this.executionLogs.push({ time: this.getTimeStr(), type: 'completed', text: `完成: ${prevNode?.config?.title || prevNode?.type}` })
           }
           index++
           setTimeout(animateNext, 600)
         } else {
           // Final node completed
           this.completedNodeIds.push(nodeIds[nodeIds.length - 1])
+          const lastNode = this.currentNodes.find(n => n.id === nodeIds[nodeIds.length - 1])
           this.nodeExecutionTimes[nodeIds[nodeIds.length - 1]] = 600
+          this.executionLogs.push({ time: this.getTimeStr(), type: 'completed', text: `完成: ${lastNode?.config?.title || lastNode?.type}` })
           this.runningNodeId = null
           const endTime = Date.now()
           this.$refs.flowHistory?.recordExecution({
@@ -730,6 +758,79 @@ export default {
 .cancel-hint {
   color: #f59e0b;
   cursor: pointer;
+}
+
+.execution-log-panel {
+  position: absolute;
+  bottom: 70px;
+  left: 10px;
+  width: 280px;
+  max-height: 200px;
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 8px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.log-title {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.log-close {
+  color: #999;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.log-list {
+  flex: 1;
+  max-height: 160px;
+  padding: 6px 0;
+}
+
+.log-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 11px;
+}
+
+.log-item .log-time {
+  color: #666;
+  min-width: 40px;
+}
+
+.log-item .log-icon {
+  font-size: 12px;
+}
+
+.log-item .log-text {
+  color: #e5e5e5;
+  flex: 1;
+}
+
+.log-item.running .log-text {
+  color: #60a5fa;
+}
+
+.log-item.completed .log-text {
+  color: #4ade80;
+}
+
+.log-item.info .log-text {
+  color: #a78bfa;
 }
 
 .property-panel {
