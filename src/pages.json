@@ -677,6 +677,41 @@
       }
     },
     {
+      "path": "pages/daily-ceremonies/daily-ceremonies",
+      "style": {
+        "navigationBarTitleText": "日常仪式",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/daily-ceremonies/morning-routine",
+      "style": {
+        "navigationBarTitleText": "晨间惯例",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/daily-ceremonies/evening-routine",
+      "style": {
+        "navigationBarTitleText": "晚间惯例",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/daily-ceremonies/special-days",
+      "style": {
+        "navigationBarTitleText": "特别日仪式",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/daily-ceremonies/add-special-day",
+      "style": {
+        "navigationBarTitleText": "创建特别日",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/marketplace/marketplace",
       "style": {
         "navigationBarTitleText": "插件市场",
