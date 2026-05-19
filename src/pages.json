@@ -1484,6 +1484,48 @@
           "titleNView": false
         }
       }
+    },
+    {
+      "path": "pages/interest-discovery/interest-discovery",
+      "style": {
+        "navigationBarTitleText": "兴趣发现",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/interest-discovery/assessment",
+      "style": {
+        "navigationBarTitleText": "兴趣测评",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/interest-discovery/exploration",
+      "style": {
+        "navigationBarTitleText": "探索活动",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/interest-discovery/activity-detail",
+      "style": {
+        "navigationBarTitleText": "活动详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/interest-discovery/tracking",
+      "style": {
+        "navigationBarTitleText": "兴趣追踪",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/interest-discovery/badges",
+      "style": {
+        "navigationBarTitleText": "成就徽章",
+        "navigationStyle": "custom"
+      }
     }
   ],
 	"tabBar": {
