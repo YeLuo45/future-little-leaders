@@ -68,6 +68,7 @@
           :runningNodeId="runningNodeId"
           :completedNodeIds="completedNodeIds"
           :nodeExecutionTimes="nodeExecutionTimes"
+          :branchDecisions="branchDecisions"
           @select-node="onSelectNode"
           @select-connection="onSelectConnection"
           @update:nodes="onNodesUpdate"
@@ -91,7 +92,7 @@
           <scroll-view class="log-list" scroll-y>
             <view v-for="(log, idx) in executionLogs" :key="idx" class="log-item" :class="log.type">
               <text class="log-time">{{ log.time }}</text>
-              <text class="log-icon">{{ log.type === 'running' ? '⏳' : log.type === 'completed' ? '✅' : '➡️' }}</text>
+              <text class="log-icon">{{ log.type === 'running' ? '⏳' : log.type === 'completed' ? '✅' : log.type === 'branch' ? '🔀' : '➡️' }}</text>
               <text class="log-text">{{ log.text }}</text>
             </view>
           </scroll-view>
@@ -183,7 +184,8 @@ export default {
       runningNodeId: null,
       completedNodeIds: [],
       nodeExecutionTimes: {},
-      executionLogs: []
+      executionLogs: [],
+      branchDecisions: {}
     }
   },
   
@@ -547,13 +549,20 @@ export default {
       this.completedNodeIds = []
       this.nodeExecutionTimes = {}
       this.executionLogs = [{ time: this.getTimeStr(), type: 'info', text: `开始执行流程: ${this.flowName}` }]
+      this.branchDecisions = {}
       const nodeStartTime = Date.now()
 
       const animateNext = () => {
         if (index < nodeIds.length) {
           const node = this.currentNodes.find(n => n.id === nodeIds[index])
           this.runningNodeId = nodeIds[index]
-          this.executionLogs.push({ time: this.getTimeStr(), type: 'running', text: `执行中: ${node?.config?.title || node?.type}` })
+          // Handle condition node branch decision
+          if (node.type === 'condition') {
+            const decision = Math.random() > 0.5 ? 'true' : 'false'
+            this.branchDecisions[node.id] = decision
+            this.executionLogs.push({ time: this.getTimeStr(), type: 'branch', text: `条件判断: ${node.config?.title || node.type} → ${decision === 'true' ? '通过' : '拒绝'}` })
+          }
+          this.executionLogs.push({ time: this.getTimeStr(), type: 'running', text: `执行中: ${node?.config?.title || node.type}` })
           // Mark previous node as completed
           if (index > 0) {
             this.completedNodeIds.push(nodeIds[index - 1])
@@ -831,6 +840,11 @@ export default {
 
 .log-item.info .log-text {
   color: #a78bfa;
+}
+
+.log-item.branch .log-text {
+  color: #f59e0b;
+  font-weight: 600;
 }
 
 .property-panel {

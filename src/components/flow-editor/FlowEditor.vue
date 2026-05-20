@@ -55,11 +55,12 @@
           :key="node.id"
           :node="node"
           :isSelected="selectedNodeId === node.id"
-          :isConnecting="connectingState.isConnecting"
+          :isConnecting="isDraggingFromPort && connectingFromNodeId === node.id"
           :isPreviewHighlighted="previewHighlightNodeId === node.id"
           :isRunning="runningNodeId === node.id"
           :isCompleted="completedNodeIds.includes(node.id)"
           :nodeExecutionTime="nodeExecutionTimes[node.id]"
+          :branchDecision="branchDecisions[node.id]"
           @select="onNodeSelect"
           @dragstart="onNodeDragStart"
           @portdragstart="onPortDragStart"
@@ -120,6 +121,10 @@ export default {
       default: () => []
     },
     nodeExecutionTimes: {
+      type: Object,
+      default: () => {}
+    },
+    branchDecisions: {
       type: Object,
       default: () => {}
     }

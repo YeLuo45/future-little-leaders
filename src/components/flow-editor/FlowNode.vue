@@ -19,6 +19,7 @@
       <text class="node-icon">{{ nodeIcon }}</text>
       <text class="node-label">{{ nodeLabel }}</text>
       <text v-if="executionTimeBadge" class="execution-time-badge">{{ executionTimeBadge }}</text>
+      <text v-if="branchDecision" class="branch-decision-badge" :data-value="branchDecision">{{ branchDecision === 'true' ? 'T' : 'F' }}</text>
     </view>
 
     <!-- Condition node: dual output ports -->
@@ -95,6 +96,10 @@ export default {
     },
     nodeExecutionTime: {
       type: Number,
+      default: null
+    },
+    branchDecision: {
+      type: String,
       default: null
     }
   },
@@ -392,6 +397,31 @@ export default {
   padding: 1px 4px;
   border-radius: 8px;
   font-weight: 500;
+}
+
+.branch-decision-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  z-index: 20;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.branch-decision-badge[data-value="true"] {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.branch-decision-badge[data-value="false"] {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
 }
 
 .node-port {
