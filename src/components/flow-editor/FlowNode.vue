@@ -22,6 +22,14 @@
       <text v-if="branchDecision" class="branch-decision-badge" :data-value="branchDecision">{{ branchDecision === 'true' ? 'T' : 'F' }}</text>
     </view>
 
+    <!-- Progress ring for running nodes -->
+    <view v-if="isRunning && executionProgress > 0" class="progress-ring-container">
+      <svg class="progress-ring" width="80" height="80" viewBox="0 0 80 80">
+        <circle class="progress-ring-bg" cx="40" cy="40" r="36" />
+        <circle class="progress-ring-fill" cx="40" cy="40" r="36" :stroke-dasharray="226.195" :stroke-dashoffset="226.195 * (1 - executionProgress / 100)" />
+      </svg>
+    </view>
+
     <!-- Condition node: dual output ports -->
     <template v-if="node.type === 'condition'">
       <!-- True port (left) -->
@@ -101,6 +109,10 @@ export default {
     branchDecision: {
       type: String,
       default: null
+    },
+    executionProgress: {
+      type: Number,
+      default: 0
     }
   },
 
@@ -422,6 +434,36 @@ export default {
 
 .branch-decision-badge[data-value="false"] {
   background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.progress-ring-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.progress-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+  fill: none;
+  stroke: rgba(132, 119, 250, 0.15);
+  stroke-width: 4;
+}
+
+.progress-ring-fill {
+  fill: none;
+  stroke: #8477fa;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
 }
 
 .node-port {

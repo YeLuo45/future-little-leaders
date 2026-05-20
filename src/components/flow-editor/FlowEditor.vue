@@ -61,6 +61,7 @@
           :isCompleted="completedNodeIds.includes(node.id)"
           :nodeExecutionTime="nodeExecutionTimes[node.id]"
           :branchDecision="branchDecisions[node.id]"
+          :executionProgress="executionProgress"
           @select="onNodeSelect"
           @dragstart="onNodeDragStart"
           @portdragstart="onPortDragStart"
@@ -127,6 +128,10 @@ export default {
     branchDecisions: {
       type: Object,
       default: () => {}
+    },
+    executionProgress: {
+      type: Number,
+      default: 0
     }
   },
 

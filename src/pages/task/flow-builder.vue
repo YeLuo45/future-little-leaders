@@ -69,6 +69,7 @@
           :completedNodeIds="completedNodeIds"
           :nodeExecutionTimes="nodeExecutionTimes"
           :branchDecisions="branchDecisions"
+          :executionProgress="executionProgress"
           @select-node="onSelectNode"
           @select-connection="onSelectConnection"
           @update:nodes="onNodesUpdate"
@@ -185,7 +186,8 @@ export default {
       completedNodeIds: [],
       nodeExecutionTimes: {},
       executionLogs: [],
-      branchDecisions: {}
+      branchDecisions: {},
+      executionProgress: 0
     }
   },
   
@@ -550,10 +552,13 @@ export default {
       this.nodeExecutionTimes = {}
       this.executionLogs = [{ time: this.getTimeStr(), type: 'info', text: `开始执行流程: ${this.flowName}` }]
       this.branchDecisions = {}
+      this.executionProgress = 0
       const nodeStartTime = Date.now()
 
       const animateNext = () => {
         if (index < nodeIds.length) {
+          const total = nodeIds.length
+          this.executionProgress = Math.round((index / total) * 100)
           const node = this.currentNodes.find(n => n.id === nodeIds[index])
           this.runningNodeId = nodeIds[index]
           // Handle condition node branch decision
@@ -579,6 +584,7 @@ export default {
           this.nodeExecutionTimes[nodeIds[nodeIds.length - 1]] = 600
           this.executionLogs.push({ time: this.getTimeStr(), type: 'completed', text: `完成: ${lastNode?.config?.title || lastNode?.type}` })
           this.runningNodeId = null
+          this.executionProgress = 100
           const endTime = Date.now()
           this.$refs.flowHistory?.recordExecution({
             flowName: this.flowName,
